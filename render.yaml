@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: devops-worksheet-system
+    env: docker
+    plan: free
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: TEACHER_KEY
+        sync: false

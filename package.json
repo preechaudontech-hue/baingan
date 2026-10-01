@@ -1,0 +1,13 @@
+{
+  "name": "devops-worksheet-system",
+  "version": "1.0.0",
+  "description": "ระบบส่งใบงานปฏิบัติ วิชา 31901-2008 การพัฒนาซอฟต์แวร์รูปแบบเดฟออฟส์ (DevOps)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "mongodb": "^6.12.0"
+  }
+}
