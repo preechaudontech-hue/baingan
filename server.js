@@ -77,6 +77,15 @@ app.get("/data.js", (req, res) => {
   );
 });
 
+// ใบความรู้รายหน่วย (เนื้อหาเยอะ จึงแยกเป็นไฟล์ต่างหาก โหลดเฉพาะหน้า learn.html)
+app.get("/knowledge.js", (req, res) => {
+  const all = require("./data/knowledge/index.js");
+  const n = Number(req.query.unit);
+  const data = n ? (all[n] ? { [n]: all[n] } : {}) : all; // ?unit=N ส่งเฉพาะหน่วยนั้น (ประหยัดการโหลด)
+  res.type("application/javascript");
+  res.send(`var KNOWLEDGE = ${JSON.stringify(data)};\n`); // var (ไม่ใช่ const) เพราะหน้า learn.html ประกาศตัวแปรนี้ไว้ก่อนแล้ว
+});
+
 let db = null;
 
 async function connectDb() {

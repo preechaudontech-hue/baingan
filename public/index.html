@@ -74,6 +74,8 @@
   .read-row .info{flex:1;min-width:0}
   .read-row .t{font-weight:600;font-size:14.5px}
   .read-row .h{font-family:var(--font-mono);font-size:11.5px;color:var(--fg-muted);margin-top:1px}
+  .read-link{flex:none;font-size:13px;font-weight:600;color:var(--accent-fg);background:var(--accent);
+    border-radius:8px;padding:7px 12px;text-decoration:none;white-space:nowrap}
   .read-toggle{flex:none;display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;
     border:1px solid var(--border);border-radius:8px;padding:7px 11px;cursor:pointer;background:var(--surface-2);
     color:var(--fg-muted);user-select:none}
@@ -187,7 +189,7 @@
   </header>
 
   <h2 class="section-title">เอกสารประกอบการเรียน (อ่าน)</h2>
-  <p class="meta small">กดทำเครื่องหมายไว้เตือนตัวเองว่าอ่านหน่วยไหนแล้วบ้าง (บันทึกในระบบของครูแล้ว)</p>
+  <p class="meta small">กด "อ่านใบความรู้" เพื่ออ่านเนื้อหาของแต่ละหน่วย อ่านจบแล้วกดทำเครื่องหมาย "อ่านแล้ว" (ระบบจะแจ้งครูให้ทราบ)</p>
   <div class="reads" id="reads"></div>
 
   <h2 class="section-title">ใบงานรายหน่วย (ลงมือปฏิบัติ)</h2>
@@ -640,6 +642,7 @@ function render(){
       <div class="read-row">
         <span class="no">${u.no}</span>
         <span class="info"><div class="t">${u.title}</div><div class="h">${u.hours}</div></span>
+        <a class="read-link" href="/learn.html?unit=${u.no}">อ่านใบความรู้</a>
         <span class="read-toggle" data-unit="${u.no}" data-key="${key}" data-done="${done}">${done ? '✓ อ่านแล้ว' : 'มาร์กว่าอ่านแล้ว'}</span>
       </div>
     `;
