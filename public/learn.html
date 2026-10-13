@@ -37,6 +37,7 @@
   section.sec{margin-top:34px}
   section.sec h2{font-size:21px;margin:0 0 8px;padding-bottom:6px;border-bottom:2px solid var(--accent)}
   p{margin:10px 0}
+  p.ref{font-size:13.5px;color:var(--fg-muted);border-left:3px solid var(--border);padding:2px 0 2px 12px;margin:14px 0}
   ul.l,ol.l{margin:8px 0;padding-left:24px}
   ul.l li,ol.l li{margin:4px 0}
   code.i{font-family:var(--font-mono);font-size:.88em;background:var(--surface-2);border:1px solid var(--border);
@@ -92,6 +93,7 @@ function inline(s){
   const codes = [];
   let out = esc(s).replace(/`([^`]+)`/g, (m, c) => { codes.push(c); return '\u0000' + (codes.length - 1) + '\u0000'; });
   out = out.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  out = out.replace(/\*([^*\n]+)\*/g, '<i>$1</i>');
   return out.replace(/\u0000(\d+)\u0000/g, (m, i) => `<code class="i">${codes[Number(i)]}</code>`);
 }
 function getStudent(){ try { return JSON.parse(localStorage.getItem('student') || 'null'); } catch(e){ return null; } }
@@ -101,6 +103,7 @@ function saveProgress(p){ try { localStorage.setItem('devops_hub_progress', JSON
 function block(b){
   switch(b.t){
     case 'p': return `<p>${inline(b.x)}</p>`;
+    case 'ref': return `<p class="ref"><b>อ้างอิง:</b> ${inline(b.x)}</p>`;
     case 'ul': return `<ul class="l">${b.items.map(i=>`<li>${inline(i)}</li>`).join('')}</ul>`;
     case 'ol': return `<ol class="l">${b.items.map(i=>`<li>${inline(i)}</li>`).join('')}</ol>`;
     case 'code': return `<pre>${b.lang ? `<span class="lang">${esc(b.lang)}</span>` : ''}<code>${esc(b.x)}</code></pre>`;
