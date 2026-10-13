@@ -44,6 +44,19 @@ function computePairKey(courseCode, worksheetId, studentNo, partnerNo) {
     .slice(0, 24);
 }
 
+// ตัวตนนักเรียน = เลขที่ + ชื่อ (เลขที่อย่างเดียวซ้ำข้ามกลุ่มเรียนได้ เช่น เลขที่ 5 ของ ม.6 กับของ ปกติ)
+function uidOf(name, no) {
+  return String(no).trim() + "|" + String(name).trim().replace(/\s+/g, " ").toLowerCase();
+}
+function cleanPerson(src) {
+  const name = String((src && src.studentName) || "").trim().replace(/\s+/g, " ").slice(0, 200);
+  const no = String((src && src.studentNo) || "").trim().slice(0, 50);
+  return name && no ? { name, no, uid: uidOf(name, no) } : null;
+}
+function findLink(worksheetId, uid) {
+  return db.collection("pairLinks").findOne({ courseCode: COURSE_CODE, worksheetId, uid });
+}
+
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI || "";
 const TEACHER_KEY = process.env.TEACHER_KEY || "changeme";
@@ -84,6 +97,10 @@ async function connectDb() {
     { courseCode: 1, worksheetId: 1, pairKey: 1 },
     { unique: true }
   );
+  await db.collection("students").createIndex({ courseCode: 1, uid: 1 }, { unique: true });
+  await db.collection("pairLinks").createIndex({ courseCode: 1, worksheetId: 1, uid: 1 }, { unique: true });
+  await db.collection("pairRequests").createIndex({ courseCode: 1, worksheetId: 1, toUid: 1, status: 1 });
+  await db.collection("pairRequests").createIndex({ courseCode: 1, worksheetId: 1, fromUid: 1, status: 1 });
   console.log("[ok] Connected to MongoDB");
 }
 
@@ -120,6 +137,14 @@ app.post("/api/submit", requireDb, async (req, res) => {
 
     const mode = WORKSHEET_MODE.get(worksheetId) || "individual";
 
+    // ใบงานคู่: ใช้คู่ที่ยืนยันแล้วจากระบบ (ไม่เชื่อค่าที่เบราว์เซอร์ส่งมา)
+    let pName = partnerName, pNo = partnerNo;
+    if (mode === "pair") {
+      const me = cleanPerson(req.body);
+      const link = me && await findLink(worksheetId, me.uid);
+      if (link) { pName = link.partnerName; pNo = link.partnerNo; }
+    }
+
     const doc = {
       courseCode: COURSE_CODE,
       studentName: String(studentName).trim().slice(0, 200),
@@ -129,8 +154,8 @@ app.post("/api/submit", requireDb, async (req, res) => {
       screenshots: shots,
       mode,
       stepAnswers: cleanSteps,
-      partnerName: mode === "pair" && partnerName ? String(partnerName).trim().slice(0, 200) : null,
-      partnerNo: mode === "pair" && partnerNo ? String(partnerNo).trim().slice(0, 50) : null,
+      partnerName: mode === "pair" && pName ? String(pName).trim().slice(0, 200) : null,
+      partnerNo: mode === "pair" && pNo ? String(pNo).trim().slice(0, 50) : null,
       submittedAt: new Date(),
     };
 
@@ -142,34 +167,254 @@ app.post("/api/submit", requireDb, async (req, res) => {
   }
 });
 
+// ---------- API: ขอจับคู่ทำใบงานคู่ (ส่งคำขอ → เพื่อนยืนยัน → เป็นคู่) ----------
+function pairWorksheetOr400(req, res, src) {
+  const worksheetId = src.worksheetId;
+  if (!ALL_PAIR_WORKSHEET_IDS.has(worksheetId)) {
+    res.status(400).json({ error: "not_pair_worksheet" });
+    return null;
+  }
+  const me = cleanPerson(src);
+  if (!me) {
+    res.status(400).json({ error: "missing_fields" });
+    return null;
+  }
+  return { worksheetId, me };
+}
+
+// ลงทะเบียนชื่อนักเรียนไว้ เพื่อให้เพื่อนค้นหาเจอตอนขอจับคู่
+app.post("/api/students/register", requireDb, async (req, res) => {
+  try {
+    const p = cleanPerson(req.body);
+    if (!p) return res.status(400).json({ error: "missing_fields" });
+    await db.collection("students").updateOne(
+      { courseCode: COURSE_CODE, uid: p.uid },
+      { $set: { studentName: p.name, studentNo: p.no, lastSeenAt: new Date() } },
+      { upsert: true }
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("register error", err);
+    res.status(500).json({ error: "server_error" });
+  }
+});
+
+// สถานะการจับคู่ของฉัน: มีคู่แล้วหรือยัง / คำขอที่เข้ามา / คำขอที่ฉันส่งไป
+app.get("/api/pair/state", requireDb, async (req, res) => {
+  try {
+    const ctx = pairWorksheetOr400(req, res, req.query);
+    if (!ctx) return;
+    const { worksheetId, me } = ctx;
+    const link = await findLink(worksheetId, me.uid);
+    if (link) return res.json({ partner: { name: link.partnerName, no: link.partnerNo } });
+
+    const reqs = db.collection("pairRequests");
+    const incoming = await reqs.find({ courseCode: COURSE_CODE, worksheetId, toUid: me.uid, status: "pending" }).sort({ createdAt: 1 }).toArray();
+    const outgoing = await reqs.find({ courseCode: COURSE_CODE, worksheetId, fromUid: me.uid, status: "pending" }).sort({ createdAt: 1 }).toArray();
+    res.json({
+      partner: null,
+      incoming: incoming.map(r => ({ id: String(r._id), name: r.fromName, no: r.fromNo })),
+      outgoing: outgoing.map(r => ({ id: String(r._id), name: r.toName, no: r.toNo })),
+    });
+  } catch (err) {
+    console.error("pair state error", err);
+    res.status(500).json({ error: "server_error" });
+  }
+});
+
+// รายชื่อเพื่อนที่ "ยังว่าง" (ยังไม่มีคู่ในใบงานนี้) ให้เลือกส่งคำขอ
+app.get("/api/pair/candidates", requireDb, async (req, res) => {
+  try {
+    const ctx = pairWorksheetOr400(req, res, req.query);
+    if (!ctx) return;
+    const { worksheetId, me } = ctx;
+    if (await findLink(worksheetId, me.uid)) return res.json({ candidates: [] });
+
+    const q = String(req.query.q || "").trim().toLowerCase();
+    const [students, links, outgoing, incoming] = await Promise.all([
+      db.collection("students").find({ courseCode: COURSE_CODE }).sort({ studentNo: 1 }).limit(1000).toArray(),
+      db.collection("pairLinks").find({ courseCode: COURSE_CODE, worksheetId }).project({ uid: 1 }).toArray(),
+      db.collection("pairRequests").find({ courseCode: COURSE_CODE, worksheetId, fromUid: me.uid, status: "pending" }).toArray(),
+      db.collection("pairRequests").find({ courseCode: COURSE_CODE, worksheetId, toUid: me.uid, status: "pending" }).toArray(),
+    ]);
+    const taken = new Set(links.map(l => l.uid));
+    const sentTo = new Set(outgoing.map(r => r.toUid));
+    const gotFrom = new Set(incoming.map(r => r.fromUid));
+
+    const candidates = students
+      .filter(s => s.uid !== me.uid && !taken.has(s.uid))
+      .filter(s => !q || s.studentName.toLowerCase().includes(q) || s.studentNo.toLowerCase() === q)
+      .slice(0, 60)
+      .map(s => ({
+        name: s.studentName, no: s.studentNo,
+        state: sentTo.has(s.uid) ? "requested" : gotFrom.has(s.uid) ? "incoming" : "none",
+      }));
+    res.json({ candidates });
+  } catch (err) {
+    console.error("pair candidates error", err);
+    res.status(500).json({ error: "server_error" });
+  }
+});
+
+async function createPair(worksheetId, a, b) {
+  const links = db.collection("pairLinks");
+  const base = { courseCode: COURSE_CODE, worksheetId, createdAt: new Date() };
+  try {
+    await links.insertOne({ ...base, uid: a.uid, partnerUid: b.uid, partnerName: b.name, partnerNo: b.no });
+    await links.insertOne({ ...base, uid: b.uid, partnerUid: a.uid, partnerName: a.name, partnerNo: a.no });
+  } catch (err) {
+    // มีใครจับคู่ไปก่อนในเสี้ยววินาทีเดียวกัน → ถอนที่เพิ่งสร้างแล้วแจ้งว่าไม่ว่าง
+    await links.deleteMany({ courseCode: COURSE_CODE, worksheetId, uid: { $in: [a.uid, b.uid] }, createdAt: base.createdAt });
+    return false;
+  }
+  // คำขอที่ค้างของทั้งสองคนในใบงานนี้ถือว่าจบ
+  await db.collection("pairRequests").updateMany(
+    {
+      courseCode: COURSE_CODE, worksheetId, status: "pending",
+      $or: [{ fromUid: { $in: [a.uid, b.uid] } }, { toUid: { $in: [a.uid, b.uid] } }],
+    },
+    { $set: { status: "closed", closedAt: new Date() } }
+  );
+  return true;
+}
+
+app.post("/api/pair/request", requireDb, async (req, res) => {
+  try {
+    const ctx = pairWorksheetOr400(req, res, req.body || {});
+    if (!ctx) return;
+    const { worksheetId, me } = ctx;
+    const to = cleanPerson({ studentName: req.body.toName, studentNo: req.body.toNo });
+    if (!to || to.uid === me.uid) return res.status(400).json({ error: "invalid_target" });
+
+    const target = await db.collection("students").findOne({ courseCode: COURSE_CODE, uid: to.uid });
+    if (!target) return res.status(404).json({ error: "student_not_found" });
+    if ((await findLink(worksheetId, me.uid)) || (await findLink(worksheetId, to.uid))) {
+      return res.status(409).json({ error: "already_paired" });
+    }
+
+    const reqs = db.collection("pairRequests");
+    // อีกฝ่ายส่งคำขอมาหาเราอยู่แล้ว → ถือว่าตกลงกันเลย
+    const reverse = await reqs.findOne({ courseCode: COURSE_CODE, worksheetId, fromUid: to.uid, toUid: me.uid, status: "pending" });
+    if (reverse) {
+      const ok = await createPair(worksheetId, me, to);
+      return ok ? res.json({ ok: true, paired: true }) : res.status(409).json({ error: "already_paired" });
+    }
+    const dup = await reqs.findOne({ courseCode: COURSE_CODE, worksheetId, fromUid: me.uid, toUid: to.uid, status: "pending" });
+    if (!dup) {
+      await reqs.insertOne({
+        courseCode: COURSE_CODE, worksheetId, status: "pending", createdAt: new Date(),
+        fromUid: me.uid, fromName: me.name, fromNo: me.no,
+        toUid: to.uid, toName: target.studentName, toNo: target.studentNo,
+      });
+    }
+    res.json({ ok: true, paired: false });
+  } catch (err) {
+    console.error("pair request error", err);
+    res.status(500).json({ error: "server_error" });
+  }
+});
+
+app.post("/api/pair/respond", requireDb, async (req, res) => {
+  try {
+    const me = cleanPerson(req.body);
+    const { requestId, action } = req.body || {};
+    if (!me || !requestId || !["accept", "decline"].includes(action)) {
+      return res.status(400).json({ error: "missing_fields" });
+    }
+    const { ObjectId } = require("mongodb");
+    const reqs = db.collection("pairRequests");
+    const r = await reqs.findOne({ _id: new ObjectId(requestId), courseCode: COURSE_CODE, toUid: me.uid, status: "pending" });
+    if (!r) return res.status(404).json({ error: "request_not_found" });
+
+    if (action === "decline") {
+      await reqs.updateOne({ _id: r._id }, { $set: { status: "declined", closedAt: new Date() } });
+      return res.json({ ok: true });
+    }
+    if ((await findLink(r.worksheetId, me.uid)) || (await findLink(r.worksheetId, r.fromUid))) {
+      await reqs.updateOne({ _id: r._id }, { $set: { status: "closed", closedAt: new Date() } });
+      return res.status(409).json({ error: "already_paired" });
+    }
+    const from = { uid: r.fromUid, name: r.fromName, no: r.fromNo };
+    const ok = await createPair(r.worksheetId, me, from);
+    res.status(ok ? 200 : 409).json(ok ? { ok: true, paired: true } : { error: "already_paired" });
+  } catch (err) {
+    console.error("pair respond error", err);
+    res.status(400).json({ error: "bad_request" });
+  }
+});
+
+app.post("/api/pair/cancel", requireDb, async (req, res) => {
+  try {
+    const me = cleanPerson(req.body);
+    const { requestId } = req.body || {};
+    if (!me || !requestId) return res.status(400).json({ error: "missing_fields" });
+    const { ObjectId } = require("mongodb");
+    await db.collection("pairRequests").updateOne(
+      { _id: new ObjectId(requestId), courseCode: COURSE_CODE, fromUid: me.uid, status: "pending" },
+      { $set: { status: "cancelled", closedAt: new Date() } }
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(400).json({ error: "bad_request" });
+  }
+});
+
+// ยกเลิกการจับคู่ (ทำได้ทั้งสองฝ่าย) แบบร่างเดิมยังอยู่ ถ้าจับคู่กับคนเดิมอีกจะเห็นข้อมูลเดิม
+app.post("/api/pair/unpair", requireDb, async (req, res) => {
+  try {
+    const ctx = pairWorksheetOr400(req, res, req.body || {});
+    if (!ctx) return;
+    const { worksheetId, me } = ctx;
+    const link = await findLink(worksheetId, me.uid);
+    if (link) {
+      await db.collection("pairLinks").deleteMany({
+        courseCode: COURSE_CODE, worksheetId, uid: { $in: [me.uid, link.partnerUid] },
+      });
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("unpair error", err);
+    res.status(500).json({ error: "server_error" });
+  }
+});
+
 // ---------- API: แชร์แบบร่างระหว่างคู่ (เฉพาะใบงาน mode==="pair") ----------
 app.get("/api/draft/:worksheetId", requireDb, async (req, res) => {
   try {
     const { worksheetId } = req.params;
-    const { studentNo, partnerNo } = req.query;
 
     if (!ALL_PAIR_WORKSHEET_IDS.has(worksheetId)) {
       return res.status(400).json({ error: "not_pair_worksheet" });
     }
-    if (!studentNo || !partnerNo) {
+    const me = cleanPerson(req.query);
+    if (!me) {
       return res.status(400).json({ error: "missing_fields" });
     }
+    const link = await findLink(worksheetId, me.uid);
+    if (!link) {
+      return res.status(403).json({ error: "not_paired" });
+    }
 
-    const pairKey = computePairKey(COURSE_CODE, worksheetId, studentNo, partnerNo);
+    const pairKey = computePairKey(COURSE_CODE, worksheetId, me.uid, link.partnerUid);
     const draft = await db.collection("drafts").findOne({ courseCode: COURSE_CODE, worksheetId, pairKey });
 
-    const existingSubmission = await db.collection("submissions").findOne(
-      {
+    // งานนี้ส่งไปแล้วโดยคนใดคนหนึ่งในคู่หรือไม่ (เทียบด้วย เลขที่+ชื่อ ของทั้งสองคน)
+    const candidates = await db.collection("submissions")
+      .find({
         courseCode: COURSE_CODE,
         worksheetId,
         $or: [
-          { studentNo: String(studentNo) },
-          { studentNo: String(partnerNo) },
-          { partnerNo: String(studentNo) },
-          { partnerNo: String(partnerNo) },
+          { studentNo: me.no }, { studentNo: link.partnerNo },
+          { partnerNo: me.no }, { partnerNo: link.partnerNo },
         ],
-      },
-      { sort: { submittedAt: -1 } }
+      })
+      .sort({ submittedAt: -1 })
+      .limit(20)
+      .toArray();
+    const pairUids = new Set([me.uid, link.partnerUid]);
+    const existingSubmission = candidates.find(s =>
+      pairUids.has(uidOf(s.studentName, s.studentNo)) ||
+      (s.partnerNo && pairUids.has(uidOf(s.partnerName || "", s.partnerNo)))
     );
 
     if (!draft) {
@@ -202,16 +447,22 @@ app.get("/api/draft/:worksheetId", requireDb, async (req, res) => {
 app.put("/api/draft/:worksheetId", requireDb, async (req, res) => {
   try {
     const { worksheetId } = req.params;
-    const { studentName, studentNo, partnerNo, stepAnswers, answerText } = req.body || {};
+    const { stepAnswers, answerText } = req.body || {};
 
     if (!ALL_PAIR_WORKSHEET_IDS.has(worksheetId)) {
       return res.status(400).json({ error: "not_pair_worksheet" });
     }
-    if (!studentName || !studentNo || !partnerNo) {
+    const me = cleanPerson(req.body);
+    if (!me) {
       return res.status(400).json({ error: "missing_fields" });
     }
+    const link = await findLink(worksheetId, me.uid);
+    if (!link) {
+      return res.status(403).json({ error: "not_paired" });
+    }
+    const studentName = me.name, studentNo = me.no;
 
-    const pairKey = computePairKey(COURSE_CODE, worksheetId, studentNo, partnerNo);
+    const pairKey = computePairKey(COURSE_CODE, worksheetId, me.uid, link.partnerUid);
     const now = new Date();
     const col = db.collection("drafts");
 
@@ -229,8 +480,8 @@ app.put("/api/draft/:worksheetId", requireDb, async (req, res) => {
     }
 
     const members = existing ? (existing.members || []) : [];
-    if (!members.some(m => m.studentNo === String(studentNo))) {
-      members.push({ studentName: String(studentName).trim().slice(0, 200), studentNo: String(studentNo).trim().slice(0, 50) });
+    if (!members.some(m => uidOf(m.studentName, m.studentNo) === me.uid)) {
+      members.push({ studentName: me.name, studentNo: me.no });
     }
 
     const update = {

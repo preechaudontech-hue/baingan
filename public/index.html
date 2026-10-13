@@ -118,7 +118,18 @@
   .pair-banner{display:flex;flex-direction:column;gap:8px;background:var(--accent-soft);border:1px solid var(--border);
     border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:14px}
   .pair-banner .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .pair-banner .row[hidden]{display:none}
+  .pair-banner .row[hidden], .pair-banner [hidden]{display:none}
+  .pair-find{display:flex;flex-direction:column;gap:8px}
+  .pair-find input.pair-search{width:100%;max-width:240px}
+  .pair-find .pair-refresh{background:var(--surface-2);color:var(--fg);border:1px solid var(--border)}
+  .pair-candidates{display:flex;flex-direction:column;gap:5px;max-height:220px;overflow:auto}
+  .pair-person{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);
+    border-radius:8px;padding:6px 10px;font-size:13px}
+  .pair-person .who{flex:1;min-width:0}
+  .pair-person .no{font-family:var(--font-mono);font-size:11.5px;color:var(--fg-muted);margin-left:6px}
+  .pair-person button{padding:5px 10px;font-size:12px}
+  .pair-person button.ghost{background:var(--surface-2);color:var(--fg);border:1px solid var(--border)}
+  .pair-incoming .pair-person{border-color:var(--accent);background:var(--accent-soft)}
   .pair-banner input[type="text"]{padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:13px;
     font-family:inherit;background:var(--surface);color:var(--fg);width:120px}
   .pair-banner button{padding:7px 12px;border:none;border-radius:7px;background:var(--accent);color:var(--accent-fg);
@@ -219,7 +230,7 @@ function renderWhoami(){
   const el = document.getElementById('whoami');
   if(!STUDENT){ el.hidden = true; return; }
   el.hidden = false;
-  el.innerHTML = `กำลังใช้งานในชื่อ <b>${STUDENT.studentName}</b> (เลขที่ ${STUDENT.studentNo}) <button id="switchUserBtn">เปลี่ยนผู้ใช้</button>`;
+  el.innerHTML = `กำลังใช้งานในชื่อ <b>${esc(STUDENT.studentName)}</b> (เลขที่ ${esc(STUDENT.studentNo)}) <button id="switchUserBtn">เปลี่ยนผู้ใช้</button>`;
   document.getElementById('switchUserBtn').addEventListener('click', ()=>{
     STUDENT = null;
     localStorage.removeItem('student');
@@ -232,13 +243,13 @@ document.getElementById('loginBtn').addEventListener('click', ()=>{
   const name = document.getElementById('loginName').value.trim();
   const no = document.getElementById('loginNo').value.trim();
   if(!name || !no){ alert('กรุณากรอกชื่อและเลขที่ให้ครบ'); return; }
-  STUDENT = { studentName: name, studentNo: no };
+  STUDENT = { studentName: name.replace(/\s+/g, ' '), studentNo: no };
   setStudent(STUDENT);
-  hideLogin();
-  renderWhoami();
+  // ลงทะเบียนชื่อไว้ให้เพื่อนค้นเจอตอนขอจับคู่ แล้วโหลดหน้าใหม่ เพื่อล้างสถานะของผู้ใช้เดิม
+  registerStudent().finally(()=>location.reload());
 });
 
-if(!STUDENT){ showLogin(); } else { renderWhoami(); }
+if(!STUDENT){ showLogin(); } else { renderWhoami(); registerStudent(); }
 
 // ---------- local step-check progress (UI convenience only, per device) ----------
 function loadProgress(){
@@ -313,14 +324,19 @@ function renderWorksheetBody(ws, keyPrefix){
 
   const pairBannerHtml = isPair ? `
     <div class="pair-banner" data-pair-worksheet="${ws.id}">
-      <div class="row pair-entry">
-        <span>ใบงานนี้ทำเป็นคู่ — กรอกเลขที่เพื่อนคู่ของคุณ:</span>
-        <input type="text" class="pair-partner-input" placeholder="เช่น 16">
-        <button type="button" class="pair-confirm-btn">ยืนยัน</button>
+      <div class="pair-find" hidden>
+        <div><b>ใบงานนี้ทำเป็นคู่</b> — เลือกเพื่อนที่ยังว่าง แล้วกด "ขอร่วมงาน" เมื่อเพื่อนกดยืนยันจึงจะเริ่มทำงานร่วมกันได้</div>
+        <div class="pair-incoming"></div>
+        <div class="pair-outgoing"></div>
+        <div class="row">
+          <input type="text" class="pair-search" placeholder="ค้นหาชื่อหรือเลขที่">
+          <button type="button" class="pair-refresh">รีเฟรชรายชื่อ</button>
+        </div>
+        <div class="pair-candidates"><span class="status">กำลังโหลดรายชื่อ...</span></div>
       </div>
       <div class="row pair-status" hidden>
         <span class="status pair-status-text">กำลังโหลด...</span>
-        <button type="button" class="edit-link pair-edit-btn">แก้ไขคู่</button>
+        <button type="button" class="edit-link pair-unpair-btn">ยกเลิกการจับคู่</button>
       </div>
       <div class="status">หมายเหตุ: ข้อความแชร์ให้คู่เห็นอัตโนมัติ แต่ภาพที่แนบในแต่ละขั้นตอนจะไม่แชร์ ส่งไปพร้อมงานของคนที่กดส่ง</div>
     </div>
@@ -377,19 +393,33 @@ function renderWorksheetBody(ws, keyPrefix){
   `;
 }
 
-// ---------- pair draft sync (เฉพาะใบงาน mode==="pair") ----------
-const PAIR = {}; // worksheetId -> { timer, lastStepUpdatedAt:{idx:ts}, lastTextUpdatedAt:ts, saveTimer, submitted }
+// ---------- ใบงานคู่: ขอจับคู่ (ส่งคำขอ → เพื่อนยืนยัน) + แชร์แบบร่าง ----------
+const PAIR = {}; // worksheetId -> { partner, timer, tick, candidatesLoaded, lastStepUpdatedAt, lastTextUpdatedAt, saveTimers, submitted }
 const STEP_SAVE_DEBOUNCE_MS = 1500;
 const DRAFT_POLL_MS = 5000;
 
+function pairState(wsId){
+  return PAIR[wsId] = PAIR[wsId] || { partner:null, tick:0, candidatesLoaded:false, lastStepUpdatedAt:{}, lastTextUpdatedAt:0, saveTimers:{} };
+}
 function getPairPartner(wsId){
-  try { return localStorage.getItem('pair_partner_' + wsId) || ''; } catch(e){ return ''; }
+  const p = pairState(wsId).partner;
+  return p ? p.no : '';
 }
-function setPairPartner(wsId, no){
-  try { localStorage.setItem('pair_partner_' + wsId, no); } catch(e){}
+function esc(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-function clearPairPartner(wsId){
-  try { localStorage.removeItem('pair_partner_' + wsId); } catch(e){}
+function whoQuery(){
+  return `studentName=${encodeURIComponent(STUDENT.studentName)}&studentNo=${encodeURIComponent(STUDENT.studentNo)}`;
+}
+async function pairPost(path, body){
+  return fetch(path, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(Object.assign({ studentName: STUDENT.studentName, studentNo: STUDENT.studentNo }, body))
+  });
+}
+function registerStudent(){
+  if(!STUDENT) return Promise.resolve();
+  return pairPost('/api/students/register', {}).catch(()=>{});
 }
 function timeAgo(iso){
   if(!iso) return '';
@@ -405,54 +435,114 @@ function setupPairCard(card){
   const banner = card.querySelector('.pair-banner');
   if(!banner) return;
 
-  const entryRow = banner.querySelector('.pair-entry');
-  const statusRow = banner.querySelector('.pair-status');
-  const statusText = banner.querySelector('.pair-status-text');
-  const input = banner.querySelector('.pair-partner-input');
-  const confirmBtn = banner.querySelector('.pair-confirm-btn');
-  const editBtn = banner.querySelector('.pair-edit-btn');
-
-  function showEntry(){
-    entryRow.hidden = false;
-    statusRow.hidden = true;
-  }
-  function showStatus(){
-    entryRow.hidden = true;
-    statusRow.hidden = false;
-  }
-
-  confirmBtn.addEventListener('click', ()=>{
-    const no = input.value.trim();
-    if(!no){ alert('กรุณากรอกเลขที่เพื่อนคู่'); return; }
-    setPairPartner(wsId, no);
-    showStatus();
-    statusText.textContent = 'กำลังโหลด...';
-    pollDraft(wsId, card, true);
-    startPolling(wsId, card);
+  let searchTimer = null;
+  banner.querySelector('.pair-search').addEventListener('input', ()=>{
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(()=>loadCandidates(wsId, card), 300);
   });
-  editBtn.addEventListener('click', ()=>{
-    stopPolling(wsId);
-    clearPairPartner(wsId);
-    input.value = '';
-    showEntry();
-  });
+  banner.querySelector('.pair-refresh').addEventListener('click', ()=>loadCandidates(wsId, card));
 
-  const savedPartner = getPairPartner(wsId);
-  if(savedPartner){
-    input.value = savedPartner;
-    showStatus();
-    statusText.textContent = 'กำลังโหลด...';
-  } else {
-    showEntry();
-  }
+  banner.addEventListener('click', async (e)=>{
+    if(!STUDENT) return;
+    const t = e.target.closest('button');
+    if(!t) return;
+    let resp = null;
+    if(t.classList.contains('pair-req-btn')){
+      t.disabled = true;
+      resp = await pairPost('/api/pair/request', { worksheetId: wsId, toName: t.dataset.name, toNo: t.dataset.no });
+    } else if(t.classList.contains('pair-accept')){
+      t.disabled = true;
+      resp = await pairPost('/api/pair/respond', { requestId: t.dataset.id, action: 'accept' });
+    } else if(t.classList.contains('pair-decline')){
+      resp = await pairPost('/api/pair/respond', { requestId: t.dataset.id, action: 'decline' });
+    } else if(t.classList.contains('pair-cancel')){
+      resp = await pairPost('/api/pair/cancel', { requestId: t.dataset.id });
+    } else if(t.classList.contains('pair-unpair-btn')){
+      if(!confirm('ยกเลิกการจับคู่กับเพื่อนในใบงานนี้ใช่หรือไม่? (แบบร่างที่เขียนไว้ยังอยู่ ถ้ากลับมาจับคู่กับคนเดิมจะเห็นข้อมูลเดิม)')) return;
+      resp = await pairPost('/api/pair/unpair', { worksheetId: wsId });
+    } else {
+      return;
+    }
+    if(resp && resp.status === 409){
+      alert('เพื่อนคนนี้มีคู่ในใบงานนี้แล้ว');
+    }
+    await refreshPair(wsId, card, true);
+  });
 }
 
-async function pollDraft(wsId, card, forceStatusUpdate){
+async function loadCandidates(wsId, card){
   if(!STUDENT) return;
-  const partnerNo = getPairPartner(wsId);
-  if(!partnerNo) return;
+  const q = card.querySelector('.pair-search').value.trim();
+  const box = card.querySelector('.pair-candidates');
   try{
-    const resp = await fetch(`/api/draft/${encodeURIComponent(wsId)}?studentNo=${encodeURIComponent(STUDENT.studentNo)}&partnerNo=${encodeURIComponent(partnerNo)}`);
+    const resp = await fetch(`/api/pair/candidates?worksheetId=${encodeURIComponent(wsId)}&${whoQuery()}&q=${encodeURIComponent(q)}`);
+    if(!resp.ok) return;
+    const { candidates } = await resp.json();
+    pairState(wsId).candidatesLoaded = true;
+    box.innerHTML = candidates.length ? candidates.map(c=>`
+      <div class="pair-person">
+        <span class="who">${esc(c.name)}<span class="no">เลขที่ ${esc(c.no)}</span></span>
+        ${c.state === 'requested' ? '<span class="status">ส่งคำขอแล้ว</span>'
+          : c.state === 'incoming' ? '<span class="status">ขอร่วมงานกับคุณ ดูด้านบน</span>'
+          : `<button type="button" class="pair-req-btn" data-name="${esc(c.name)}" data-no="${esc(c.no)}">ขอร่วมงาน</button>`}
+      </div>`).join('')
+      : '<span class="status">ยังไม่มีเพื่อนที่ว่าง (เพื่อนต้องเปิดเว็บนี้และกรอกชื่อก่อน จึงจะขึ้นในรายชื่อ)</span>';
+  } catch(e){ /* รอรอบถัดไป */ }
+}
+
+// อัปเดตสถานะการจับคู่ + (ถ้าเป็นคู่แล้ว) ดึงแบบร่าง
+async function refreshPair(wsId, card, forceList){
+  if(!STUDENT) return;
+  const banner = card.querySelector('.pair-banner');
+  const findBox = banner.querySelector('.pair-find');
+  const statusRow = banner.querySelector('.pair-status');
+  const ps = pairState(wsId);
+  let st;
+  try{
+    const resp = await fetch(`/api/pair/state?worksheetId=${encodeURIComponent(wsId)}&${whoQuery()}`);
+    if(!resp.ok) return;
+    st = await resp.json();
+  } catch(e){ return; }
+
+  if(st.partner){
+    ps.partner = st.partner;
+    findBox.hidden = true;
+    statusRow.hidden = false;
+    await pollDraft(wsId, card);
+    return;
+  }
+
+  if(ps.partner){
+    // เพิ่งถูกยกเลิกการจับคู่ → ล้างสถานะแบบร่างที่จำไว้
+    ps.partner = null;
+    ps.submitted = false;
+    ps.lastStepUpdatedAt = {};
+    ps.lastTextUpdatedAt = 0;
+  }
+  statusRow.hidden = true;
+  findBox.hidden = false;
+
+  banner.querySelector('.pair-incoming').innerHTML = (st.incoming||[]).map(r=>`
+    <div class="pair-person">
+      <span class="who">${esc(r.name)}<span class="no">เลขที่ ${esc(r.no)}</span> ขอร่วมงานกับคุณ</span>
+      <button type="button" class="pair-accept" data-id="${esc(r.id)}">ยืนยัน</button>
+      <button type="button" class="pair-decline ghost" data-id="${esc(r.id)}">ปฏิเสธ</button>
+    </div>`).join('');
+  banner.querySelector('.pair-outgoing').innerHTML = (st.outgoing||[]).map(r=>`
+    <div class="pair-person">
+      <span class="who">ส่งคำขอถึง ${esc(r.name)}<span class="no">เลขที่ ${esc(r.no)}</span> — รอเพื่อนยืนยัน</span>
+      <button type="button" class="pair-cancel ghost" data-id="${esc(r.id)}">ยกเลิกคำขอ</button>
+    </div>`).join('');
+
+  ps.tick++;
+  if(forceList || !ps.candidatesLoaded || ps.tick % 6 === 0) await loadCandidates(wsId, card);
+}
+
+async function pollDraft(wsId, card){
+  if(!STUDENT) return;
+  if(!pairState(wsId).partner) return;
+  try{
+    const resp = await fetch(`/api/draft/${encodeURIComponent(wsId)}?${whoQuery()}`);
     if(!resp.ok) return;
     const draft = await resp.json();
     applyDraftToCard(wsId, card, draft);
@@ -462,21 +552,16 @@ async function pollDraft(wsId, card, forceStatusUpdate){
 function applyDraftToCard(wsId, card, draft){
   const banner = card.querySelector('.pair-banner');
   const statusText = banner.querySelector('.pair-status-text');
-  PAIR[wsId] = PAIR[wsId] || { lastStepUpdatedAt:{}, lastTextUpdatedAt:0 };
-  PAIR[wsId].submitted = !!draft.alreadySubmitted;
-  PAIR[wsId].members = draft.members || PAIR[wsId].members || [];
+  const ps = pairState(wsId);
+  ps.submitted = !!draft.alreadySubmitted;
 
+  const head = `คู่ของคุณ: ${ps.partner.name} (เลขที่ ${ps.partner.no})`;
   if(draft.alreadySubmitted){
-    statusText.textContent = `✓ ส่งงานนี้แล้วโดย ${draft.submittedBy || 'คู่ของคุณ'} เมื่อ ${timeAgo(draft.submittedAt)}`;
+    statusText.textContent = `${head} · ✓ ส่งงานนี้แล้วโดย ${draft.submittedBy || 'คู่ของคุณ'} เมื่อ ${timeAgo(draft.submittedAt)}`;
   } else if(draft.exists){
-    const others = (draft.members||[]).filter(m=>m.studentNo !== STUDENT.studentNo);
-    if(others.length){
-      statusText.textContent = `คู่ของคุณ (${others[0].studentName}) แก้ไขล่าสุดเมื่อ ${timeAgo(draft.updatedAt)}`;
-    } else {
-      statusText.textContent = 'ยังไม่มีการแก้ไขจากคู่ของคุณ';
-    }
+    statusText.textContent = `${head} · แบบร่างแก้ไขล่าสุด ${timeAgo(draft.updatedAt)}`;
   } else {
-    statusText.textContent = 'ยังไม่มีการแก้ไขจากคู่ของคุณ';
+    statusText.textContent = `${head} · ยังไม่มีแบบร่าง เริ่มพิมพ์ได้เลย`;
   }
 
   if(!draft.exists) return;
@@ -484,7 +569,7 @@ function applyDraftToCard(wsId, card, draft){
   // อัปเดตคำตอบรายขั้นตอน เฉพาะช่องที่ไม่ได้โฟกัสอยู่ และข้อมูลใหม่กว่าที่มี
   (draft.stepAnswers||[]).forEach(sa=>{
     const ts = sa.updatedAt ? new Date(sa.updatedAt).getTime() : 0;
-    if((PAIR[wsId].lastStepUpdatedAt[sa.idx]||0) >= ts) return;
+    if((ps.lastStepUpdatedAt[sa.idx]||0) >= ts) return;
     const checkbox = card.querySelector(`input[type="checkbox"][data-idx="${sa.idx}"]`);
     const answerInput = card.querySelector(`.step-answer[data-idx="${sa.idx}"]`);
     if(answerInput && document.activeElement !== answerInput){
@@ -493,50 +578,49 @@ function applyDraftToCard(wsId, card, draft){
     if(checkbox && document.activeElement !== checkbox){
       checkbox.checked = !!sa.done;
     }
-    PAIR[wsId].lastStepUpdatedAt[sa.idx] = ts;
+    ps.lastStepUpdatedAt[sa.idx] = ts;
   });
 
   // อัปเดตคำตอบรวมท้ายใบงาน เฉพาะถ้าไม่ได้โฟกัสอยู่
   const textTs = draft.answerTextUpdatedAt ? new Date(draft.answerTextUpdatedAt).getTime() : 0;
-  if(textTs > (PAIR[wsId].lastTextUpdatedAt||0)){
+  if(textTs > (ps.lastTextUpdatedAt||0)){
     const textarea = card.querySelector('.submit-form textarea');
     if(textarea && document.activeElement !== textarea){
       textarea.value = draft.answerText || '';
     }
-    PAIR[wsId].lastTextUpdatedAt = textTs;
+    ps.lastTextUpdatedAt = textTs;
   }
 }
 
 function startPolling(wsId, card){
   stopPolling(wsId);
-  pollDraft(wsId, card);
-  PAIR[wsId] = PAIR[wsId] || { lastStepUpdatedAt:{}, lastTextUpdatedAt:0 };
-  PAIR[wsId].timer = setInterval(()=>pollDraft(wsId, card), DRAFT_POLL_MS);
+  const ps = pairState(wsId);
+  refreshPair(wsId, card);
+  ps.timer = setInterval(()=>refreshPair(wsId, card), DRAFT_POLL_MS);
 }
 function stopPolling(wsId){
-  if(PAIR[wsId] && PAIR[wsId].timer){
-    clearInterval(PAIR[wsId].timer);
-    PAIR[wsId].timer = null;
+  const ps = PAIR[wsId];
+  if(ps && ps.timer){
+    clearInterval(ps.timer);
+    ps.timer = null;
   }
 }
 
 function saveDraftField(wsId, patch){
   if(!STUDENT) return;
-  const partnerNo = getPairPartner(wsId);
-  if(!partnerNo) return;
+  if(!pairState(wsId).partner) return;
   fetch(`/api/draft/${encodeURIComponent(wsId)}`, {
     method: 'PUT', headers: {'Content-Type':'application/json'},
     body: JSON.stringify(Object.assign({
-      studentName: STUDENT.studentName, studentNo: STUDENT.studentNo, partnerNo
+      studentName: STUDENT.studentName, studentNo: STUDENT.studentNo
     }, patch))
   }).catch(()=>{ /* จะลองใหม่รอบ autosave ถัดไป */ });
 }
 
 function scheduleDraftSave(wsId, key, patch){
-  PAIR[wsId] = PAIR[wsId] || { lastStepUpdatedAt:{}, lastTextUpdatedAt:0 };
-  if(PAIR[wsId].saveTimers) {} else PAIR[wsId].saveTimers = {};
-  clearTimeout(PAIR[wsId].saveTimers[key]);
-  PAIR[wsId].saveTimers[key] = setTimeout(()=>saveDraftField(wsId, patch), STEP_SAVE_DEBOUNCE_MS);
+  const ps = pairState(wsId);
+  clearTimeout(ps.saveTimers[key]);
+  ps.saveTimers[key] = setTimeout(()=>saveDraftField(wsId, patch), STEP_SAVE_DEBOUNCE_MS);
 }
 
 function render(){
@@ -640,7 +724,7 @@ function render(){
     setupPairCard(card);
     const wsId = card.dataset.worksheetId;
     const section = card.closest('.unit');
-    if(getPairPartner(wsId) && section && section.getAttribute('data-open') === 'true'){
+    if(section && section.getAttribute('data-open') === 'true'){
       startPolling(wsId, card);
     }
   });
@@ -655,7 +739,7 @@ function render(){
 
       section.querySelectorAll('.ws-card[data-mode="pair"]').forEach(card=>{
         const wsId = card.dataset.worksheetId;
-        if(willOpen && getPairPartner(wsId)){
+        if(willOpen){
           startPolling(wsId, card);
         } else {
           stopPolling(wsId);
@@ -762,15 +846,14 @@ function render(){
 
     let partnerName = null, partnerNo = null;
     if(mode === 'pair'){
-      partnerNo = getPairPartner(worksheetId);
-      if(!partnerNo){
-        status.textContent = 'กรุณากรอกเลขที่เพื่อนคู่ของคุณก่อนส่งงาน';
+      const partner = pairState(worksheetId).partner;
+      if(!partner){
+        status.textContent = 'กรุณาขอร่วมงานกับเพื่อนและรอให้เพื่อนยืนยันก่อนส่งงาน';
         status.className = 'submit-status err';
         return;
       }
-      const others = (PAIR[worksheetId] && PAIR[worksheetId].members) || [];
-      const match = others.find(m=>m.studentNo === partnerNo);
-      partnerName = match ? match.studentName : null;
+      partnerNo = partner.no;
+      partnerName = partner.name;
 
       if(PAIR[worksheetId] && PAIR[worksheetId].submitted){
         const ok = confirm('คู่ของคุณส่งใบงานนี้ไปแล้ว ต้องการส่งซ้ำอีกครั้งหรือไม่?');
