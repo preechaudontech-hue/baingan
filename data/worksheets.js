@@ -20,7 +20,7 @@ const WORKSHEETS = [
     objective:"อธิบายความแตกต่างระหว่าง DevOps กับวิธีการพัฒนาซอฟต์แวร์แบบเดิมได้ และเริ่มต้นใช้งานเครื่องมือพื้นฐานของวิชา",
     instruction:"ให้นักเรียนสมัครบัญชี GitHub (หากยังไม่มี) และเข้าร่วม GitHub Student Developer Pack ด้วยอีเมล @udontech.ac.th จากนั้นเขียนสรุปสั้น ๆ ว่า DevOps ต่างจากวิธีการพัฒนาซอฟต์แวร์แบบเดิมอย่างไร",
     steps:["สมัครบัญชี GitHub ด้วยอีเมล @udontech.ac.th (หากยังไม่มีบัญชี)","สมัคร GitHub Student Developer Pack ที่ education.github.com","เขียนสรุปความยาวประมาณครึ่งหน้า A4 ว่า DevOps ต่างจากวิธีการพัฒนาซอฟต์แวร์แบบเดิมอย่างไร","ยกตัวอย่างปัญหาที่เคยพบระหว่างทำโปรเจกต์ ที่แนวคิด DevOps จะช่วยแก้ไขได้ อย่างน้อย 1 ตัวอย่าง"],
-    deliverable:"เอกสารสรุป (Google Docs หรือกระดาษ) + ภาพหน้าจอยืนยันการสมัคร GitHub Student Developer Pack",
+    deliverable:"พิมพ์สรุปในช่องคำตอบ + แนบไฟล์ภาพหน้าจอยืนยันการสมัคร GitHub Student Developer Pack",
     rubric:[["อธิบายความแตกต่าง DevOps กับวิธีเดิมได้ถูกต้อง",5],["ยกตัวอย่างปัญหาที่ DevOps ช่วยแก้ได้สมเหตุสมผล",3],["สมัคร GitHub/Student Pack สำเร็จ",2]] },
 
   { unit:2, id:"2.1", mode:"individual", title:"Git พื้นฐานรายบุคคล",
