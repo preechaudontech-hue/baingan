@@ -141,7 +141,7 @@ function render(submissions, readMarks){
           ${stepAnswers.slice().sort((a,b)=>a.idx-b.idx).map(sa=>`
             <div class="s">
               <span class="mark ${sa.done?'done':'todo'}">${sa.done?'✓':'○'}</span>
-              <span class="txt">${escapeHtml(stepTextFor(s.worksheetId, sa.idx))}<div class="ans">${escapeHtml(sa.answer || '(ยังไม่ตอบ)')}</div></span>
+              <span class="txt">${escapeHtml(stepTextFor(s.worksheetId, sa.idx))}<div class="ans">${escapeHtml(sa.answer || '(ยังไม่ตอบ)')}</div>${sa.imageCount ? `<div>${Array.from({length: sa.imageCount}, (_,k)=>`<button class="ss-link step-img" data-id="${s._id}" data-step="${sa.idx}" data-i="${k}">ภาพ ${k+1}</button>`).join(' ')}</div>` : ''}</span>
             </div>
           `).join('')}
         </div>
@@ -159,7 +159,17 @@ function render(submissions, readMarks){
     });
   });
 
-  contentEl.querySelectorAll('.ss-link').forEach(btn=>{
+  contentEl.querySelectorAll('.step-img').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const resp = await fetch(`/api/teacher/step-image/${btn.dataset.id}?step=${btn.dataset.step}&i=${btn.dataset.i}&key=${encodeURIComponent(KEY)}`);
+      if(!resp.ok) return;
+      const { image } = await resp.json();
+      document.getElementById('ssImg').src = image;
+      document.getElementById('ssModal').hidden = false;
+    });
+  });
+
+  contentEl.querySelectorAll('.ss-link:not(.step-img)').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       const id = btn.dataset.id;
       const resp = await fetch(`/api/teacher/screenshot/${id}?i=${btn.dataset.i || 0}&key=${encodeURIComponent(KEY)}`);

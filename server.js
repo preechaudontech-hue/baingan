@@ -11,16 +11,28 @@ const MAX_SCREENSHOTS = 5;
 const MAX_SCREENSHOTS_TOTAL_CHARS = 11 * 1024 * 1024;
 const MAX_STEP_ANSWER_LEN = 2000;
 const MAX_ANSWER_TEXT_LEN = 10000;
+const MAX_STEP_IMAGES = 3;
+const MAX_STEP_IMAGE_CHARS = 1500000;
+const MAX_STEP_IMAGES_TOTAL_CHARS = 10 * 1024 * 1024;
 
-function sanitizeStepAnswers(input) {
+// allowImages=false สำหรับแบบร่างของคู่ (ไม่ซิงค์ภาพ) / true เฉพาะตอนส่งงานจริง
+function sanitizeStepAnswers(input, allowImages = false) {
   if (!Array.isArray(input)) return [];
   return input
     .filter(s => s && Number.isInteger(s.idx) && s.idx >= 0 && s.idx < 50)
-    .map(s => ({
-      idx: s.idx,
-      done: !!s.done,
-      answer: String(s.answer || "").slice(0, MAX_STEP_ANSWER_LEN),
-    }));
+    .map(s => {
+      const out = {
+        idx: s.idx,
+        done: !!s.done,
+        answer: String(s.answer || "").slice(0, MAX_STEP_ANSWER_LEN),
+      };
+      if (allowImages && Array.isArray(s.images)) {
+        out.images = s.images
+          .filter(im => typeof im === "string" && im.startsWith("data:image/") && im.length <= MAX_STEP_IMAGE_CHARS)
+          .slice(0, MAX_STEP_IMAGES);
+      }
+      return out;
+    });
 }
 
 function computePairKey(courseCode, worksheetId, studentNo, partnerNo) {
@@ -36,7 +48,7 @@ const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI || "";
 const TEACHER_KEY = process.env.TEACHER_KEY || "changeme";
 // ขนาดสูงสุดของ request body (รองรับภาพหน้าจอ base64 ที่มีขนาดใหญ่กว่าข้อความทั่วไป)
-const BODY_LIMIT = "12mb";
+const BODY_LIMIT = "25mb";
 
 const app = express();
 app.use(express.json({ limit: BODY_LIMIT }));
@@ -99,6 +111,13 @@ app.post("/api/submit", requireDb, async (req, res) => {
       return res.status(413).json({ error: "screenshot_too_large" });
     }
 
+    const cleanSteps = sanitizeStepAnswers(stepAnswers, true);
+    const stepImagesChars = cleanSteps.reduce(
+      (sum, s) => sum + (s.images || []).reduce((a, im) => a + im.length, 0), 0);
+    if (stepImagesChars > MAX_STEP_IMAGES_TOTAL_CHARS) {
+      return res.status(413).json({ error: "step_images_too_large" });
+    }
+
     const mode = WORKSHEET_MODE.get(worksheetId) || "individual";
 
     const doc = {
@@ -109,7 +128,7 @@ app.post("/api/submit", requireDb, async (req, res) => {
       answerText: String(answerText || "").slice(0, MAX_ANSWER_TEXT_LEN),
       screenshots: shots,
       mode,
-      stepAnswers: sanitizeStepAnswers(stepAnswers),
+      stepAnswers: cleanSteps,
       partnerName: mode === "pair" && partnerName ? String(partnerName).trim().slice(0, 200) : null,
       partnerNo: mode === "pair" && partnerNo ? String(partnerNo).trim().slice(0, 50) : null,
       submittedAt: new Date(),
@@ -279,7 +298,17 @@ app.get("/api/teacher/data", requireDb, async (req, res) => {
       .find({ courseCode: COURSE_CODE })
       .project({
         studentName: 1, studentNo: 1, worksheetId: 1, answerText: 1, submittedAt: 1,
-        mode: 1, stepAnswers: 1, partnerName: 1, partnerNo: 1,
+        mode: 1, partnerName: 1, partnerNo: 1,
+        stepAnswers: {
+          $map: {
+            input: { $ifNull: ["$stepAnswers", []] },
+            as: "s",
+            in: {
+              idx: "$$s.idx", done: "$$s.done", answer: "$$s.answer",
+              imageCount: { $size: { $ifNull: ["$$s.images", []] } },
+            },
+          },
+        },
         screenshotCount: {
           $add: [
             { $size: { $ifNull: ["$screenshots", []] } },
@@ -315,6 +344,24 @@ app.get("/api/teacher/screenshot/:id", requireDb, async (req, res) => {
     const img = all[Number(req.query.i) || 0];
     if (!img) return res.status(404).end();
     res.json({ screenshotBase64: img });
+  } catch (err) {
+    res.status(400).json({ error: "bad_request" });
+  }
+});
+
+// ---------- API: มุมมองครู — ดูภาพของขั้นตอนปฏิบัติ ----------
+app.get("/api/teacher/step-image/:id", requireDb, async (req, res) => {
+  if (req.query.key !== TEACHER_KEY) {
+    return res.status(403).json({ error: "forbidden" });
+  }
+  try {
+    const { ObjectId } = require("mongodb");
+    const doc = await db.collection("submissions").findOne({ _id: new ObjectId(req.params.id) });
+    if (!doc) return res.status(404).end();
+    const step = (doc.stepAnswers || []).find(s => s.idx === Number(req.query.step));
+    const img = step && (step.images || [])[Number(req.query.i) || 0];
+    if (!img) return res.status(404).end();
+    res.json({ image: img });
   } catch (err) {
     res.status(400).json({ error: "bad_request" });
   }

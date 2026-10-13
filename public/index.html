@@ -99,6 +99,16 @@
   .step-answer{margin-left:25px;padding:7px 10px;border:1px solid var(--border);border-radius:7px;
     font-family:inherit;font-size:13px;background:var(--bg);color:var(--fg)}
 
+  .step-attach{margin-left:25px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+  .step-attach-btn{display:inline-block;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--accent);
+    border:1px dashed var(--accent);border-radius:7px;padding:4px 10px;background:var(--bg)}
+  .step-attach-info{font-size:12px;color:var(--fg-muted)}
+  .step-thumbs{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+  .step-thumb{position:relative;width:64px;height:64px;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+  .step-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .step-thumb button{position:absolute;top:0;right:0;border:none;background:rgba(0,0,0,.6);color:#fff;
+    width:18px;height:18px;line-height:16px;font-size:13px;cursor:pointer;padding:0}
+
   .pair-banner{display:flex;flex-direction:column;gap:8px;background:var(--accent-soft);border:1px solid var(--border);
     border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:14px}
   .pair-banner .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -246,6 +256,39 @@ async function fileToBase64(file){
   });
 }
 
+// ภาพผลลัพธ์รายขั้นตอน เก็บในหน่วยความจำของหน้านี้ (หายถ้ารีเฟรช) แล้วส่งไปพร้อมตอนกด "ส่งงาน"
+const STEP_IMAGES = {}; // worksheetId -> { stepIdx: [dataURI,...] }
+const MAX_STEP_IMAGES_CLIENT = 3;
+
+async function compressImage(file){
+  const original = await fileToBase64(file);
+  try {
+    const img = await new Promise((resolve, reject)=>{
+      const im = new Image();
+      im.onload = ()=>resolve(im); im.onerror = reject; im.src = original;
+    });
+    const scale = Math.min(1, 1280 / Math.max(img.width, img.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(img.width * scale);
+    canvas.height = Math.round(img.height * scale);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/jpeg', 0.75);
+  } catch(e){
+    return original.length <= 1500000 ? original : null;
+  }
+}
+
+function renderStepThumbs(card, wsId, idx){
+  const box = card.querySelector(`.step-thumbs[data-idx="${idx}"]`);
+  const list = (STEP_IMAGES[wsId] && STEP_IMAGES[wsId][idx]) || [];
+  box.innerHTML = list.map((src, k)=>
+    `<div class="step-thumb"><img src="${src}" alt=""><button type="button" class="thumb-remove" data-idx="${idx}" data-k="${k}" aria-label="ลบภาพ">&times;</button></div>`
+  ).join('');
+}
+
 function renderWorksheetBody(ws, keyPrefix){
   const stepsKey = keyPrefix + '_steps';
   const answersKey = keyPrefix + '_answers';
@@ -264,6 +307,7 @@ function renderWorksheetBody(ws, keyPrefix){
         <span class="status pair-status-text">กำลังโหลด...</span>
         <button type="button" class="edit-link pair-edit-btn">แก้ไขคู่</button>
       </div>
+      <div class="status">หมายเหตุ: ข้อความแชร์ให้คู่เห็นอัตโนมัติ แต่ภาพที่แนบในแต่ละขั้นตอนจะไม่แชร์ ส่งไปพร้อมงานของคนที่กดส่ง</div>
     </div>
   ` : '';
 
@@ -288,6 +332,11 @@ function renderWorksheetBody(ws, keyPrefix){
             </div>
             <input type="text" class="step-answer" placeholder="ผลลัพธ์ที่ได้จากขั้นตอนนี้..."
               data-answer-key="${answersKey}" data-idx="${i}" value="${(savedAnswers[i]||'').replace(/"/g,'&quot;')}">
+            <div class="step-attach">
+              <label class="step-attach-btn">แนบภาพผลลัพธ์<input type="file" accept="image/*" multiple class="step-file" data-idx="${i}" hidden></label>
+              <span class="step-attach-info">แนบได้สูงสุด 3 ภาพ (ระบบย่อภาพให้อัตโนมัติ)</span>
+              <div class="step-thumbs" data-idx="${i}"></div>
+            </div>
           </div>
         `).join('')}
       </div>
@@ -590,7 +639,41 @@ function render(){
     });
   });
 
-  document.body.addEventListener('change', (e)=>{
+  document.body.addEventListener('click', (e)=>{
+    const rm = e.target.closest('.thumb-remove');
+    if(!rm) return;
+    const card = rm.closest('.ws-card');
+    const wsId = card.dataset.worksheetId;
+    const idx = Number(rm.dataset.idx);
+    STEP_IMAGES[wsId][idx].splice(Number(rm.dataset.k), 1);
+    renderStepThumbs(card, wsId, idx);
+  });
+
+  document.body.addEventListener('change', async (e)=>{
+    if(e.target.matches('.step-file')){
+      const input = e.target;
+      const card = input.closest('.ws-card');
+      const wsId = card.dataset.worksheetId;
+      const idx = Number(input.dataset.idx);
+      const info = input.closest('.step-attach').querySelector('.step-attach-info');
+      STEP_IMAGES[wsId] = STEP_IMAGES[wsId] || {};
+      const list = STEP_IMAGES[wsId][idx] = STEP_IMAGES[wsId][idx] || [];
+      const files = Array.from(input.files || []);
+      input.value = '';
+      const room = MAX_STEP_IMAGES_CLIENT - list.length;
+      if(files.length > room){
+        info.textContent = `แนบได้สูงสุด ${MAX_STEP_IMAGES_CLIENT} ภาพต่อขั้นตอน (รับเพิ่มได้อีก ${Math.max(room,0)} ภาพ)`;
+      }
+      for(const f of files.slice(0, Math.max(room,0))){
+        info.textContent = 'กำลังย่อภาพ...';
+        const data = await compressImage(f);
+        if(data) list.push(data);
+        else info.textContent = 'ไฟล์ภาพนี้ใช้ไม่ได้ ลองไฟล์อื่น';
+      }
+      if(list.length) info.textContent = `แนบแล้ว ${list.length}/${MAX_STEP_IMAGES_CLIENT} ภาพ`;
+      renderStepThumbs(card, wsId, idx);
+      return;
+    }
     if(e.target.matches('input[type="checkbox"][data-key]')){
       const key = e.target.dataset.key;
       const idx = Number(e.target.dataset.idx);
@@ -675,7 +758,8 @@ function render(){
     for(let i=0;i<stepCount;i++){
       const checkbox = card ? card.querySelector(`input[type="checkbox"][data-idx="${i}"]`) : null;
       const answerInput = card ? card.querySelector(`.step-answer[data-idx="${i}"]`) : null;
-      stepAnswers.push({ idx: i, done: checkbox ? checkbox.checked : false, answer: answerInput ? answerInput.value : '' });
+      const images = (STEP_IMAGES[worksheetId] && STEP_IMAGES[worksheetId][i]) || [];
+      stepAnswers.push({ idx: i, done: checkbox ? checkbox.checked : false, answer: answerInput ? answerInput.value : '', images });
     }
 
     const files = Array.from(fileInput.files || []);
