@@ -132,7 +132,9 @@ function render(submissions, readMarks){
         <td>${escapeHtml(s.worksheetId)}</td>
         <td class="answer">${escapeHtml(s.answerText || '')}</td>
         <td>${stepAnswers.length ? `<button class="steps-link" data-steps-idx="${i}">ดูขั้นตอน (${stepAnswers.length})</button>` : '-'}</td>
-        <td>${s.hasScreenshot ? `<button class="ss-link" data-id="${s._id}">ดูภาพ</button>` : '-'}</td>
+        <td>${s.screenshotCount
+          ? Array.from({length: s.screenshotCount}, (_,k)=>`<button class="ss-link" data-id="${s._id}" data-i="${k}">ดูภาพ ${s.screenshotCount>1 ? (k+1) : ''}</button>`).join(' ')
+          : '-'}</td>
       </tr>
       <tr class="steps-row" id="steps-row-${i}" hidden><td colspan="7">
         <div class="steps-list">
@@ -160,7 +162,7 @@ function render(submissions, readMarks){
   contentEl.querySelectorAll('.ss-link').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       const id = btn.dataset.id;
-      const resp = await fetch(`/api/teacher/screenshot/${id}?key=${encodeURIComponent(KEY)}`);
+      const resp = await fetch(`/api/teacher/screenshot/${id}?i=${btn.dataset.i || 0}&key=${encodeURIComponent(KEY)}`);
       if(!resp.ok) return;
       const { screenshotBase64 } = await resp.json();
       document.getElementById('ssImg').src = screenshotBase64;

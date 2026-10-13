@@ -303,8 +303,8 @@ function renderWorksheetBody(ws, keyPrefix){
     <form class="submit-form" data-worksheet-id="${ws.id}" data-mode="${ws.mode||'individual'}" data-steps-key="${stepsKey}" data-answers-key="${answersKey}" data-step-count="${ws.steps.length}">
       <div class="wsf-label">คำตอบ / ลิงก์ที่จะส่ง</div>
       <textarea placeholder="พิมพ์คำตอบ หรือวางลิงก์ GitHub / URL ที่ deploy ที่นี่"></textarea>
-      <div class="wsf-label">แนบภาพหน้าจอ (ถ้ามี)</div>
-      <input type="file" accept="image/*">
+      <div class="wsf-label">แนบไฟล์ภาพ (เลือกได้หลายไฟล์ สูงสุด 5 ไฟล์ รวมไม่เกิน 8 MB)</div>
+      <input type="file" accept="image/*" multiple>
       <div class="submit-row">
         <button type="submit" class="submit-btn">${sendIcon()}ส่งงาน</button>
         <span class="submit-status"></span>
@@ -678,20 +678,29 @@ function render(){
       stepAnswers.push({ idx: i, done: checkbox ? checkbox.checked : false, answer: answerInput ? answerInput.value : '' });
     }
 
+    const files = Array.from(fileInput.files || []);
+    if(files.length > 5){
+      status.textContent = 'แนบได้สูงสุด 5 ไฟล์';
+      status.className = 'submit-status err';
+      return;
+    }
+    if(files.reduce((sum,f)=>sum+f.size, 0) > 8 * 1024 * 1024){
+      status.textContent = 'ไฟล์รวมกันเกิน 8 MB กรุณาลดจำนวนหรือขนาดไฟล์';
+      status.className = 'submit-status err';
+      return;
+    }
+
     btn.disabled = true;
     status.textContent = 'กำลังส่ง...';
     status.className = 'submit-status';
 
     try{
-      let screenshotBase64 = null;
-      if(fileInput.files && fileInput.files[0]){
-        screenshotBase64 = await fileToBase64(fileInput.files[0]);
-      }
+      const screenshots = await Promise.all(files.map(fileToBase64));
       const resp = await fetch('/api/submit', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
           studentName: STUDENT.studentName, studentNo: STUDENT.studentNo,
-          worksheetId, answerText, screenshotBase64, stepAnswers, partnerName, partnerNo
+          worksheetId, answerText, screenshots, stepAnswers, partnerName, partnerNo
         })
       });
       if(!resp.ok) throw new Error('submit failed');

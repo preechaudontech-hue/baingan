@@ -7,6 +7,8 @@ const { COURSE_CODE, READ_UNITS, WORKSHEETS, GROUP_WORKSHEETS, ALL_WORKSHEET_IDS
 // worksheetId -> "individual" | "pair" เผื่อ validate/บันทึกตอนส่งงาน
 const WORKSHEET_MODE = new Map(WORKSHEETS.map(w => [w.id, w.mode || "individual"]));
 
+const MAX_SCREENSHOTS = 5;
+const MAX_SCREENSHOTS_TOTAL_CHARS = 11 * 1024 * 1024;
 const MAX_STEP_ANSWER_LEN = 2000;
 const MAX_ANSWER_TEXT_LEN = 10000;
 
@@ -81,7 +83,7 @@ function requireDb(req, res, next) {
 // ---------- API: ส่งใบงาน ----------
 app.post("/api/submit", requireDb, async (req, res) => {
   try {
-    const { studentName, studentNo, worksheetId, answerText, screenshotBase64, stepAnswers, partnerName, partnerNo } = req.body || {};
+    const { studentName, studentNo, worksheetId, answerText, screenshots, screenshotBase64, stepAnswers, partnerName, partnerNo } = req.body || {};
 
     if (!studentName || !studentNo || !worksheetId) {
       return res.status(400).json({ error: "missing_fields" });
@@ -89,7 +91,11 @@ app.post("/api/submit", requireDb, async (req, res) => {
     if (!ALL_WORKSHEET_IDS.has(worksheetId)) {
       return res.status(400).json({ error: "invalid_worksheet_id" });
     }
-    if (screenshotBase64 && screenshotBase64.length > 10 * 1024 * 1024) {
+
+    // รับได้ทั้งรูปแบบใหม่ (screenshots: [...]) และรูปแบบเดิม (screenshotBase64 ไฟล์เดียว)
+    let shots = Array.isArray(screenshots) ? screenshots : (screenshotBase64 ? [screenshotBase64] : []);
+    shots = shots.filter(s => typeof s === "string" && s.startsWith("data:image/")).slice(0, MAX_SCREENSHOTS);
+    if (shots.reduce((sum, s) => sum + s.length, 0) > MAX_SCREENSHOTS_TOTAL_CHARS) {
       return res.status(413).json({ error: "screenshot_too_large" });
     }
 
@@ -101,7 +107,7 @@ app.post("/api/submit", requireDb, async (req, res) => {
       studentNo: String(studentNo).trim().slice(0, 50),
       worksheetId,
       answerText: String(answerText || "").slice(0, MAX_ANSWER_TEXT_LEN),
-      screenshotBase64: screenshotBase64 || null,
+      screenshots: shots,
       mode,
       stepAnswers: sanitizeStepAnswers(stepAnswers),
       partnerName: mode === "pair" && partnerName ? String(partnerName).trim().slice(0, 200) : null,
@@ -274,7 +280,12 @@ app.get("/api/teacher/data", requireDb, async (req, res) => {
       .project({
         studentName: 1, studentNo: 1, worksheetId: 1, answerText: 1, submittedAt: 1,
         mode: 1, stepAnswers: 1, partnerName: 1, partnerNo: 1,
-        hasScreenshot: { $toBool: "$screenshotBase64" },
+        screenshotCount: {
+          $add: [
+            { $size: { $ifNull: ["$screenshots", []] } },
+            { $cond: [{ $ifNull: ["$screenshotBase64", false] }, 1, 0] },
+          ],
+        },
       })
       .sort({ submittedAt: -1 })
       .limit(2000)
@@ -299,8 +310,11 @@ app.get("/api/teacher/screenshot/:id", requireDb, async (req, res) => {
   try {
     const { ObjectId } = require("mongodb");
     const doc = await db.collection("submissions").findOne({ _id: new ObjectId(req.params.id) });
-    if (!doc || !doc.screenshotBase64) return res.status(404).end();
-    res.json({ screenshotBase64: doc.screenshotBase64 });
+    if (!doc) return res.status(404).end();
+    const all = [...(doc.screenshots || []), ...(doc.screenshotBase64 ? [doc.screenshotBase64] : [])];
+    const img = all[Number(req.query.i) || 0];
+    if (!img) return res.status(404).end();
+    res.json({ screenshotBase64: img });
   } catch (err) {
     res.status(400).json({ error: "bad_request" });
   }
