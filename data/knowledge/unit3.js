@@ -92,6 +92,7 @@ module.exports = {
       id: "s5",
       title: "5. เขียน Dockerfile",
       blocks: [
+        { t: "note", kind: "info", x: "**โปรเจกต์ที่ใช้ตลอดวิชา** — ใบงานหน่วย 3 ถึง 8 ใช้แอปเดียวกันคือ **devops-starter** (แอปจดโน้ต Notes เขียนด้วย Node.js + Express + MongoDB) ครูจะแจก Template ให้ กดปุ่ม **Use this template** บน GitHub เพื่อสร้าง repository ของตัวเอง แล้วอ่าน `README.md` ในนั้นก่อนเริ่ม ตัวอย่างด้านล่างเป็นแอปเล็กๆ ที่มีโครงสร้างคล้ายกัน เพื่อให้เห็นภาพการเขียน Dockerfile" },
         { t: "p", x: "สมมติมีเว็บแอป Node.js ง่ายๆ ไฟล์ `server.js`" },
         { t: "code", lang: "javascript", x: L(
           'const express = require("express");',

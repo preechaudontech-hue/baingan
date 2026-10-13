@@ -126,6 +126,7 @@ module.exports = {
       id: "s8",
       title: "8. ฝึกปฏิบัติ: หลาย Container + Nginx Load Balancer",
       blocks: [
+        { t: "note", kind: "tip", x: "**ถ้าใช้โปรเจกต์ตั้งต้น devops-starter** (ตามใบงาน 8.1) ไม่ต้องเขียนโค้ดในขั้นที่ 1 เอง เพราะมี **`/whoami`** (บอกชื่อ container ที่ตอบ) และ **`/heavy`** (งานหนักสำหรับจำลองโหลด) ให้แล้ว โดย `/heavy` จะเปิดเฉพาะเมื่อตั้ง `ENABLE_HEAVY=true` ที่ service `app` ใน `docker-compose.yml` (ใส่ในหัวข้อ `environment:`) ข้ามไปทำขั้นที่ 2 ได้เลย และเมื่อทดสอบ ให้เปลี่ยนจาก `http://localhost:8080/` เป็น `/whoami` และ `/heavy` ตามลำดับ" },
         { t: "p", x: "**ขั้นที่ 1: แอปที่บอกว่าตอบมาจาก container ไหน** เพื่อให้เห็นการกระจายโหลดชัดเจน (`server.js`)" },
         { t: "code", lang: "javascript", x: L(
           'const express = require("express");',
