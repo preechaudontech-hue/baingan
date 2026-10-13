@@ -23,7 +23,13 @@
   }
   *{box-sizing:border-box}
   body{background:var(--bg);color:var(--fg);font-family:var(--font-body);margin:0;padding:16px 16px 60px}
-  .wrap{max-width:900px;margin:0 auto}
+  .wrap{max-width:1240px;margin:0 auto}
+  .two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;align-items:start}
+  @media (max-width: 860px){ .two-col{grid-template-columns:minmax(0,1fr)} }
+  .col-title{font-size:16px;font-weight:700;margin:0 0 10px;padding-bottom:8px;border-bottom:2px solid var(--accent)}
+  .col-count{font-size:12.5px;font-weight:500;color:var(--fg-muted);margin-left:6px}
+  .unit-label{font-family:var(--font-mono);font-size:12px;color:var(--fg-muted);margin:12px 0 -4px}
+  .unit-label:first-child{margin-top:0}
   h1,h2,h3{font-family:var(--font-display);margin:0}
   header.page{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
   .eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
@@ -173,8 +179,17 @@
   <p class="meta small">กดทำเครื่องหมายไว้เตือนตัวเองว่าอ่านหน่วยไหนแล้วบ้าง (บันทึกในระบบของครูแล้ว)</p>
   <div class="reads" id="reads"></div>
 
-  <h2 class="section-title">ใบงานรายหน่วย (เดี่ยว/คู่ — ลงมือปฏิบัติ)</h2>
-  <div class="units" id="units"></div>
+  <h2 class="section-title">ใบงานรายหน่วย (ลงมือปฏิบัติ)</h2>
+  <div class="two-col">
+    <div>
+      <h3 class="col-title">ใบงานเดี่ยว <span class="col-count" id="individualCount"></span></h3>
+      <div class="units" id="individualUnits"></div>
+    </div>
+    <div>
+      <h3 class="col-title">ใบงานคู่ <span class="col-count" id="pairCount"></span></h3>
+      <div class="units" id="pairUnits"></div>
+    </div>
+  </div>
 
   <h2 class="section-title group-title">ใบงานกลุ่ม — จำลองบริษัทสตาร์ทอัพซอฟต์แวร์</h2>
   <p class="meta small">มอบหมายได้ตั้งแต่สัปดาห์ที่ 1 เพื่อจัดตั้งทีมล่วงหน้า ก่อนเริ่ม Sprint จริงในสัปดาห์ที่ 6</p>
@@ -568,27 +583,37 @@ function render(){
     });
   });
 
-  const unitsEl = document.getElementById('units');
-  unitsEl.innerHTML = READ_UNITS.map((u,idx)=>{
-    const wsList = WORKSHEETS.filter(w=>w.unit===u.no);
+  // ใบงานรายหน่วย แยก 2 คอลัมน์: เดี่ยว | คู่ (แต่ละใบเป็น accordion ของตัวเอง จัดกลุ่มตามหน่วย)
+  function worksheetAccordion(ws, open){
     return `
-      <section class="unit" data-open="${idx===0}">
-        <button class="unit-head" aria-expanded="${idx===0}">
-          <span class="unit-no">หน่วย ${u.no}</span>
-          <span class="unit-title"><div class="t">${u.title}</div><div class="h">${u.hours} &middot; ${wsList.length} ใบงาน</div></span>
+      <section class="unit" data-open="${open}">
+        <button class="unit-head" aria-expanded="${open}">
+          <span class="unit-no">${ws.id}</span>
+          <span class="unit-title"><div class="t">${ws.title}</div></span>
           ${chevIcon()}
         </button>
         <div class="unit-body">
-          ${wsList.map(ws=>`
-            <div class="ws-card" data-worksheet-id="${ws.id}" data-mode="${ws.mode||'individual'}" style="margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--border)">
-              <h3 style="font-size:15px;margin-bottom:10px">ใบงานที่ ${ws.id} — ${ws.title}${ws.mode==='pair'?'<span class="pair-badge">งานคู่</span>':''}</h3>
-              ${renderWorksheetBody(ws, 'ws_' + ws.id)}
-            </div>
-          `).join('')}
+          <div class="ws-card" data-worksheet-id="${ws.id}" data-mode="${ws.mode||'individual'}">
+            ${renderWorksheetBody(ws, 'ws_' + ws.id)}
+          </div>
         </div>
       </section>
     `;
-  }).join('');
+  }
+  function renderColumn(elId, mode){
+    let first = true;
+    document.getElementById(elId).innerHTML = READ_UNITS.map(u=>{
+      const list = WORKSHEETS.filter(w=>w.unit===u.no && (w.mode||'individual')===mode);
+      if(!list.length) return '';
+      return `<div class="unit-label">หน่วย ${u.no} · ${u.title}</div>` +
+        list.map(ws=>{ const open = first && mode==='individual'; first = false; return worksheetAccordion(ws, open); }).join('');
+    }).join('');
+  }
+  renderColumn('individualUnits', 'individual');
+  renderColumn('pairUnits', 'pair');
+  const countOf = m => WORKSHEETS.filter(w=>(w.mode||'individual')===m).length;
+  document.getElementById('individualCount').textContent = `(${countOf('individual')} ใบ)`;
+  document.getElementById('pairCount').textContent = `(${countOf('pair')} ใบ — ทำกับเพื่อน 1 คน)`;
 
   const groupEl = document.getElementById('groupUnits');
   groupEl.innerHTML = `
