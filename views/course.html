@@ -438,7 +438,7 @@ function renderWorksheetBody(ws, keyPrefix){
 // ---------- ใบงานคู่: ขอจับคู่ (ส่งคำขอ → เพื่อนยืนยัน) + แชร์แบบร่าง ----------
 const PAIR = {}; // worksheetId -> { partner, timer, tick, candidatesLoaded, lastStepUpdatedAt, lastTextUpdatedAt, saveTimers, submitted }
 const STEP_SAVE_DEBOUNCE_MS = 1500;
-const DRAFT_POLL_MS = 5000;
+const DRAFT_POLL_MS = 10000; // รอบถามเซิร์ฟเวอร์ (วินาทีละหลายสิบคนพร้อมกันจะหนักเกินไปถ้าถี่กว่านี้)
 
 function pairState(wsId){
   return PAIR[wsId] = PAIR[wsId] || { partner:null, tick:0, candidatesLoaded:false, lastStepUpdatedAt:{}, lastTextUpdatedAt:0, saveTimers:{} };
@@ -535,6 +535,7 @@ async function loadCandidates(wsId, card){
 // อัปเดตสถานะการจับคู่ + (ถ้าเป็นคู่แล้ว) ดึงแบบร่าง
 async function refreshPair(wsId, card, forceList){
   if(!STUDENT) return;
+  if(document.hidden && !forceList) return;
   const banner = card.querySelector('.pair-banner');
   const findBox = banner.querySelector('.pair-find');
   const statusRow = banner.querySelector('.pair-status');
@@ -698,6 +699,7 @@ async function loadTeamCandidates(){
 
 async function refreshTeam(forceList){
   if(!STUDENT) return;
+  if(document.hidden && !forceList) return; // แท็บถูกซ่อนอยู่ ไม่ต้องถาม
   const panel = document.getElementById('teamPanel');
   if(!panel) return;
   let st;

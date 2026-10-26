@@ -101,12 +101,25 @@ function setSessionCookie(req, res, token, maxAgeSec) {
   res.setHeader("Set-Cookie", parts.join("; "));
 }
 
+// แคชผลตรวจ session สั้นๆ ลดจำนวน query (หน้าเว็บถามเซิร์ฟเวอร์ทุกไม่กี่วินาที)
+// ล้างทั้งแคชเมื่อออกจากระบบ/เปลี่ยนรหัส/รีเซ็ต/ลบบัญชี (ในเครื่องเดียวกัน) ส่วนกรณีอื่นมีผลภายใน AUTH_CACHE_MS
+const AUTH_CACHE_MS = 60 * 1000;
+const authCache = new Map(); // tokenHash -> { acc, until }
 async function accountFromRequest(req) {
   const token = readCookie(req, "sid");
   if (!token) return null;
-  const sess = await db.collection("sessions").findOne({ tokenHash: sha256(token), expiresAt: { $gt: new Date() } });
+  const th = sha256(token);
+  const hit = authCache.get(th);
+  if (hit && hit.until > Date.now()) return hit.acc;
+  authCache.delete(th);
+  const sess = await db.collection("sessions").findOne({ tokenHash: th, expiresAt: { $gt: new Date() } });
   if (!sess) return null;
-  return db.collection("accounts").findOne({ studentId: sess.studentId });
+  const acc = await db.collection("accounts").findOne({ studentId: sess.studentId });
+  if (acc) {
+    if (authCache.size > 5000) authCache.clear();
+    authCache.set(th, { acc, until: Date.now() + AUTH_CACHE_MS });
+  }
+  return acc;
 }
 
 // ต้องล็อกอินก่อน; ตั้ง req.me จาก session (ไม่เชื่อชื่อ/เลขที่ที่ client ส่งมา)
@@ -262,7 +275,7 @@ app.post("/api/login", async (req, res) => {
 app.post("/api/logout", async (req, res) => {
   try {
     const token = readCookie(req, "sid");
-    if (token && db) await db.collection("sessions").deleteOne({ tokenHash: sha256(token) });
+    if (token && db) await (authCache.clear(), db.collection("sessions")).deleteOne({ tokenHash: sha256(token) });
   } catch (err) { /* ออกจากระบบฝั่ง client ต่อได้ */ }
   setSessionCookie(req, res, "", 0);
   res.json({ ok: true });
@@ -283,7 +296,7 @@ app.post("/api/me/password", requireAccount, async (req, res) => {
     await db.collection("accounts").updateOne({ studentId: req.account.studentId }, { $set: { ...pw, passwordChanged: true } });
     // ออกจากระบบเครื่องอื่นทั้งหมด ยกเว้นเครื่องนี้
     const keep = sha256(readCookie(req, "sid"));
-    await db.collection("sessions").deleteMany({ studentId: req.account.studentId, tokenHash: { $ne: keep } });
+    await (authCache.clear(), db.collection("sessions")).deleteMany({ studentId: req.account.studentId, tokenHash: { $ne: keep } });
     res.json({ ok: true });
   } catch (err) {
     console.error("password error", err);
@@ -327,6 +340,7 @@ app.post("/api/admin/roster", requireTeacher, async (req, res) => {
         created++;
       }
     }
+    authCache.clear();
     res.json({ ok: true, created, updated, skipped });
   } catch (err) {
     console.error("roster error", err);
@@ -349,7 +363,7 @@ app.post("/api/admin/teacher", requireTeacher, async (req, res) => {
       { $set: { name, role: "teacher", classGroup: "", ...pw, passwordChanged: true }, $setOnInsert: { createdAt: new Date() } },
       { upsert: true }
     );
-    await db.collection("sessions").deleteMany({ studentId: username });
+    await (authCache.clear(), db.collection("sessions")).deleteMany({ studentId: username });
     res.json({ ok: true });
   } catch (err) {
     console.error("teacher account error", err);
@@ -369,7 +383,7 @@ app.post("/api/admin/reset-password", requireTeacher, async (req, res) => {
     if (!acc) return res.status(404).json({ error: "not_found" });
     const pw = await makePassword(studentId);
     await db.collection("accounts").updateOne({ studentId }, { $set: { ...pw, passwordChanged: false } });
-    await db.collection("sessions").deleteMany({ studentId });
+    await (authCache.clear(), db.collection("sessions")).deleteMany({ studentId });
     res.json({ ok: true });
   } catch (err) {
     console.error("reset-password error", err);
@@ -380,7 +394,7 @@ app.post("/api/admin/reset-password", requireTeacher, async (req, res) => {
 app.post("/api/admin/delete-account", requireTeacher, async (req, res) => {
   const studentId = String((req.body || {}).studentId || "").trim();
   await db.collection("accounts").deleteOne({ studentId });
-  await db.collection("sessions").deleteMany({ studentId });
+  await (authCache.clear(), db.collection("sessions")).deleteMany({ studentId });
   res.json({ ok: true });
 });
 
