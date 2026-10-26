@@ -68,6 +68,13 @@
       <button id="rosterImport">นำเข้ารายชื่อ</button>
       <span id="rosterMsg" class="meta"></span>
     </div>
+    <div style="margin:10px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <b>บัญชีครู</b>
+      <input id="tUser" type="text" placeholder="ชื่อผู้ใช้ครู" style="width:140px">
+      <input id="tPass" type="password" placeholder="รหัสผ่าน (อย่างน้อย 4 ตัว)" style="width:190px">
+      <button id="tSave">สร้าง/ตั้งรหัสบัญชีครู</button>
+      <span id="tMsg" class="meta"></span>
+    </div>
     <div id="rosterList" class="meta">ยังไม่ได้โหลดรายชื่อ</div>
   </details>
 
@@ -232,6 +239,16 @@ async function loadRoster(){
               <button class="acc-del" data-id="${escapeHtml(a.studentId)}">ลบ</button></td></tr>`).join('')}</tbody></table>`
     : 'ยังไม่มีบัญชีนักเรียน';
 }
+document.getElementById('tSave').addEventListener('click', async ()=>{
+  const msg = document.getElementById('tMsg');
+  const username = document.getElementById('tUser').value.trim();
+  const password = document.getElementById('tPass').value;
+  if(!username || password.length < 4){ msg.textContent = 'กรอกชื่อผู้ใช้ และรหัสผ่านอย่างน้อย 4 ตัว'; return; }
+  const r = await fetch('/api/admin/teacher?key=' + encodeURIComponent(KEY), { method:'POST',
+    headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username, password }) });
+  msg.textContent = r.ok ? 'บันทึกแล้ว ใช้ล็อกอินที่หน้าแรกของวิชาได้' : (r.status === 409 ? 'ชื่อผู้ใช้นี้เป็นของนักเรียน' : 'บันทึกไม่สำเร็จ');
+  if(r.ok){ document.getElementById('tPass').value = ''; loadRoster(); }
+});
 document.getElementById('rosterBox').addEventListener('toggle', e=>{ if(e.target.open) loadRoster(); });
 document.getElementById('rosterImport').addEventListener('click', async ()=>{
   const msg = document.getElementById('rosterMsg');
