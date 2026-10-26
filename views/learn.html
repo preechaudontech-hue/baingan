@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ใบความรู้ — คลังใบงานเดฟออฟส์</title>
+<title>ใบความรู้</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <style>
   :root{
@@ -72,14 +72,14 @@
 <body>
 <div class="wrap" id="app"><div class="empty">กำลังโหลด...</div></div>
 
-<script src="/data.js"></script>
+<script src="data.js"></script>
 <script>
 // โหลดเฉพาะเนื้อหาของหน่วยที่เปิด แล้วค่อยเรียก render() (กำหนด KNOWLEDGE เป็นค่าเริ่มต้นกันไฟล์โหลดไม่ขึ้น)
 var KNOWLEDGE = {};
 (function(){
   const no = Number(new URLSearchParams(location.search).get('unit'));
   const s = document.createElement('script');
-  s.src = '/knowledge.js?unit=' + encodeURIComponent(no || 0);
+  s.src = 'knowledge.js?unit=' + encodeURIComponent(no || 0);
   const go = function(){ if(typeof render === 'function') render(); else setTimeout(go, 20); };
   s.onload = s.onerror = go;
   document.head.appendChild(s);
@@ -97,8 +97,8 @@ function inline(s){
   return out.replace(/\u0000(\d+)\u0000/g, (m, i) => `<code class="i">${codes[Number(i)]}</code>`);
 }
 function getStudent(){ try { return JSON.parse(localStorage.getItem('student') || 'null'); } catch(e){ return null; } }
-function loadProgress(){ try { return JSON.parse(localStorage.getItem('devops_hub_progress') || '{}'); } catch(e){ return {}; } }
-function saveProgress(p){ try { localStorage.setItem('devops_hub_progress', JSON.stringify(p)); } catch(e){} }
+function loadProgress(){ try { return JSON.parse(localStorage.getItem('progress_' + COURSE_CODE) || '{}'); } catch(e){ return {}; } }
+function saveProgress(p){ try { localStorage.setItem('progress_' + COURSE_CODE, JSON.stringify(p)); } catch(e){} }
 
 function block(b){
   switch(b.t){
@@ -123,25 +123,25 @@ function render(){
   const unitInfo = READ_UNITS.find(u => u.no === no);
   const k = KNOWLEDGE[no];
   if(!unitInfo){
-    app.innerHTML = '<div class="empty">ไม่พบหน่วยที่ต้องการ <a href="/">กลับหน้าแรก</a></div>';
+    app.innerHTML = '<div class="empty">ไม่พบหน่วยที่ต้องการ <a href="./">กลับหน้าแรก</a></div>';
     return;
   }
   document.title = `ใบความรู้ หน่วยที่ ${no} — ${unitInfo.title}`;
   if(!k){
-    app.innerHTML = `<div class="topbar"><a href="/">&larr; กลับหน้าแรก</a></div>
+    app.innerHTML = `<div class="topbar"><a href="./">&larr; กลับหน้าแรก</a></div>
       <div class="eyebrow">หน่วยที่ ${no}</div><h1>${esc(unitInfo.title)}</h1>
       <div class="empty">ใบความรู้หน่วยนี้ยังไม่พร้อม</div>`;
     return;
   }
 
   const hasUnit = n => READ_UNITS.some(u => u.no === n);
-  const prev = hasUnit(no-1) ? `<a href="/learn.html?unit=${no-1}">&larr; หน่วยที่ ${no-1}</a>` : '';
-  const next = hasUnit(no+1) ? `<a href="/learn.html?unit=${no+1}">หน่วยที่ ${no+1} &rarr;</a>` : '';
+  const prev = hasUnit(no-1) ? `<a href="learn.html?unit=${no-1}">&larr; หน่วยที่ ${no-1}</a>` : '';
+  const next = hasUnit(no+1) ? `<a href="learn.html?unit=${no+1}">หน่วยที่ ${no+1} &rarr;</a>` : '';
   const done = !!loadProgress()['read_unit' + no];
 
   app.innerHTML = `
-    <div class="topbar"><a href="/">&larr; กลับหน้าแรก (คลังใบงาน)</a><span class="nav">${prev} ${next}</span></div>
-    <div class="eyebrow">31901-2008 · ใบความรู้ หน่วยที่ ${no}</div>
+    <div class="topbar"><a href="./">&larr; กลับหน้าแรก (${esc(COURSE_INFO.hubTitle)})</a><span class="nav">${prev} ${next}</span></div>
+    <div class="eyebrow">${esc(COURSE_CODE)} · ใบความรู้ หน่วยที่ ${no}</div>
     <h1>${esc(unitInfo.title)}</h1>
     <p class="meta">${esc(unitInfo.hours)} · ${esc(k.intro)}</p>
 
@@ -177,7 +177,7 @@ function render(){
     if(!student){ st.textContent = 'กลับไปหน้าแรกเพื่อกรอกชื่อและเลขที่ก่อน จึงจะบันทึกได้'; return; }
     btn.disabled = true; st.textContent = '';
     try{
-      const resp = await fetch('/api/read', { method:'POST', headers:{'Content-Type':'application/json'},
+      const resp = await fetch('/api/c/' + encodeURIComponent(COURSE_CODE) + '/read', { method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ studentName: student.studentName, studentNo: student.studentNo, unitNo: no }) });
       if(!resp.ok) throw new Error('failed');
       const p = loadProgress(); p['read_unit' + no] = true; saveProgress(p);

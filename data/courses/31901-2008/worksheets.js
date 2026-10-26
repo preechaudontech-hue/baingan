@@ -1,6 +1,6 @@
 // ข้อมูลหน่วยการเรียนรู้ + ใบงาน วิชา 31901-2008 การพัฒนาซอฟต์แวร์รูปแบบเดฟออฟส์ (DevOps)
 // ใช้ร่วมกันทั้งฝั่ง frontend (แสดงผล) และฝั่ง backend (validate worksheetId ตอนส่งงาน)
-// courseCode เผื่อขยายระบบไปใช้กับวิชาอื่น (เช่น Backend) ในอนาคตโดยไม่ต้องรื้อโครงสร้าง
+// โหลดโดย data/courses.js — รูปแบบไฟล์ของแต่ละวิชาดูที่ data/courses/README.md
 
 const COURSE_CODE = "31901-2008";
 
@@ -173,9 +173,21 @@ const GROUP_WORKSHEETS = [
     rubric:[["ระบบสาธิตทำงานได้จริงครบวงจร",4],["การนำเสนอชัดเจน ตอบคำถามได้",3],["เอกสารสรุปโครงงานครบถ้วน",2],["ทำ Peer Assessment ครบทุกคน",1]] },
 ];
 
-const ALL_WORKSHEET_IDS = new Set([...WORKSHEETS.map(w => w.id), ...GROUP_WORKSHEETS.map(w => w.id)]);
-const ALL_UNIT_NOS = new Set(READ_UNITS.map(u => u.no));
-// ใบงานที่ต้องทำเป็นคู่ (เปิดใช้ฟีเจอร์แชร์แบบร่างระหว่างคู่ฝั่ง server/client)
-const ALL_PAIR_WORKSHEET_IDS = new Set(WORKSHEETS.filter(w => w.mode === "pair").map(w => w.id));
+// ข้อมูลที่ใช้แสดงบนหน้าเว็บของวิชานี้ (ส่วนที่เป็นชุด ID และโหมดคู่/เดี่ยว ระบบคำนวณเองใน data/courses.js)
+const COURSE_INFO = {
+  shortName: "DevOps",
+  fullName: "การพัฒนาซอฟต์แวร์รูปแบบเดฟออฟส์",
+  hubTitle: "คลังใบงานเดฟออฟส์",
+  totalHours: 75,
+  // หัวข้อและข้อความของส่วน "ใบงานกลุ่ม" (ไม่ต้องใส่ถ้าวิชานี้ไม่มีใบงานกลุ่ม)
+  group: {
+    sectionTitle: "ใบงานกลุ่ม — จำลองบริษัทสตาร์ทอัพซอฟต์แวร์",
+    sectionNote: "มอบหมายได้ตั้งแต่สัปดาห์ที่ 1 เพื่อจัดตั้งทีมล่วงหน้า ก่อนเริ่ม Sprint จริงในสัปดาห์ที่ 6",
+    badge: "ทีม",
+    cardTitle: "ใบงานกลุ่มจำลองบริษัทสตาร์ทอัพ (G.1–G.5)",
+    cardSub: "ตลอดภาคเรียน",
+    itemLabel: "ใบงานกลุ่มที่",
+  },
+};
 
-module.exports = { COURSE_CODE, READ_UNITS, WORKSHEETS, GROUP_WORKSHEETS, ALL_WORKSHEET_IDS, ALL_UNIT_NOS, ALL_PAIR_WORKSHEET_IDS };
+module.exports = { COURSE_CODE, COURSE_INFO, READ_UNITS, WORKSHEETS, GROUP_WORKSHEETS };
