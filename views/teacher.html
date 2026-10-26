@@ -60,6 +60,17 @@
   <h1 id="pageTitle">มุมมองครู</h1>
   <p class="meta" id="pageMeta"></p>
 
+  <details id="rosterBox" style="margin:12px 0;padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface)">
+    <summary style="cursor:pointer;font-weight:600">จัดการรายชื่อนักเรียนและบัญชีเข้าสู่ระบบ</summary>
+    <p class="meta" style="margin:8px 0">วางรายชื่อทีละบรรทัด รูปแบบ <b>รหัสนักเรียน, ชื่อ-นามสกุล, ห้อง</b> (คั่นด้วยคอมมา หรือแท็บ จากการคัดลอกใน Excel) รายชื่อใหม่ได้รหัสผ่านเริ่มต้นเท่ากับรหัสนักเรียน รายชื่อเดิมจะอัปเดตชื่อ/ห้องโดยไม่แตะรหัสผ่าน</p>
+    <textarea id="rosterText" rows="6" style="width:100%;font-family:inherit" placeholder="66001, สมชาย ใจดี, ปวช.1/1"></textarea>
+    <div style="margin:8px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button id="rosterImport">นำเข้ารายชื่อ</button>
+      <span id="rosterMsg" class="meta"></span>
+    </div>
+    <div id="rosterList" class="meta">ยังไม่ได้โหลดรายชื่อ</div>
+  </details>
+
   <div id="content">กำลังโหลด...</div>
 </div>
 
@@ -196,6 +207,57 @@ document.getElementById('ssClose').addEventListener('click', ()=>{
 });
 
 load();
+
+// ---------- จัดการรายชื่อ / บัญชีนักเรียน ----------
+function parseRoster(text){
+  return text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(l=>{
+    const p = l.split(/\t|,/).map(x=>x.trim());
+    return { studentId: p[0], name: p[1], classGroup: p[2] || '' };
+  }).filter(r => r.studentId && r.name && !/^(รหัส|id|studentid)/i.test(r.studentId));
+}
+async function loadRoster(){
+  const box = document.getElementById('rosterList');
+  if(!KEY){ box.textContent = 'ต้องมี ?key= ในลิงก์'; return; }
+  const r = await fetch('/api/admin/accounts?key=' + encodeURIComponent(KEY));
+  if(!r.ok){ box.textContent = 'โหลดรายชื่อไม่สำเร็จ'; return; }
+  const { accounts } = await r.json();
+  box.innerHTML = accounts.length
+    ? `<div>มีบัญชี ${accounts.length} คน (เปลี่ยนรหัสผ่านเองแล้ว ${accounts.filter(a=>a.passwordChanged).length} คน)</div>` +
+      `<table><thead><tr><th>รหัส</th><th>ชื่อ</th><th>ห้อง</th><th>รหัสผ่าน</th><th></th></tr></thead><tbody>${
+        accounts.map(a=>`<tr><td>${escapeHtml(a.studentId)}</td><td>${escapeHtml(a.name)}</td><td>${escapeHtml(a.classGroup||'')}</td>
+          <td>${a.passwordChanged ? 'เปลี่ยนแล้ว' : 'เริ่มต้น'}</td>
+          <td><button class="acc-reset" data-id="${escapeHtml(a.studentId)}">รีเซ็ตรหัสผ่าน</button>
+              <button class="acc-del" data-id="${escapeHtml(a.studentId)}">ลบ</button></td></tr>`).join('')}</tbody></table>`
+    : 'ยังไม่มีบัญชีนักเรียน';
+}
+document.getElementById('rosterBox').addEventListener('toggle', e=>{ if(e.target.open) loadRoster(); });
+document.getElementById('rosterImport').addEventListener('click', async ()=>{
+  const msg = document.getElementById('rosterMsg');
+  const students = parseRoster(document.getElementById('rosterText').value);
+  if(!students.length){ msg.textContent = 'ไม่พบรายชื่อที่อ่านได้'; return; }
+  msg.textContent = 'กำลังนำเข้า...';
+  const r = await fetch('/api/admin/roster?key=' + encodeURIComponent(KEY), { method:'POST',
+    headers:{'Content-Type':'application/json'}, body: JSON.stringify({ students }) });
+  if(!r.ok){ msg.textContent = 'นำเข้าไม่สำเร็จ'; return; }
+  const d = await r.json();
+  msg.textContent = `เสร็จแล้ว: เพิ่มใหม่ ${d.created} อัปเดต ${d.updated} ข้าม ${d.skipped}`;
+  loadRoster();
+});
+document.getElementById('rosterList').addEventListener('click', async e=>{
+  const b = e.target.closest('button');
+  if(!b) return;
+  const id = b.dataset.id;
+  if(b.classList.contains('acc-reset')){
+    if(!confirm('รีเซ็ตรหัสผ่านของ ' + id + ' กลับเป็นรหัสนักเรียน?')) return;
+    await fetch('/api/admin/reset-password?key=' + encodeURIComponent(KEY), { method:'POST',
+      headers:{'Content-Type':'application/json'}, body: JSON.stringify({ studentId: id }) });
+  } else if(b.classList.contains('acc-del')){
+    if(!confirm('ลบบัญชี ' + id + '? (งานที่ส่งไปแล้วไม่ถูกลบ)')) return;
+    await fetch('/api/admin/delete-account?key=' + encodeURIComponent(KEY), { method:'POST',
+      headers:{'Content-Type':'application/json'}, body: JSON.stringify({ studentId: id }) });
+  } else return;
+  loadRoster();
+});
 </script>
 </body>
 </html>

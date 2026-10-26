@@ -170,12 +170,13 @@
 <div id="loginOverlay" hidden>
   <div class="login-card">
     <h2>เข้าสู่คลังใบงาน</h2>
-    <p>กรอกชื่อ-นามสกุลและเลขที่ของนักเรียน ระบบจะจำไว้ให้ในเครื่องนี้</p>
-    <label for="loginName">ชื่อ-นามสกุล</label>
-    <input id="loginName" type="text" placeholder="เช่น ด.ช. สมชาย ใจดี">
-    <label for="loginNo">เลขที่ / รหัสนักศึกษา</label>
-    <input id="loginNo" type="text" placeholder="เช่น 15">
-    <button id="loginBtn">เริ่มใช้งาน</button>
+    <p>ชื่อผู้ใช้คือรหัสนักเรียน รหัสผ่านเริ่มต้นคือรหัสนักเรียน (เปลี่ยนได้หลังเข้าสู่ระบบ)</p>
+    <label for="loginUser">ชื่อผู้ใช้ (รหัสนักเรียน)</label>
+    <input id="loginUser" type="text" autocomplete="username" inputmode="numeric">
+    <label for="loginPass">รหัสผ่าน</label>
+    <input id="loginPass" type="password" autocomplete="current-password">
+    <div id="loginErr" style="color:#b3261e;font-size:13px;min-height:18px;margin:6px 0 2px"></div>
+    <button id="loginBtn">เข้าสู่ระบบ</button>
   </div>
 </div>
 
@@ -221,17 +222,21 @@ const COURSE = COURSE_CODE;
 const API = '/api/c/' + encodeURIComponent(COURSE);
 const PROGRESS_KEY = 'progress_' + COURSE;
 
-// ---------- student identity ----------
-function getStudent(){
-  try { return JSON.parse(localStorage.getItem('student') || 'null'); } catch(e){ return null; }
-}
-function setStudent(s){
-  try { localStorage.setItem('student', JSON.stringify(s)); } catch(e){}
-}
-let STUDENT = getStudent();
+// ---------- student identity (login ด้วยรหัสนักเรียน; ตัวตนอยู่ที่ session ฝั่งเซิร์ฟเวอร์) ----------
+let STUDENT = null;
+
+// ถ้าเซิร์ฟเวอร์ตอบ 401 (หมดอายุ/ออกจากระบบ) ให้กลับไปหน้า login
+const _fetch = window.fetch.bind(window);
+window.fetch = async function(...args){
+  const r = await _fetch(...args);
+  if(r.status === 401 && STUDENT){ STUDENT = null; showLogin(); }
+  return r;
+};
 
 function showLogin(){
   document.getElementById('loginOverlay').hidden = false;
+  const u = document.getElementById('loginUser');
+  if(u) u.focus();
 }
 function hideLogin(){
   document.getElementById('loginOverlay').hidden = true;
@@ -240,26 +245,46 @@ function renderWhoami(){
   const el = document.getElementById('whoami');
   if(!STUDENT){ el.hidden = true; return; }
   el.hidden = false;
-  el.innerHTML = `กำลังใช้งานในชื่อ <b>${esc(STUDENT.studentName)}</b> (เลขที่ ${esc(STUDENT.studentNo)}) <button id="switchUserBtn">เปลี่ยนผู้ใช้</button>`;
-  document.getElementById('switchUserBtn').addEventListener('click', ()=>{
-    STUDENT = null;
-    localStorage.removeItem('student');
-    renderWhoami();
-    showLogin();
+  el.innerHTML = `เข้าสู่ระบบเป็น <b>${esc(STUDENT.studentName)}</b> (รหัส ${esc(STUDENT.studentNo)}) <button id="changePwBtn">เปลี่ยนรหัสผ่าน</button> <button id="logoutBtn">ออกจากระบบ</button>`;
+  document.getElementById('logoutBtn').addEventListener('click', async ()=>{
+    await fetch('/api/logout', { method: 'POST' }).catch(()=>{});
+    location.reload();
+  });
+  document.getElementById('changePwBtn').addEventListener('click', async ()=>{
+    const oldPassword = prompt('รหัสผ่านปัจจุบัน');
+    if(oldPassword === null) return;
+    const newPassword = prompt('รหัสผ่านใหม่ (อย่างน้อย 4 ตัวอักษร)');
+    if(newPassword === null) return;
+    const resp = await fetch('/api/me/password', { method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ oldPassword, newPassword }) });
+    if(resp.ok) alert('เปลี่ยนรหัสผ่านแล้ว');
+    else if(resp.status === 403) alert('รหัสผ่านปัจจุบันไม่ถูกต้อง');
+    else alert('เปลี่ยนรหัสผ่านไม่สำเร็จ (รหัสผ่านใหม่ต้องยาวอย่างน้อย 4 ตัวอักษร)');
   });
 }
 
-document.getElementById('loginBtn').addEventListener('click', ()=>{
-  const name = document.getElementById('loginName').value.trim();
-  const no = document.getElementById('loginNo').value.trim();
-  if(!name || !no){ alert('กรุณากรอกชื่อและเลขที่ให้ครบ'); return; }
-  STUDENT = { studentName: name.replace(/\s+/g, ' '), studentNo: no };
-  setStudent(STUDENT);
-  // ลงทะเบียนชื่อไว้ให้เพื่อนค้นเจอตอนขอจับคู่ แล้วโหลดหน้าใหม่ เพื่อล้างสถานะของผู้ใช้เดิม
-  registerStudent().finally(()=>location.reload());
-});
-
-if(!STUDENT){ showLogin(); } else { renderWhoami(); registerStudent(); }
+async function doLogin(){
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginErr');
+  err.textContent = '';
+  if(!username || !password){ err.textContent = 'กรุณากรอกรหัสนักเรียนและรหัสผ่าน'; return; }
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true;
+  try{
+    const resp = await _fetch('/api/login', { method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ username, password }) });
+    if(resp.ok){ location.reload(); return; }
+    err.textContent = resp.status === 429 ? 'ใส่รหัสผิดหลายครั้ง กรุณารอ 10 นาทีแล้วลองใหม่'
+      : resp.status === 401 ? 'รหัสนักเรียนหรือรหัสผ่านไม่ถูกต้อง (ถ้าไม่มีชื่อในระบบ แจ้งครู)'
+      : 'เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้ง';
+  } catch(e){
+    err.textContent = 'เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง';
+  } finally { btn.disabled = false; }
+}
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('loginPass').addEventListener('keydown', e=>{ if(e.key === 'Enter') doLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', e=>{ if(e.key === 'Enter') document.getElementById('loginPass').focus(); });
 
 // ---------- local step-check progress (UI convenience only, per device) ----------
 function loadProgress(){
@@ -1106,7 +1131,20 @@ function render(){
     }
   });
 }
-render();
+(async function bootstrap(){
+  try{
+    const r = await _fetch('/api/me');
+    if(r.ok){
+      const me = await r.json();
+      STUDENT = { studentName: me.name, studentNo: me.studentId };
+      renderWhoami();
+      hideLogin();
+    } else {
+      showLogin();
+    }
+  } catch(e){ showLogin(); }
+  render();
+})();
 </script>
 </body>
 </html>

@@ -96,7 +96,6 @@ function inline(s){
   out = out.replace(/\*([^*\n]+)\*/g, '<i>$1</i>');
   return out.replace(/\u0000(\d+)\u0000/g, (m, i) => `<code class="i">${codes[Number(i)]}</code>`);
 }
-function getStudent(){ try { return JSON.parse(localStorage.getItem('student') || 'null'); } catch(e){ return null; } }
 function loadProgress(){ try { return JSON.parse(localStorage.getItem('progress_' + COURSE_CODE) || '{}'); } catch(e){ return {}; } }
 function saveProgress(p){ try { localStorage.setItem('progress_' + COURSE_CODE, JSON.stringify(p)); } catch(e){} }
 
@@ -173,12 +172,11 @@ function render(){
 
   document.getElementById('readBtn').addEventListener('click', async (e)=>{
     const btn = e.currentTarget, st = document.getElementById('readStatus');
-    const student = getStudent();
-    if(!student){ st.textContent = 'กลับไปหน้าแรกเพื่อกรอกชื่อและเลขที่ก่อน จึงจะบันทึกได้'; return; }
     btn.disabled = true; st.textContent = '';
     try{
       const resp = await fetch('/api/c/' + encodeURIComponent(COURSE_CODE) + '/read', { method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ studentName: student.studentName, studentNo: student.studentNo, unitNo: no }) });
+        body: JSON.stringify({ unitNo: no }) });
+      if(resp.status === 401){ st.textContent = 'กรุณาเข้าสู่ระบบที่หน้าแรกของวิชาก่อน จึงจะบันทึกได้'; return; }
       if(!resp.ok) throw new Error('failed');
       const p = loadProgress(); p['read_unit' + no] = true; saveProgress(p);
       btn.dataset.done = 'true'; btn.textContent = '✓ อ่านแล้ว';

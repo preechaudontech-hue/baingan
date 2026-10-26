@@ -46,7 +46,7 @@ function computePairKey(courseCode, worksheetId, studentNo, partnerNo) {
 
 // ตัวตนนักเรียน = เลขที่ + ชื่อ (เลขที่อย่างเดียวซ้ำข้ามกลุ่มเรียนได้ เช่น เลขที่ 5 ของ ม.6 กับของ ปกติ)
 function uidOf(name, no) {
-  return String(no).trim() + "|" + String(name).trim().replace(/\s+/g, " ").toLowerCase();
+  return String(no).trim(); // ตัวตน = รหัสนักเรียน (ชื่ออาจสะกดต่างกันได้ จึงไม่รวมในตัวตน)
 }
 function cleanPerson(src) {
   const name = String((src && src.studentName) || "").trim().replace(/\s+/g, " ").slice(0, 200);
@@ -65,6 +65,77 @@ function findTeam(code, uid) {
   return db.collection("teams").findOne({ courseCode: code, "members.uid": uid });
 }
 
+// ---------- บัญชีนักเรียน / session ----------
+const SESSION_DAYS = 30;
+const MAX_LOGIN_FAILS = 5;
+const LOGIN_WINDOW_MS = 10 * 60 * 1000;
+const loginFails = new Map(); // "username|ip" -> { count, first }
+
+function scryptHash(password, salt) {
+  return new Promise((resolve, reject) => {
+    crypto.scrypt(String(password), salt, 32, (err, key) => (err ? reject(err) : resolve(key.toString("hex"))));
+  });
+}
+async function makePassword(password) {
+  const salt = crypto.randomBytes(16).toString("hex");
+  return { salt, passwordHash: await scryptHash(password, salt) };
+}
+async function checkPassword(account, password) {
+  const h = await scryptHash(password, account.salt);
+  const a = Buffer.from(h, "hex"), b = Buffer.from(account.passwordHash, "hex");
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+const sha256 = v => crypto.createHash("sha256").update(v).digest("hex");
+
+function readCookie(req, name) {
+  const raw = req.headers.cookie || "";
+  for (const part of raw.split(";")) {
+    const i = part.indexOf("=");
+    if (i > 0 && part.slice(0, i).trim() === name) return decodeURIComponent(part.slice(i + 1).trim());
+  }
+  return "";
+}
+function setSessionCookie(req, res, token, maxAgeSec) {
+  const parts = [`sid=${token}`, "Path=/", "HttpOnly", "SameSite=Lax", `Max-Age=${maxAgeSec}`];
+  if (req.secure) parts.push("Secure");
+  res.setHeader("Set-Cookie", parts.join("; "));
+}
+
+async function accountFromRequest(req) {
+  const token = readCookie(req, "sid");
+  if (!token) return null;
+  const sess = await db.collection("sessions").findOne({ tokenHash: sha256(token), expiresAt: { $gt: new Date() } });
+  if (!sess) return null;
+  return db.collection("accounts").findOne({ studentId: sess.studentId });
+}
+
+// ต้องล็อกอินก่อน; ตั้ง req.me จาก session (ไม่เชื่อชื่อ/เลขที่ที่ client ส่งมา)
+async function requireStudent(req, res, next) {
+  try {
+    if (!db) return res.status(503).json({ error: "database_unavailable" });
+    const acc = await accountFromRequest(req);
+    if (!acc) return res.status(401).json({ error: "unauthorized" });
+    req.account = acc;
+    req.me = { name: acc.name, no: acc.studentId, uid: uidOf(acc.name, acc.studentId) };
+    next();
+  } catch (err) {
+    console.error("auth error", err);
+    res.status(500).json({ error: "server_error" });
+  }
+}
+
+function accountToStudent(a) {
+  return { uid: a.studentId, studentName: a.name, studentNo: a.studentId };
+}
+async function listStudents() {
+  const rows = await db.collection("accounts").find({}).sort({ studentId: 1 }).limit(1000).toArray();
+  return rows.map(accountToStudent);
+}
+async function findStudent(uid) {
+  const a = await db.collection("accounts").findOne({ studentId: String(uid) });
+  return a ? accountToStudent(a) : null;
+}
+
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI || "";
 const TEACHER_KEY = process.env.TEACHER_KEY || "changeme";
@@ -72,6 +143,7 @@ const TEACHER_KEY = process.env.TEACHER_KEY || "changeme";
 const BODY_LIMIT = "25mb";
 
 const app = express();
+app.set("trust proxy", 1); // Render อยู่หลัง proxy (ใช้กับ req.ip / req.secure)
 app.use(express.json({ limit: BODY_LIMIT }));
 app.use(express.static(path.join(__dirname, "public"))); // หน้ารวมวิชา (/) และไฟล์ที่ใช้ร่วมกัน
 
@@ -129,9 +201,144 @@ app.get("/c/:course/knowledge.js", loadCourse, (req, res) => {
   res.send(`var KNOWLEDGE = ${JSON.stringify(data)};\n`);
 });
 
+// ---------- ล็อกอินนักเรียน (username = รหัสนักเรียน) ----------
+app.post("/api/login", async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ error: "database_unavailable" });
+    const username = String((req.body || {}).username || "").trim().slice(0, 50);
+    const password = String((req.body || {}).password || "").slice(0, 200);
+    if (!username || !password) return res.status(400).json({ error: "missing_fields" });
+
+    const key = username + "|" + req.ip;
+    const rec = loginFails.get(key);
+    if (rec && Date.now() - rec.first < LOGIN_WINDOW_MS && rec.count >= MAX_LOGIN_FAILS) {
+      return res.status(429).json({ error: "too_many_attempts" });
+    }
+
+    const acc = await db.collection("accounts").findOne({ studentId: username });
+    const ok = acc && await checkPassword(acc, password);
+    if (!ok) {
+      const fresh = !rec || Date.now() - rec.first >= LOGIN_WINDOW_MS;
+      loginFails.set(key, { count: fresh ? 1 : rec.count + 1, first: fresh ? Date.now() : rec.first });
+      return res.status(401).json({ error: "invalid_credentials" });
+    }
+    loginFails.delete(key);
+
+    const token = crypto.randomBytes(32).toString("hex");
+    await db.collection("sessions").insertOne({
+      tokenHash: sha256(token), studentId: acc.studentId, createdAt: new Date(),
+      expiresAt: new Date(Date.now() + SESSION_DAYS * 86400000),
+    });
+    setSessionCookie(req, res, token, SESSION_DAYS * 86400);
+    res.json({ ok: true, name: acc.name, studentId: acc.studentId, passwordChanged: !!acc.passwordChanged });
+  } catch (err) {
+    console.error("login error", err);
+    res.status(500).json({ error: "server_error" });
+  }
+});
+
+app.post("/api/logout", async (req, res) => {
+  try {
+    const token = readCookie(req, "sid");
+    if (token && db) await db.collection("sessions").deleteOne({ tokenHash: sha256(token) });
+  } catch (err) { /* ออกจากระบบฝั่ง client ต่อได้ */ }
+  setSessionCookie(req, res, "", 0);
+  res.json({ ok: true });
+});
+
+app.get("/api/me", requireStudent, (req, res) => {
+  const a = req.account;
+  res.json({ studentId: a.studentId, name: a.name, classGroup: a.classGroup || "", passwordChanged: !!a.passwordChanged });
+});
+
+app.post("/api/me/password", requireStudent, async (req, res) => {
+  try {
+    const oldPassword = String((req.body || {}).oldPassword || "");
+    const newPassword = String((req.body || {}).newPassword || "");
+    if (newPassword.length < 4 || newPassword.length > 100) return res.status(400).json({ error: "weak_password" });
+    if (!(await checkPassword(req.account, oldPassword))) return res.status(403).json({ error: "wrong_password" });
+    const pw = await makePassword(newPassword);
+    await db.collection("accounts").updateOne({ studentId: req.account.studentId }, { $set: { ...pw, passwordChanged: true } });
+    // ออกจากระบบเครื่องอื่นทั้งหมด ยกเว้นเครื่องนี้
+    const keep = sha256(readCookie(req, "sid"));
+    await db.collection("sessions").deleteMany({ studentId: req.account.studentId, tokenHash: { $ne: keep } });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("password error", err);
+    res.status(500).json({ error: "server_error" });
+  }
+});
+
+// ---------- จัดการรายชื่อ (ใช้รหัสครู) ----------
+function requireTeacher(req, res, next) {
+  if (req.query.key !== TEACHER_KEY) return res.status(403).json({ error: "forbidden" });
+  if (!db) return res.status(503).json({ error: "database_unavailable" });
+  next();
+}
+
+// นำเข้า/อัปเดตรายชื่อ: body { students: [{ studentId, name, classGroup }] }
+// รายชื่อที่มีอยู่แล้วจะอัปเดตชื่อ/ห้อง แต่ไม่แตะรหัสผ่าน; รายชื่อใหม่ได้รหัสผ่านเริ่มต้น = รหัสนักเรียน
+app.post("/api/admin/roster", requireTeacher, async (req, res) => {
+  try {
+    const list = Array.isArray((req.body || {}).students) ? req.body.students : [];
+    if (!list.length || list.length > 2000) return res.status(400).json({ error: "invalid_list" });
+    const col = db.collection("accounts");
+    let created = 0, updated = 0, skipped = 0;
+    for (const r of list) {
+      const studentId = String((r && r.studentId) || "").trim().slice(0, 50);
+      const name = String((r && r.name) || "").trim().replace(/\s+/g, " ").slice(0, 200);
+      if (!studentId || !name) { skipped++; continue; }
+      const classGroup = String((r && r.classGroup) || "").trim().slice(0, 100);
+      const exists = await col.findOne({ studentId });
+      if (exists) {
+        await col.updateOne({ studentId }, { $set: { name, classGroup } });
+        updated++;
+      } else {
+        const pw = await makePassword(studentId);
+        await col.insertOne({ studentId, name, classGroup, ...pw, passwordChanged: false, createdAt: new Date() });
+        created++;
+      }
+    }
+    res.json({ ok: true, created, updated, skipped });
+  } catch (err) {
+    console.error("roster error", err);
+    res.status(500).json({ error: "server_error" });
+  }
+});
+
+app.get("/api/admin/accounts", requireTeacher, async (req, res) => {
+  const rows = await db.collection("accounts").find({}).project({ studentId: 1, name: 1, classGroup: 1, passwordChanged: 1 }).sort({ studentId: 1 }).limit(2000).toArray();
+  res.json({ accounts: rows });
+});
+
+app.post("/api/admin/reset-password", requireTeacher, async (req, res) => {
+  try {
+    const studentId = String((req.body || {}).studentId || "").trim();
+    const acc = await db.collection("accounts").findOne({ studentId });
+    if (!acc) return res.status(404).json({ error: "not_found" });
+    const pw = await makePassword(studentId);
+    await db.collection("accounts").updateOne({ studentId }, { $set: { ...pw, passwordChanged: false } });
+    await db.collection("sessions").deleteMany({ studentId });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("reset-password error", err);
+    res.status(500).json({ error: "server_error" });
+  }
+});
+
+app.post("/api/admin/delete-account", requireTeacher, async (req, res) => {
+  const studentId = String((req.body || {}).studentId || "").trim();
+  await db.collection("accounts").deleteOne({ studentId });
+  await db.collection("sessions").deleteMany({ studentId });
+  res.json({ ok: true });
+});
+
 // API ทั้งหมดของวิชาอยู่ใต้ /api/c/<รหัสวิชา>/... (ข้อมูลในฐานข้อมูลแยกด้วยฟิลด์ courseCode)
 const router = express.Router({ mergeParams: true });
-app.use("/api/c/:course", loadCourse, router);
+app.use("/api/c/:course", loadCourse, (req, res, next) => {
+  if (req.path.startsWith("/teacher/")) return next();
+  requireStudent(req, res, next);
+}, router);
 
 let db = null;
 
@@ -160,6 +367,9 @@ async function connectDb() {
   await db.collection("teams").createIndex({ courseCode: 1, "members.uid": 1 });
   await db.collection("teamInvites").createIndex({ courseCode: 1, toUid: 1, status: 1 });
   await db.collection("teamInvites").createIndex({ courseCode: 1, teamId: 1, status: 1 });
+  await db.collection("accounts").createIndex({ studentId: 1 }, { unique: true });
+  await db.collection("sessions").createIndex({ tokenHash: 1 }, { unique: true });
+  await db.collection("sessions").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
   console.log("[ok] Connected to MongoDB");
 }
 
@@ -171,9 +381,10 @@ function requireDb(req, res, next) {
 // ---------- API: ส่งใบงาน ----------
 router.post("/submit", requireDb, async (req, res) => {
   try {
-    const { studentName, studentNo, worksheetId, answerText, screenshots, screenshotBase64, stepAnswers, partnerName, partnerNo } = req.body || {};
+    const { worksheetId, answerText, screenshots, screenshotBase64, stepAnswers, partnerName, partnerNo } = req.body || {};
+    const studentName = req.me.name, studentNo = req.me.no;
 
-    if (!studentName || !studentNo || !worksheetId) {
+    if (!worksheetId) {
       return res.status(400).json({ error: "missing_fields" });
     }
     if (!req.course.ALL_WORKSHEET_IDS.has(worksheetId)) {
@@ -199,7 +410,7 @@ router.post("/submit", requireDb, async (req, res) => {
     // ใบงานคู่: ใช้คู่ที่ยืนยันแล้วจากระบบ (ไม่เชื่อค่าที่เบราว์เซอร์ส่งมา)
     let pName = partnerName, pNo = partnerNo;
     if (mode === "pair") {
-      const me = cleanPerson(req.body);
+      const me = req.me;
       const link = me && await findLink(req.course.code, worksheetId, me.uid);
       if (link) { pName = link.partnerName; pNo = link.partnerNo; }
     }
@@ -207,7 +418,7 @@ router.post("/submit", requireDb, async (req, res) => {
     // ใบงานกลุ่ม: ต้องมีทีมแล้ว ใช้ข้อมูลทีมจากระบบ (ไม่เชื่อค่าที่เบราว์เซอร์ส่งมา)
     let team = null;
     if (mode === "group") {
-      const me = cleanPerson(req.body);
+      const me = req.me;
       team = me && await findTeam(req.course.code, me.uid);
       if (!team) return res.status(400).json({ error: "not_in_team" });
     }
@@ -244,7 +455,7 @@ function pairWorksheetOr400(req, res, src) {
     res.status(400).json({ error: "not_pair_worksheet" });
     return null;
   }
-  const me = cleanPerson(src);
+  const me = req.me;
   if (!me) {
     res.status(400).json({ error: "missing_fields" });
     return null;
@@ -253,21 +464,8 @@ function pairWorksheetOr400(req, res, src) {
 }
 
 // ลงทะเบียนชื่อนักเรียนไว้ เพื่อให้เพื่อนค้นหาเจอตอนขอจับคู่
-router.post("/students/register", requireDb, async (req, res) => {
-  try {
-    const p = cleanPerson(req.body);
-    if (!p) return res.status(400).json({ error: "missing_fields" });
-    await db.collection("students").updateOne(
-      { courseCode: req.course.code, uid: p.uid },
-      { $set: { studentName: p.name, studentNo: p.no, lastSeenAt: new Date() } },
-      { upsert: true }
-    );
-    res.json({ ok: true });
-  } catch (err) {
-    console.error("register error", err);
-    res.status(500).json({ error: "server_error" });
-  }
-});
+// รายชื่อมาจากบัญชีที่ครูนำเข้า ไม่ต้องลงทะเบียนเอง (คงเส้นทางไว้ให้หน้าเว็บรุ่นเก่า)
+router.post("/students/register", (req, res) => res.json({ ok: true }));
 
 // สถานะการจับคู่ของฉัน: มีคู่แล้วหรือยัง / คำขอที่เข้ามา / คำขอที่ฉันส่งไป
 router.get("/pair/state", requireDb, async (req, res) => {
@@ -302,7 +500,7 @@ router.get("/pair/candidates", requireDb, async (req, res) => {
 
     const q = String(req.query.q || "").trim().toLowerCase();
     const [students, links, outgoing, incoming] = await Promise.all([
-      db.collection("students").find({ courseCode: req.course.code }).sort({ studentNo: 1 }).limit(1000).toArray(),
+      listStudents(),
       db.collection("pairLinks").find({ courseCode: req.course.code, worksheetId }).project({ uid: 1 }).toArray(),
       db.collection("pairRequests").find({ courseCode: req.course.code, worksheetId, fromUid: me.uid, status: "pending" }).toArray(),
       db.collection("pairRequests").find({ courseCode: req.course.code, worksheetId, toUid: me.uid, status: "pending" }).toArray(),
@@ -356,7 +554,7 @@ router.post("/pair/request", requireDb, async (req, res) => {
     const to = cleanPerson({ studentName: req.body.toName, studentNo: req.body.toNo });
     if (!to || to.uid === me.uid) return res.status(400).json({ error: "invalid_target" });
 
-    const target = await db.collection("students").findOne({ courseCode: req.course.code, uid: to.uid });
+    const target = await findStudent(to.uid);
     if (!target) return res.status(404).json({ error: "student_not_found" });
     if ((await findLink(req.course.code, worksheetId, me.uid)) || (await findLink(req.course.code, worksheetId, to.uid))) {
       return res.status(409).json({ error: "already_paired" });
@@ -386,7 +584,7 @@ router.post("/pair/request", requireDb, async (req, res) => {
 
 router.post("/pair/respond", requireDb, async (req, res) => {
   try {
-    const me = cleanPerson(req.body);
+    const me = req.me;
     const { requestId, action } = req.body || {};
     if (!me || !requestId || !["accept", "decline"].includes(action)) {
       return res.status(400).json({ error: "missing_fields" });
@@ -415,7 +613,7 @@ router.post("/pair/respond", requireDb, async (req, res) => {
 
 router.post("/pair/cancel", requireDb, async (req, res) => {
   try {
-    const me = cleanPerson(req.body);
+    const me = req.me;
     const { requestId } = req.body || {};
     if (!me || !requestId) return res.status(400).json({ error: "missing_fields" });
     const { ObjectId } = require("mongodb");
@@ -456,7 +654,7 @@ function teamView(t) {
 
 router.get("/team/state", requireDb, async (req, res) => {
   try {
-    const me = cleanPerson(req.query);
+    const me = req.me;
     if (!me) return res.status(400).json({ error: "missing_fields" });
     const team = await findTeam(req.course.code, me.uid);
     const invites = db.collection("teamInvites");
@@ -482,7 +680,7 @@ router.get("/team/state", requireDb, async (req, res) => {
 
 router.post("/team/create", requireDb, async (req, res) => {
   try {
-    const me = cleanPerson(req.body);
+    const me = req.me;
     const name = String((req.body || {}).teamName || "").trim().replace(/\s+/g, " ").slice(0, 80);
     if (!me || !name) return res.status(400).json({ error: "missing_fields" });
     if (await findTeam(req.course.code, me.uid)) return res.status(409).json({ error: "already_in_team" });
@@ -504,13 +702,13 @@ router.post("/team/create", requireDb, async (req, res) => {
 // เพื่อนที่ยังไม่มีทีม ให้เชิญเข้าทีม
 router.get("/team/candidates", requireDb, async (req, res) => {
   try {
-    const me = cleanPerson(req.query);
+    const me = req.me;
     if (!me) return res.status(400).json({ error: "missing_fields" });
     const team = await findTeam(req.course.code, me.uid);
     if (!team) return res.json({ candidates: [] });
     const q = String(req.query.q || "").trim().toLowerCase();
     const [students, teams, pending] = await Promise.all([
-      db.collection("students").find({ courseCode: req.course.code }).sort({ studentNo: 1 }).limit(1000).toArray(),
+      listStudents(),
       db.collection("teams").find({ courseCode: req.course.code }).project({ members: 1 }).toArray(),
       db.collection("teamInvites").find({ courseCode: req.course.code, teamId: String(team._id), status: "pending" }).toArray(),
     ]);
@@ -530,13 +728,13 @@ router.get("/team/candidates", requireDb, async (req, res) => {
 
 router.post("/team/invite", requireDb, async (req, res) => {
   try {
-    const me = cleanPerson(req.body);
+    const me = req.me;
     const to = cleanPerson({ studentName: (req.body || {}).toName, studentNo: (req.body || {}).toNo });
     if (!me || !to || to.uid === me.uid) return res.status(400).json({ error: "invalid_target" });
     const team = await findTeam(req.course.code, me.uid);
     if (!team) return res.status(403).json({ error: "not_in_team" });
     if (team.members.length >= req.course.TEAM_MAX) return res.status(409).json({ error: "team_full" });
-    const target = await db.collection("students").findOne({ courseCode: req.course.code, uid: to.uid });
+    const target = await findStudent(to.uid);
     if (!target) return res.status(404).json({ error: "student_not_found" });
     if (await findTeam(req.course.code, to.uid)) return res.status(409).json({ error: "already_in_team" });
     const invites = db.collection("teamInvites");
@@ -557,7 +755,7 @@ router.post("/team/invite", requireDb, async (req, res) => {
 
 router.post("/team/respond", requireDb, async (req, res) => {
   try {
-    const me = cleanPerson(req.body);
+    const me = req.me;
     const { requestId, action } = req.body || {};
     if (!me || !requestId || !["accept", "decline"].includes(action)) return res.status(400).json({ error: "missing_fields" });
     const { ObjectId } = require("mongodb");
@@ -594,7 +792,7 @@ router.post("/team/respond", requireDb, async (req, res) => {
 
 router.post("/team/cancel", requireDb, async (req, res) => {
   try {
-    const me = cleanPerson(req.body);
+    const me = req.me;
     const { requestId } = req.body || {};
     if (!me || !requestId) return res.status(400).json({ error: "missing_fields" });
     const team = await findTeam(req.course.code, me.uid);
@@ -613,7 +811,7 @@ router.post("/team/cancel", requireDb, async (req, res) => {
 // ออกจากทีม (ถ้าเป็นคนสุดท้าย ทีมถูกลบ แบบร่างยังเก็บไว้ในฐานข้อมูล)
 router.post("/team/leave", requireDb, async (req, res) => {
   try {
-    const me = cleanPerson(req.body);
+    const me = req.me;
     if (!me) return res.status(400).json({ error: "missing_fields" });
     const team = await findTeam(req.course.code, me.uid);
     if (team) {
@@ -636,7 +834,7 @@ router.get("/draft/:worksheetId", requireDb, async (req, res) => {
     if (!isGroup && !req.course.ALL_PAIR_WORKSHEET_IDS.has(worksheetId)) {
       return res.status(400).json({ error: "not_pair_worksheet" });
     }
-    const me = cleanPerson(req.query);
+    const me = req.me;
     if (!me) {
       return res.status(400).json({ error: "missing_fields" });
     }
@@ -713,7 +911,7 @@ router.put("/draft/:worksheetId", requireDb, async (req, res) => {
     if (!isGroup && !req.course.ALL_PAIR_WORKSHEET_IDS.has(worksheetId)) {
       return res.status(400).json({ error: "not_pair_worksheet" });
     }
-    const me = cleanPerson(req.body);
+    const me = req.me;
     if (!me) {
       return res.status(400).json({ error: "missing_fields" });
     }
@@ -787,7 +985,8 @@ router.put("/draft/:worksheetId", requireDb, async (req, res) => {
 // ---------- API: มาร์กว่าอ่านแล้ว ----------
 router.post("/read", requireDb, async (req, res) => {
   try {
-    const { studentName, studentNo, unitNo } = req.body || {};
+    const { unitNo } = req.body || {};
+    const studentName = req.me.name, studentNo = req.me.no;
     const unitNum = Number(unitNo);
 
     if (!studentName || !studentNo || !req.course.ALL_UNIT_NOS.has(unitNum)) {
