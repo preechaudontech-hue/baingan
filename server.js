@@ -115,6 +115,7 @@ async function requireStudent(req, res, next) {
     if (!db) return res.status(503).json({ error: "database_unavailable" });
     const acc = await accountFromRequest(req);
     if (!acc) return res.status(401).json({ error: "unauthorized" });
+    if (acc.role === "teacher") return res.status(403).json({ error: "teacher_account" });
     req.account = acc;
     req.me = { name: acc.name, no: acc.studentId, uid: uidOf(acc.name, acc.studentId) };
     next();
@@ -124,15 +125,36 @@ async function requireStudent(req, res, next) {
   }
 }
 
+// ล็อกอินแล้ว (นักเรียนหรือครู) ใช้กับ /api/me และเปลี่ยนรหัสผ่าน
+async function requireAccount(req, res, next) {
+  try {
+    if (!db) return res.status(503).json({ error: "database_unavailable" });
+    const acc = await accountFromRequest(req);
+    if (!acc) return res.status(401).json({ error: "unauthorized" });
+    req.account = acc;
+    next();
+  } catch (err) {
+    console.error("auth error", err);
+    res.status(500).json({ error: "server_error" });
+  }
+}
+
+// ครู = รหัสครู (?key=) หรือล็อกอินด้วยบัญชี role "teacher"
+async function isTeacherReq(req) {
+  if (req.query.key && req.query.key === TEACHER_KEY) return true;
+  const acc = await accountFromRequest(req);
+  return !!(acc && acc.role === "teacher");
+}
+
 function accountToStudent(a) {
   return { uid: a.studentId, studentName: a.name, studentNo: a.studentId };
 }
 async function listStudents() {
-  const rows = await db.collection("accounts").find({}).sort({ studentId: 1 }).limit(1000).toArray();
+  const rows = await db.collection("accounts").find({ role: { $ne: "teacher" } }).sort({ studentId: 1 }).limit(1000).toArray();
   return rows.map(accountToStudent);
 }
 async function findStudent(uid) {
-  const a = await db.collection("accounts").findOne({ studentId: String(uid) });
+  const a = await db.collection("accounts").findOne({ studentId: String(uid), role: { $ne: "teacher" } });
   return a ? accountToStudent(a) : null;
 }
 
@@ -230,7 +252,7 @@ app.post("/api/login", async (req, res) => {
       expiresAt: new Date(Date.now() + SESSION_DAYS * 86400000),
     });
     setSessionCookie(req, res, token, SESSION_DAYS * 86400);
-    res.json({ ok: true, name: acc.name, studentId: acc.studentId, passwordChanged: !!acc.passwordChanged });
+    res.json({ ok: true, name: acc.name, studentId: acc.studentId, role: acc.role || "student", passwordChanged: !!acc.passwordChanged });
   } catch (err) {
     console.error("login error", err);
     res.status(500).json({ error: "server_error" });
@@ -246,12 +268,12 @@ app.post("/api/logout", async (req, res) => {
   res.json({ ok: true });
 });
 
-app.get("/api/me", requireStudent, (req, res) => {
+app.get("/api/me", requireAccount, (req, res) => {
   const a = req.account;
-  res.json({ studentId: a.studentId, name: a.name, classGroup: a.classGroup || "", passwordChanged: !!a.passwordChanged });
+  res.json({ studentId: a.studentId, name: a.name, role: a.role || "student", classGroup: a.classGroup || "", passwordChanged: !!a.passwordChanged });
 });
 
-app.post("/api/me/password", requireStudent, async (req, res) => {
+app.post("/api/me/password", requireAccount, async (req, res) => {
   try {
     const oldPassword = String((req.body || {}).oldPassword || "");
     const newPassword = String((req.body || {}).newPassword || "");
@@ -270,10 +292,15 @@ app.post("/api/me/password", requireStudent, async (req, res) => {
 });
 
 // ---------- จัดการรายชื่อ (ใช้รหัสครู) ----------
-function requireTeacher(req, res, next) {
-  if (req.query.key !== TEACHER_KEY) return res.status(403).json({ error: "forbidden" });
-  if (!db) return res.status(503).json({ error: "database_unavailable" });
-  next();
+async function requireTeacher(req, res, next) {
+  try {
+    if (!db) return res.status(503).json({ error: "database_unavailable" });
+    if (!(await isTeacherReq(req))) return res.status(403).json({ error: "forbidden" });
+    next();
+  } catch (err) {
+    console.error("teacher auth error", err);
+    res.status(500).json({ error: "server_error" });
+  }
 }
 
 // นำเข้า/อัปเดตรายชื่อ: body { students: [{ studentId, name, classGroup }] }
@@ -290,6 +317,7 @@ app.post("/api/admin/roster", requireTeacher, async (req, res) => {
       if (!studentId || !name) { skipped++; continue; }
       const classGroup = String((r && r.classGroup) || "").trim().slice(0, 100);
       const exists = await col.findOne({ studentId });
+      if (exists && exists.role === "teacher") { skipped++; continue; }
       if (exists) {
         await col.updateOne({ studentId }, { $set: { name, classGroup } });
         updated++;
@@ -306,8 +334,31 @@ app.post("/api/admin/roster", requireTeacher, async (req, res) => {
   }
 });
 
+// สร้างหรืออัปเดตบัญชีครู: body { username, password, name } (เรียกได้ด้วยรหัสครูหรือบัญชีครู)
+app.post("/api/admin/teacher", requireTeacher, async (req, res) => {
+  try {
+    const username = String((req.body || {}).username || "").trim().slice(0, 50);
+    const password = String((req.body || {}).password || "");
+    const name = String((req.body || {}).name || username).trim().slice(0, 200);
+    if (!username || password.length < 4) return res.status(400).json({ error: "invalid" });
+    const exists = await db.collection("accounts").findOne({ studentId: username });
+    if (exists && exists.role !== "teacher") return res.status(409).json({ error: "username_is_student" });
+    const pw = await makePassword(password);
+    await db.collection("accounts").updateOne(
+      { studentId: username },
+      { $set: { name, role: "teacher", classGroup: "", ...pw, passwordChanged: true }, $setOnInsert: { createdAt: new Date() } },
+      { upsert: true }
+    );
+    await db.collection("sessions").deleteMany({ studentId: username });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("teacher account error", err);
+    res.status(500).json({ error: "server_error" });
+  }
+});
+
 app.get("/api/admin/accounts", requireTeacher, async (req, res) => {
-  const rows = await db.collection("accounts").find({}).project({ studentId: 1, name: 1, classGroup: 1, passwordChanged: 1 }).sort({ studentId: 1 }).limit(2000).toArray();
+  const rows = await db.collection("accounts").find({}).project({ studentId: 1, name: 1, classGroup: 1, passwordChanged: 1, role: 1 }).sort({ studentId: 1 }).limit(2000).toArray();
   res.json({ accounts: rows });
 });
 
@@ -1007,7 +1058,7 @@ router.post("/read", requireDb, async (req, res) => {
 
 // ---------- API: มุมมองครู — ดึงข้อมูลสรุป ----------
 router.get("/teacher/data", requireDb, async (req, res) => {
-  if (req.query.key !== TEACHER_KEY) {
+  if (!(await isTeacherReq(req))) {
     return res.status(403).json({ error: "forbidden" });
   }
   try {
@@ -1051,7 +1102,7 @@ router.get("/teacher/data", requireDb, async (req, res) => {
 
 // ---------- API: มุมมองครู — ดูภาพหน้าจอรายการเดียว ----------
 router.get("/teacher/screenshot/:id", requireDb, async (req, res) => {
-  if (req.query.key !== TEACHER_KEY) {
+  if (!(await isTeacherReq(req))) {
     return res.status(403).json({ error: "forbidden" });
   }
   try {
@@ -1069,7 +1120,7 @@ router.get("/teacher/screenshot/:id", requireDb, async (req, res) => {
 
 // ---------- API: มุมมองครู — ดูภาพของขั้นตอนปฏิบัติ ----------
 router.get("/teacher/step-image/:id", requireDb, async (req, res) => {
-  if (req.query.key !== TEACHER_KEY) {
+  if (!(await isTeacherReq(req))) {
     return res.status(403).json({ error: "forbidden" });
   }
   try {

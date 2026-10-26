@@ -274,7 +274,7 @@ async function doLogin(){
   try{
     const resp = await _fetch('/api/login', { method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ username, password }) });
-    if(resp.ok){ location.reload(); return; }
+    if(resp.ok){ const d = await resp.json().catch(()=>({})); if(d.role === 'teacher') location.href = 'teacher.html'; else location.reload(); return; }
     err.textContent = resp.status === 429 ? 'ใส่รหัสผิดหลายครั้ง กรุณารอ 10 นาทีแล้วลองใหม่'
       : resp.status === 401 ? 'รหัสนักเรียนหรือรหัสผ่านไม่ถูกต้อง (ถ้าไม่มีชื่อในระบบ แจ้งครู)'
       : 'เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้ง';
@@ -1136,6 +1136,7 @@ function render(){
     const r = await _fetch('/api/me');
     if(r.ok){
       const me = await r.json();
+      if(me.role === 'teacher'){ location.replace('teacher.html'); return; }
       STUDENT = { studentName: me.name, studentNo: me.studentId };
       renderWhoami();
       hideLogin();

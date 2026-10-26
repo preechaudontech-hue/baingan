@@ -87,6 +87,13 @@ const API = '/api/c/' + encodeURIComponent(COURSE_CODE);
 document.title = 'มุมมองครู — ' + COURSE_INFO.hubTitle;
 document.getElementById('pageTitle').textContent = 'มุมมองครู — ' + COURSE_INFO.hubTitle;
 document.getElementById('pageMeta').textContent = 'รายการส่งงานและสถานะการอ่านของนักเรียนทั้งหมด (' + COURSE_CODE + ')';
+(function(){
+  const m = document.getElementById('pageMeta');
+  const out = document.createElement('button');
+  out.textContent = 'ออกจากระบบ'; out.style.marginLeft = '12px';
+  out.addEventListener('click', async ()=>{ await fetch('/api/logout', { method: 'POST' }).catch(()=>{}); location.href = './'; });
+  m.appendChild(out);
+})();
 
 function stepTextFor(worksheetId, idx){
   const ws = (typeof WORKSHEETS !== 'undefined' ? WORKSHEETS : []).find(w=>w.id===worksheetId)
@@ -96,14 +103,10 @@ function stepTextFor(worksheetId, idx){
 
 async function load(){
   const contentEl = document.getElementById('content');
-  if(!KEY){
-    contentEl.innerHTML = '<p class="err">ต้องเปิดหน้านี้พร้อมพารามิเตอร์ ?key=รหัสลับ ที่ครูตั้งไว้</p>';
-    return;
-  }
   try {
     const resp = await fetch(API + '/teacher/data?key=' + encodeURIComponent(KEY));
     if(resp.status === 403){
-      contentEl.innerHTML = '<p class="err">รหัสลับไม่ถูกต้อง</p>';
+      contentEl.innerHTML = '<p class="err">ต้องเข้าสู่ระบบด้วยบัญชีครูก่อน <a href="./">ไปหน้าเข้าสู่ระบบ</a> (หรือเปิดลิงก์พร้อม ?key=รหัสครู)</p>';
       return;
     }
     if(!resp.ok) throw new Error('load failed');
@@ -217,7 +220,6 @@ function parseRoster(text){
 }
 async function loadRoster(){
   const box = document.getElementById('rosterList');
-  if(!KEY){ box.textContent = 'ต้องมี ?key= ในลิงก์'; return; }
   const r = await fetch('/api/admin/accounts?key=' + encodeURIComponent(KEY));
   if(!r.ok){ box.textContent = 'โหลดรายชื่อไม่สำเร็จ'; return; }
   const { accounts } = await r.json();
