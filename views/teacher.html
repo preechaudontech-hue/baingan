@@ -53,6 +53,19 @@
   .steps-list .mark.todo{color:var(--fg-muted)}
   .steps-list .txt{flex:1}
   .steps-list .ans{color:var(--fg-muted);margin-top:1px}
+  .tab{padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--fg);font-family:inherit;font-size:13.5px;cursor:pointer}
+  .tab.on{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+  .panel[hidden]{display:none}
+  .box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px}
+  .box-title{font-weight:600;margin-bottom:8px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  button{font-family:inherit;font-size:13px;padding:7px 12px;border:1px solid var(--accent);border-radius:8px;background:var(--accent);color:var(--accent-fg);cursor:pointer}
+  button.ghost{background:var(--surface-2);color:var(--fg);border-color:var(--border)}
+  button.danger{background:transparent;color:#c0392b;border-color:#c0392b}
+  button.sm{padding:4px 9px;font-size:12px}
+  .tag{display:inline-block;font-size:11px;border-radius:5px;padding:1px 7px;background:var(--surface-2);color:var(--fg-muted)}
+  .tag.ok{color:var(--accent)}
+  input[type="password"]{padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--fg);font-family:inherit;font-size:13.5px}
 </style>
 </head>
 <body>
@@ -60,23 +73,55 @@
   <h1 id="pageTitle">มุมมองครู</h1>
   <p class="meta" id="pageMeta"></p>
 
-  <details id="rosterBox" style="margin:12px 0;padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface)">
-    <summary style="cursor:pointer;font-weight:600">จัดการรายชื่อนักเรียนและบัญชีเข้าสู่ระบบ</summary>
-    <p class="meta" style="margin:8px 0">วางรายชื่อทีละบรรทัด รูปแบบ <b>รหัสนักเรียน, ชื่อ-นามสกุล, ห้อง</b> (คั่นด้วยคอมมา หรือแท็บ จากการคัดลอกใน Excel) รายชื่อใหม่ได้รหัสผ่านเริ่มต้นเท่ากับรหัสนักเรียน รายชื่อเดิมจะอัปเดตชื่อ/ห้องโดยไม่แตะรหัสผ่าน</p>
-    <textarea id="rosterText" rows="6" style="width:100%;font-family:inherit" placeholder="66001, สมชาย ใจดี, ปวช.1/1"></textarea>
-    <div style="margin:8px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <button id="rosterImport">นำเข้ารายชื่อ</button>
-      <span id="rosterMsg" class="meta"></span>
+  <nav id="tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 16px">
+    <button class="tab on" data-tab="content">งานที่ส่ง</button>
+    <button class="tab" data-tab="panelStudents">จัดการรายชื่อนักเรียน</button>
+    <button class="tab" data-tab="panelTeachers">จัดการบัญชีครู</button>
+  </nav>
+
+  <section id="panelStudents" class="panel" hidden>
+    <div class="stat-row" id="stuStats"></div>
+    <div class="box">
+      <div class="box-title" id="stuFormTitle">เพิ่มนักเรียน</div>
+      <div class="row">
+        <input id="stuId" type="text" placeholder="รหัสนักเรียน" style="width:150px">
+        <input id="stuName" type="text" placeholder="ชื่อ-นามสกุล" style="width:230px">
+        <input id="stuRoom" type="text" list="roomList" placeholder="ห้อง/กลุ่มเรียน" style="width:260px">
+        <datalist id="roomList"></datalist>
+        <button id="stuSave">เพิ่มนักเรียน</button>
+        <button id="stuCancel" class="ghost" hidden>ยกเลิกการแก้ไข</button>
+      </div>
+      <div id="stuMsg" class="meta"></div>
+      <div class="meta">นักเรียนใหม่ได้รหัสผ่านเริ่มต้นเท่ากับรหัสนักเรียน การแก้ไขชื่อ/ห้องไม่แตะรหัสผ่าน</div>
     </div>
-    <div style="margin:10px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <b>บัญชีครู</b>
-      <input id="tUser" type="text" placeholder="ชื่อผู้ใช้ครู" style="width:140px">
-      <input id="tPass" type="password" placeholder="รหัสผ่าน (อย่างน้อย 4 ตัว)" style="width:190px">
-      <button id="tSave">สร้าง/ตั้งรหัสบัญชีครู</button>
-      <span id="tMsg" class="meta"></span>
+    <div class="toolbar">
+      <input id="stuSearch" type="text" placeholder="ค้นหารหัสหรือชื่อ" style="width:220px">
+      <select id="stuRoomFilter"><option value="">ทุกห้อง</option></select>
+      <span class="meta" id="stuCount" style="margin:0"></span>
     </div>
-    <div id="rosterList" class="meta">ยังไม่ได้โหลดรายชื่อ</div>
-  </details>
+    <div id="stuList"></div>
+    <details class="box" style="margin-top:14px">
+      <summary style="cursor:pointer;font-weight:600">นำเข้าหลายคนพร้อมกัน (วางจาก Excel หรือไฟล์ CSV)</summary>
+      <p class="meta" style="margin:8px 0">วางทีละบรรทัด รูปแบบ <b>รหัสนักเรียน, ชื่อ-นามสกุล, ห้อง</b> (คั่นด้วยคอมมา หรือแท็บ) รายชื่อเดิมจะอัปเดตชื่อ/ห้อง รายชื่อใหม่ได้รหัสผ่านเริ่มต้นเท่ากับรหัสนักเรียน</p>
+      <textarea id="rosterText" rows="6" style="width:100%;font-family:inherit" placeholder="66001, สมชาย ใจดี, ปวช.1/1"></textarea>
+      <div class="row" style="margin-top:8px"><button id="rosterImport">นำเข้ารายชื่อ</button><span id="rosterMsg" class="meta"></span></div>
+    </details>
+  </section>
+
+  <section id="panelTeachers" class="panel" hidden>
+    <div class="box">
+      <div class="box-title" id="tFormTitle">เพิ่มบัญชีครู / ตั้งรหัสผ่านใหม่</div>
+      <div class="row">
+        <input id="tUser" type="text" placeholder="ชื่อผู้ใช้" style="width:150px">
+        <input id="tName" type="text" placeholder="ชื่อที่แสดง" style="width:230px">
+        <input id="tPass" type="password" placeholder="รหัสผ่าน (อย่างน้อย 4 ตัว)" style="width:210px">
+        <button id="tSave">บันทึกบัญชีครู</button>
+      </div>
+      <div id="tMsg" class="meta"></div>
+      <div class="meta">ใส่ชื่อผู้ใช้ที่มีอยู่แล้วเพื่อตั้งรหัสผ่านใหม่ รหัสผ่านควรยาวและเดายาก เพราะบัญชีครูเห็นข้อมูลนักเรียนทั้งหมด</div>
+    </div>
+    <div id="teacherList"></div>
+  </section>
 
   <div id="content">กำลังโหลด...</div>
 </div>
@@ -218,64 +263,173 @@ document.getElementById('ssClose').addEventListener('click', ()=>{
 
 load();
 
-// ---------- จัดการรายชื่อ / บัญชีนักเรียน ----------
-function parseRoster(text){
-  return text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(l=>{
-    const p = l.split(/\t|,/).map(x=>x.trim());
+// ---------- เมนู: งานที่ส่ง / จัดการรายชื่อนักเรียน / จัดการบัญชีครู ----------
+let ACCOUNTS = null;
+let EDITING = null;
+
+function adm(path, method, body){
+  const sep = path.includes('?') ? '&' : '?';
+  const url = '/api/admin/' + path + (KEY ? sep + 'key=' + encodeURIComponent(KEY) : '');
+  return fetch(url, { method: method || 'GET', headers: {'Content-Type':'application/json'}, body: body ? JSON.stringify(body) : undefined });
+}
+function showTab(id){
+  document.querySelectorAll('#tabs .tab').forEach(b => b.classList.toggle('on', b.dataset.tab === id));
+  ['content','panelStudents','panelTeachers'].forEach(p => { document.getElementById(p).hidden = (p !== id); });
+  if(id !== 'content' && !ACCOUNTS) loadAccounts();
+}
+document.getElementById('tabs').addEventListener('click', e=>{
+  const b = e.target.closest('.tab'); if(b) showTab(b.dataset.tab);
+});
+
+async function loadAccounts(){
+  const r = await adm('accounts');
+  if(!r.ok){
+    const msg = '<div class="err">โหลดรายชื่อไม่สำเร็จ (ต้องเข้าสู่ระบบด้วยบัญชีครู หรือเปิดลิงก์พร้อม ?key=)</div>';
+    document.getElementById('stuList').innerHTML = msg; document.getElementById('teacherList').innerHTML = msg;
+    return;
+  }
+  ACCOUNTS = (await r.json()).accounts;
+  renderStudents(); renderTeachers();
+}
+
+function renderStudents(){
+  const all = (ACCOUNTS || []).filter(a => a.role !== 'teacher');
+  const rooms = [...new Set(all.map(a => a.classGroup || '(ไม่ระบุห้อง)'))].sort();
+  const sel = document.getElementById('stuRoomFilter');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">ทุกห้อง</option>' + rooms.map(r => '<option value="' + escapeHtml(r) + '">' + escapeHtml(r) + '</option>').join('');
+  sel.value = rooms.includes(cur) ? cur : '';
+  document.getElementById('roomList').innerHTML = rooms.filter(r => r !== '(ไม่ระบุห้อง)').map(r => '<option value="' + escapeHtml(r) + '">').join('');
+
+  document.getElementById('stuStats').innerHTML =
+    '<div class="stat"><div class="n">' + all.length + '</div><div class="l">นักเรียนทั้งหมด</div></div>' +
+    '<div class="stat"><div class="n">' + all.filter(a => a.passwordChanged).length + '</div><div class="l">เปลี่ยนรหัสผ่านเองแล้ว</div></div>' +
+    '<div class="stat"><div class="n">' + all.filter(a => !a.passwordChanged).length + '</div><div class="l">ยังใช้รหัสเริ่มต้น</div></div>';
+
+  const q = document.getElementById('stuSearch').value.trim().toLowerCase();
+  const room = sel.value;
+  const rows = all.filter(a => (!room || (a.classGroup || '(ไม่ระบุห้อง)') === room) &&
+    (!q || a.studentId.toLowerCase().includes(q) || a.name.toLowerCase().includes(q)));
+  document.getElementById('stuCount').textContent = 'แสดง ' + rows.length + ' จาก ' + all.length + ' คน';
+  document.getElementById('stuList').innerHTML = rows.length
+    ? '<table><thead><tr><th>รหัส</th><th>ชื่อ-นามสกุล</th><th>ห้อง</th><th>รหัสผ่าน</th><th></th></tr></thead><tbody>' +
+      rows.map(a => '<tr><td>' + escapeHtml(a.studentId) + '</td><td>' + escapeHtml(a.name) + '</td><td>' + escapeHtml(a.classGroup || '') + '</td>' +
+        '<td><span class="tag' + (a.passwordChanged ? ' ok' : '') + '">' + (a.passwordChanged ? 'เปลี่ยนแล้ว' : 'เริ่มต้น') + '</span></td>' +
+        '<td><div class="row"><button class="sm ghost stu-edit" data-id="' + escapeHtml(a.studentId) + '">แก้ไข</button>' +
+        '<button class="sm ghost stu-reset" data-id="' + escapeHtml(a.studentId) + '">รีเซ็ตรหัสผ่าน</button>' +
+        '<button class="sm danger stu-del" data-id="' + escapeHtml(a.studentId) + '">ลบ</button></div></td></tr>').join('') +
+      '</tbody></table>'
+    : '<div class="empty">ไม่พบรายชื่อ</div>';
+}
+
+function renderTeachers(){
+  const rows = (ACCOUNTS || []).filter(a => a.role === 'teacher');
+  document.getElementById('teacherList').innerHTML = rows.length
+    ? '<table><thead><tr><th>ชื่อผู้ใช้</th><th>ชื่อที่แสดง</th><th></th></tr></thead><tbody>' +
+      rows.map(a => '<tr><td>' + escapeHtml(a.studentId) + '</td><td>' + escapeHtml(a.name) + '</td>' +
+        '<td><div class="row"><button class="sm ghost t-pass" data-id="' + escapeHtml(a.studentId) + '" data-name="' + escapeHtml(a.name) + '">ตั้งรหัสผ่านใหม่</button>' +
+        '<button class="sm danger t-del" data-id="' + escapeHtml(a.studentId) + '">ลบ</button></div></td></tr>').join('') +
+      '</tbody></table>'
+    : '<div class="empty">ยังไม่มีบัญชีครู (เข้าด้วยรหัสครูได้ตามปกติ) เพิ่มบัญชีครูด้านบน</div>';
+}
+
+function resetStudentForm(){
+  EDITING = null;
+  document.getElementById('stuId').value = ''; document.getElementById('stuId').readOnly = false;
+  document.getElementById('stuName').value = ''; document.getElementById('stuRoom').value = '';
+  document.getElementById('stuFormTitle').textContent = 'เพิ่มนักเรียน';
+  document.getElementById('stuSave').textContent = 'เพิ่มนักเรียน';
+  document.getElementById('stuCancel').hidden = true;
+}
+
+document.getElementById('stuSearch').addEventListener('input', renderStudents);
+document.getElementById('stuRoomFilter').addEventListener('change', renderStudents);
+document.getElementById('stuCancel').addEventListener('click', ()=>{ resetStudentForm(); document.getElementById('stuMsg').textContent = ''; });
+
+document.getElementById('stuSave').addEventListener('click', async ()=>{
+  const msg = document.getElementById('stuMsg');
+  const studentId = document.getElementById('stuId').value.trim();
+  const name = document.getElementById('stuName').value.trim();
+  const classGroup = document.getElementById('stuRoom').value.trim();
+  if(!studentId || !name){ msg.textContent = 'กรอกรหัสนักเรียนและชื่อ-นามสกุลให้ครบ'; return; }
+  if(!EDITING && (ACCOUNTS || []).some(a => a.studentId === studentId)){
+    msg.textContent = 'มีรหัสนี้อยู่แล้ว กด "แก้ไข" ที่แถวของนักเรียนคนนั้นแทน'; return;
+  }
+  const r = await adm('roster', 'POST', { students: [{ studentId, name, classGroup }] });
+  if(!r.ok){ msg.textContent = r.status === 403 ? 'ไม่มีสิทธิ์ (ต้องเป็นครู)' : 'บันทึกไม่สำเร็จ'; return; }
+  const d = await r.json();
+  msg.textContent = d.skipped ? 'ข้ามรายการนี้ (รหัสนี้เป็นบัญชีครู)' : (EDITING ? 'บันทึกการแก้ไขแล้ว' : 'เพิ่มนักเรียนแล้ว รหัสผ่านเริ่มต้นคือรหัสนักเรียน');
+  resetStudentForm();
+  await loadAccounts();
+});
+
+document.getElementById('stuList').addEventListener('click', async e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  const id = b.dataset.id;
+  const acc = (ACCOUNTS || []).find(a => a.studentId === id);
+  if(b.classList.contains('stu-edit') && acc){
+    EDITING = id;
+    document.getElementById('stuId').value = acc.studentId; document.getElementById('stuId').readOnly = true;
+    document.getElementById('stuName').value = acc.name; document.getElementById('stuRoom').value = acc.classGroup || '';
+    document.getElementById('stuFormTitle').textContent = 'แก้ไขนักเรียน ' + acc.studentId;
+    document.getElementById('stuSave').textContent = 'บันทึกการแก้ไข';
+    document.getElementById('stuCancel').hidden = false;
+    document.getElementById('stuMsg').textContent = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  if(b.classList.contains('stu-reset')){
+    if(!confirm('รีเซ็ตรหัสผ่านของ ' + id + ' กลับเป็นรหัสนักเรียน?')) return;
+    await adm('reset-password', 'POST', { studentId: id });
+  } else if(b.classList.contains('stu-del')){
+    if(!confirm('ลบบัญชี ' + id + (acc ? ' (' + acc.name + ')' : '') + '? งานที่ส่งไปแล้วไม่ถูกลบ')) return;
+    await adm('delete-account', 'POST', { studentId: id });
+  } else return;
+  await loadAccounts();
+});
+
+document.getElementById('rosterImport').addEventListener('click', async ()=>{
+  const msg = document.getElementById('rosterMsg');
+  const students = document.getElementById('rosterText').value.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => {
+    const p = l.split(/\t|,/).map(x => x.trim());
     return { studentId: p[0], name: p[1], classGroup: p[2] || '' };
   }).filter(r => r.studentId && r.name && !/^(รหัส|id|studentid)/i.test(r.studentId));
-}
-async function loadRoster(){
-  const box = document.getElementById('rosterList');
-  const r = await fetch('/api/admin/accounts?key=' + encodeURIComponent(KEY));
-  if(!r.ok){ box.textContent = 'โหลดรายชื่อไม่สำเร็จ'; return; }
-  const { accounts } = await r.json();
-  box.innerHTML = accounts.length
-    ? `<div>มีบัญชี ${accounts.length} คน (เปลี่ยนรหัสผ่านเองแล้ว ${accounts.filter(a=>a.passwordChanged).length} คน)</div>` +
-      `<table><thead><tr><th>รหัส</th><th>ชื่อ</th><th>ห้อง</th><th>รหัสผ่าน</th><th></th></tr></thead><tbody>${
-        accounts.map(a=>`<tr><td>${escapeHtml(a.studentId)}</td><td>${escapeHtml(a.name)}</td><td>${escapeHtml(a.classGroup||'')}</td>
-          <td>${a.passwordChanged ? 'เปลี่ยนแล้ว' : 'เริ่มต้น'}</td>
-          <td><button class="acc-reset" data-id="${escapeHtml(a.studentId)}">รีเซ็ตรหัสผ่าน</button>
-              <button class="acc-del" data-id="${escapeHtml(a.studentId)}">ลบ</button></td></tr>`).join('')}</tbody></table>`
-    : 'ยังไม่มีบัญชีนักเรียน';
-}
+  if(!students.length){ msg.textContent = 'ไม่พบรายชื่อที่อ่านได้'; return; }
+  msg.textContent = 'กำลังนำเข้า...';
+  const r = await adm('roster', 'POST', { students });
+  if(!r.ok){ msg.textContent = 'นำเข้าไม่สำเร็จ'; return; }
+  const d = await r.json();
+  msg.textContent = 'เสร็จแล้ว: เพิ่มใหม่ ' + d.created + ' อัปเดต ' + d.updated + ' ข้าม ' + d.skipped;
+  document.getElementById('rosterText').value = '';
+  await loadAccounts();
+});
+
+// ----- บัญชีครู -----
 document.getElementById('tSave').addEventListener('click', async ()=>{
   const msg = document.getElementById('tMsg');
   const username = document.getElementById('tUser').value.trim();
+  const name = document.getElementById('tName').value.trim();
   const password = document.getElementById('tPass').value;
   if(!username || password.length < 4){ msg.textContent = 'กรอกชื่อผู้ใช้ และรหัสผ่านอย่างน้อย 4 ตัว'; return; }
-  const r = await fetch('/api/admin/teacher?key=' + encodeURIComponent(KEY), { method:'POST',
-    headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username, password }) });
-  msg.textContent = r.ok ? 'บันทึกแล้ว ใช้ล็อกอินที่หน้าแรกของวิชาได้' : (r.status === 409 ? 'ชื่อผู้ใช้นี้เป็นของนักเรียน' : 'บันทึกไม่สำเร็จ');
-  if(r.ok){ document.getElementById('tPass').value = ''; loadRoster(); }
+  const r = await adm('teacher', 'POST', { username, name: name || username, password });
+  msg.textContent = r.ok ? 'บันทึกแล้ว ใช้ล็อกอินที่หน้าแรกของวิชาได้'
+    : (r.status === 409 ? 'ชื่อผู้ใช้นี้เป็นของนักเรียน ใช้ชื่ออื่น' : 'บันทึกไม่สำเร็จ');
+  if(r.ok){ document.getElementById('tPass').value = ''; await loadAccounts(); }
 });
-document.getElementById('rosterBox').addEventListener('toggle', e=>{ if(e.target.open) loadRoster(); });
-document.getElementById('rosterImport').addEventListener('click', async ()=>{
-  const msg = document.getElementById('rosterMsg');
-  const students = parseRoster(document.getElementById('rosterText').value);
-  if(!students.length){ msg.textContent = 'ไม่พบรายชื่อที่อ่านได้'; return; }
-  msg.textContent = 'กำลังนำเข้า...';
-  const r = await fetch('/api/admin/roster?key=' + encodeURIComponent(KEY), { method:'POST',
-    headers:{'Content-Type':'application/json'}, body: JSON.stringify({ students }) });
-  if(!r.ok){ msg.textContent = 'นำเข้าไม่สำเร็จ'; return; }
-  const d = await r.json();
-  msg.textContent = `เสร็จแล้ว: เพิ่มใหม่ ${d.created} อัปเดต ${d.updated} ข้าม ${d.skipped}`;
-  loadRoster();
-});
-document.getElementById('rosterList').addEventListener('click', async e=>{
-  const b = e.target.closest('button');
-  if(!b) return;
+document.getElementById('teacherList').addEventListener('click', async e=>{
+  const b = e.target.closest('button'); if(!b) return;
   const id = b.dataset.id;
-  if(b.classList.contains('acc-reset')){
-    if(!confirm('รีเซ็ตรหัสผ่านของ ' + id + ' กลับเป็นรหัสนักเรียน?')) return;
-    await fetch('/api/admin/reset-password?key=' + encodeURIComponent(KEY), { method:'POST',
-      headers:{'Content-Type':'application/json'}, body: JSON.stringify({ studentId: id }) });
-  } else if(b.classList.contains('acc-del')){
-    if(!confirm('ลบบัญชี ' + id + '? (งานที่ส่งไปแล้วไม่ถูกลบ)')) return;
-    await fetch('/api/admin/delete-account?key=' + encodeURIComponent(KEY), { method:'POST',
-      headers:{'Content-Type':'application/json'}, body: JSON.stringify({ studentId: id }) });
-  } else return;
-  loadRoster();
+  if(b.classList.contains('t-pass')){
+    document.getElementById('tUser').value = id;
+    document.getElementById('tName').value = b.dataset.name || id;
+    document.getElementById('tPass').focus();
+    document.getElementById('tMsg').textContent = 'พิมพ์รหัสผ่านใหม่ แล้วกด "บันทึกบัญชีครู"';
+  } else if(b.classList.contains('t-del')){
+    if(!confirm('ลบบัญชีครู ' + id + '?')) return;
+    const r = await adm('delete-account', 'POST', { studentId: id });
+    if(r.status === 400) alert('ลบบัญชีที่กำลังใช้งานอยู่ไม่ได้');
+    await loadAccounts();
+  }
 });
 </script>
 </body>

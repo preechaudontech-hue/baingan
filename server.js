@@ -381,6 +381,7 @@ app.post("/api/admin/reset-password", requireTeacher, async (req, res) => {
     const studentId = String((req.body || {}).studentId || "").trim();
     const acc = await db.collection("accounts").findOne({ studentId });
     if (!acc) return res.status(404).json({ error: "not_found" });
+    if (acc.role === "teacher") return res.status(400).json({ error: "use_set_password" });
     const pw = await makePassword(studentId);
     await db.collection("accounts").updateOne({ studentId }, { $set: { ...pw, passwordChanged: false } });
     await (authCache.clear(), db.collection("sessions")).deleteMany({ studentId });
@@ -393,6 +394,8 @@ app.post("/api/admin/reset-password", requireTeacher, async (req, res) => {
 
 app.post("/api/admin/delete-account", requireTeacher, async (req, res) => {
   const studentId = String((req.body || {}).studentId || "").trim();
+  const me = await accountFromRequest(req);
+  if (me && me.studentId === studentId) return res.status(400).json({ error: "cannot_delete_self" });
   await db.collection("accounts").deleteOne({ studentId });
   await (authCache.clear(), db.collection("sessions")).deleteMany({ studentId });
   res.json({ ok: true });
