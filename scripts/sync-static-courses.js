@@ -37,7 +37,7 @@ fs.writeFileSync(path.join(D13, "index.html"), HEAD + `<title>31901-2013 กา�
 <style>
 :root{--bg:#f6f7fb;--card:#fff;--tx:#1f2937;--mu:#6b7280;--ac:#2563eb;--bd:#e5e7eb}
 @media(prefers-color-scheme:dark){:root{--bg:#0f172a;--card:#1e293b;--tx:#e5e7eb;--mu:#94a3b8;--ac:#60a5fa;--bd:#334155}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:17px/1.7 "Sarabun",system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:19px/1.75 "Sarabun",system-ui,sans-serif}
 main{max-width:720px;margin:0 auto;padding:20px 16px 60px}a{color:var(--ac)}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px 18px;margin:14px 0}
 h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.1rem;margin:0 0 .4em}.mu{color:var(--mu)}
