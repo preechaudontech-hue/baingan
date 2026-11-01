@@ -1,0 +1,45 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ใบงานที่ 9.2 จัดทำคู่มือการใช้งานโปรแกรมและสาธิตผลงาน</title><style>:root{--bg:#f6f7fb;--card:#fff;--tx:#1f2937;--mu:#6b7280;--ac:#2563eb;--bd:#e5e7eb;--cb:#0f172a}
+@media(prefers-color-scheme:dark){:root{--bg:#0f172a;--card:#1e293b;--tx:#e5e7eb;--mu:#94a3b8;--ac:#60a5fa;--bd:#334155;--cb:#020617}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:17px/1.7 "TH Sarabun New","Sarabun",system-ui,sans-serif}
+main{max-width:760px;margin:0 auto;padding:20px 16px 60px}a{color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px 18px;margin:14px 0}
+h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.15rem;margin:0 0 .4em;color:var(--ac)}.mu{color:var(--mu);font-size:.9rem}
+.id{display:flex;gap:10px;flex-wrap:wrap}.id input{flex:1;min-width:150px}
+input[type=text],textarea{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+ol.s{list-style:none;padding:0;margin:0}.step{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--bd)}.step:first-child{border-top:0}
+.chk{cursor:pointer;flex:none}.chk input{display:none}.n{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;border:2px solid var(--ac);color:var(--ac);font-weight:700}
+.chk input:checked+.n{background:var(--ac);color:#fff}.body{flex:1;min-width:0}.body p{margin:0 0 6px}.step.done p{color:var(--mu)}
+table{width:100%;border-collapse:collapse}td{border-top:1px solid var(--bd);padding:6px 4px}td:last-child{text-align:right;width:60px}
+.bar{height:8px;background:var(--bd);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .2s}
+button{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--ac);background:var(--ac);color:#fff;cursor:pointer}button.g{background:none;color:var(--ac)}
+pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:auto;font:14px/1.5 Consolas,monospace;max-height:420px;margin:6px 0}code{font-family:Consolas,monospace;background:var(--bd);padding:0 4px;border-radius:4px}
+.nav{display:flex;justify-content:space-between;margin-top:18px}
+.u{font-weight:700;margin:18px 0 4px}.li a{display:block;padding:8px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card);margin:6px 0;text-decoration:none}
+@media print{body{background:#fff;color:#000}.noprint{display:none}.card{break-inside:avoid}}</style></head><body><main>
+<div class="mu"><a href="index.html">สารบัญ</a> · วิชา 31901-2009 การพัฒนาซอฟต์แวร์สำหรับอุปกรณ์เคลื่อนที่ · หน่วยที่ 9 เผยแพร่และคู่มือ</div>
+<h1>ใบงานที่ 9.2 จัดทำคู่มือการใช้งานโปรแกรมและสาธิตผลงาน</h1><div class="mu">เวลา 180 นาที · งานเดี่ยว · คะแนนเต็ม 10</div>
+<div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
+<div class="card"><h2>จุดประสงค์</h2>จัดทำคู่มือการใช้งานโปรแกรมที่ผู้ใช้ทำตามได้ และนำเสนอผลงานแอปพลิเคชันได้</div>
+<div class="card"><h2>คำชี้แจง</h2>เขียนคู่มือการใช้งานแอปของตนเองตามโครงสร้างในใบความรู้ที่ 9 ให้เพื่อนร่วมห้อง 1 คนลองทำตามแล้วบันทึกผล ปรับปรุงคู่มือ จากนั้นสาธิตแอปให้ผู้สอนดู</div>
+<div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>ผลงานจากใบงาน 9.1</li><li>ภาพหน้าจอจากมือถือจริง</li></ul></div>
+
+<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>เขียนคู่มือการใช้งานให้ครบ 7 ส่วนตามใบความรู้ (หน้าปก แนะนำแอป ติดตั้งและเริ่มใช้งาน วิธีใช้ทีละงาน ข้อความแจ้งเตือนและวิธีแก้ FAQ ช่องทางติดต่อ) ในไฟล์เอกสาร</p><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>ส่วนวิธีใช้ทีละงาน เขียนอย่างน้อย 4 งาน แต่ละงานมีขั้นตอนเป็นข้อ ๆ ภาพหน้าจอกำกับ และผลที่ผู้ใช้ควรเห็น ใช้ชื่อปุ่มตรงกับในแอป</p><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>ส่วนข้อความแจ้งเตือน ใส่ข้อความผิดพลาดจริงจากแอปอย่างน้อย 4 ข้อความ พร้อมวิธีแก้สำหรับผู้ใช้</p><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>ให้เพื่อน 1 คนที่ไม่เคยใช้แอปทำตามคู่มือโดยไม่ช่วย จับเวลาและจดจุดที่เขาติดหรือเข้าใจผิดอย่างน้อย 3 จุด (ขออนุญาตก่อนบันทึกผลและไม่ระบุชื่อเพื่อน)</p><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>แก้คู่มือและแอป (ถ้าจำเป็น) ตามจุดที่เพื่อนติด และบันทึก ก่อน/หลัง แก้ไข</p><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>สาธิตแอปให้ผู้สอนไม่เกิน 5 นาที: แนะนำปัญหาที่แอปแก้ แสดง use case หลัก 3 อย่างบนมือถือจริง และอธิบายสิ่งที่ได้เรียนรู้ 2 ข้อ</p><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>เขียนสรุปโครงงานไม่เกิน 1 หน้า: ปัญหา ผู้ใช้ ความสามารถของแอป เทคโนโลยีที่ใช้ ผลการทดสอบ และแนวทางพัฒนาต่อ</p><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
+
+<div class="card"><h2>สิ่งที่ต้องส่ง</h2><p>ไฟล์คู่มือการใช้งาน (PDF หรือ Word) + บันทึกผลการทดลองใช้คู่มือกับเพื่อน + สรุปโครงงาน 1 หน้า + ลิงก์ Snack รุ่นสุดท้าย + การสาธิตต่อผู้สอน (ส่งตามช่องทางที่ครูกำหนด)</p>
+<input type="text" data-k="link" placeholder="ลิงก์ Snack" style="margin-bottom:8px"><textarea data-k="summary" rows="3" placeholder="สรุปผล / ปัญหาที่พบ (ถ้ามี)"></textarea></div>
+<div class="card"><h2>เกณฑ์การให้คะแนน</h2><table><tr><td>คู่มือครบ 7 ส่วน ขั้นตอนชัดเจน มีภาพกำกับ ตรงกับแอป</td><td>4</td></tr><tr><td>ทดลองใช้กับเพื่อนและปรับปรุงตามผลจริง</td><td>3</td></tr><tr><td>สาธิตแอปและสรุปโครงงานครบถ้วนชัดเจน</td><td>3</td></tr><tr><td><b>รวม</b></td><td><b>10</b></td></tr></table></div>
+<div class="noprint"><button id="pr">พิมพ์ / บันทึกเป็น PDF</button> <button class="g" id="cl">ล้างข้อมูล</button><p class="mu">ข้อมูลที่กรอกเก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น ยังไม่ส่งถึงครู</p>
+<div class="nav"><span><a href="ws-9.1.html">&larr; ใบงาน 9.1</a></span><span></span></div></div>
+</main><script>
+var K="ws-9.2",S={};try{S=JSON.parse(localStorage.getItem(K)||"{}")}catch(e){}
+var els=[].slice.call(document.querySelectorAll("[data-k]"));
+function upd(){var c=els.filter(function(e){return e.type==="checkbox"});var d=c.filter(function(e){return e.checked}).length;
+document.getElementById("bar").style.width=(100*d/c.length)+"%";document.getElementById("pct").textContent="ทำแล้ว "+d+" จาก "+c.length+" ขั้นตอน";
+c.forEach(function(e){e.closest(".step").classList.toggle("done",e.checked)});try{localStorage.setItem("done-"+K,d+"/"+c.length)}catch(x){}}
+els.forEach(function(e){var k=e.dataset.k;if(e.type==="checkbox")e.checked=!!S[k];else if(S[k])e.value=S[k];
+e.addEventListener("input",function(){S[k]=e.type==="checkbox"?e.checked:e.value;try{localStorage.setItem(K,JSON.stringify(S))}catch(x){}upd()})});upd();
+document.getElementById("pr").onclick=function(){print()};
+document.getElementById("cl").onclick=function(){if(confirm("ล้างทุกอย่าง?")){try{localStorage.removeItem(K);localStorage.removeItem("done-"+K)}catch(x){}location.reload()}};
+var cp=document.getElementById("cp");if(cp)cp.onclick=function(){var t=document.getElementById("code").textContent;
+(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){cp.textContent="คัดลอกแล้ว"},function(){var r=document.createRange();r.selectNodeContents(document.getElementById("code"));var s=getSelection();s.removeAllRanges();s.addRange(r);cp.textContent="เลือกข้อความแล้ว กด Ctrl+C"})};
+</script></body></html>

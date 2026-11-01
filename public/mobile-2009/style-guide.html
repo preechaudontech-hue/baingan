@@ -1,0 +1,192 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>คู่มือสไตล์ React Native</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: แถบค้นหา + ปุ่มกรองกลุ่ม แล้วเป็นการ์ดคุณสมบัติเรียงลงมา การ์ดละ 1 คุณสมบัติ: ใช้ทำอะไร / ค่าที่ใช้ได้ / ตัวอย่างโค้ด / ภาพตัวอย่าง / คำอธิบาย */
+:root{
+  --bg:#f4f6f8; --card:#ffffff; --fg:#17212b; --mu:#5b6b7a; --bd:#d9e0e7;
+  --ac:#0b6e99; --ac-soft:#e1f1f8; --no:#b3261e; --no-soft:#fcebe9;
+  --code-bg:#0f1b26; --code-fg:#e6edf3;
+  --f-body:'Sarabun',system-ui,sans-serif; --f-mono:'JetBrains Mono',Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e151c; --card:#16212b; --fg:#e6edf3; --mu:#9aabba; --bd:#2a3947;
+  --ac:#5cc0ea; --ac-soft:#16303d; --no:#ff8f86; --no-soft:#3a1c1a;
+  --code-bg:#091219; --code-fg:#e6edf3; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e151c; --card:#16212b; --fg:#e6edf3; --mu:#9aabba; --bd:#2a3947;
+  --ac:#5cc0ea; --ac-soft:#16303d; --no:#ff8f86; --no-soft:#3a1c1a;
+  --code-bg:#091219; --code-fg:#e6edf3; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:18px/1.7 var(--f-body);
+  padding-block:20px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1{font-size:1.7rem;line-height:1.25;margin:0;text-wrap:balance}
+h2{margin:0;font:600 1.15rem var(--f-mono);word-break:break-word}
+h3{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mu);margin:0 0 4px}
+p{margin:0}.mu{color:var(--mu)}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--ac-soft);padding:1px 6px;border-radius:4px}
+.tools{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px;display:flex;flex-direction:column;gap:8px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+#q{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:10px 14px;width:100%}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font:inherit;font-size:.95rem;color:var(--fg);background:var(--card);border:1px solid var(--bd);border-radius:99px;padding:2px 14px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ac);border-color:var(--ac);color:#fff}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+[hidden]{display:none!important}
+.head{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.tag{font-size:.8rem;font-weight:700;color:var(--ac);background:var(--ac-soft);padding:1px 10px;border-radius:99px}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,240px);gap:16px;align-items:start}
+@media(max-width:640px){.cols{grid-template-columns:minmax(0,1fr)}}
+.codewrap{position:relative;min-width:0}
+pre{margin:0;background:var(--code-bg);color:var(--code-fg);border-radius:8px;padding:12px 14px;overflow-x:auto;font:14px/1.65 var(--f-mono)}
+.copy{position:absolute;top:8px;right:8px;background:#ffffff1f;color:#fff;border:1px solid #ffffff55;border-radius:6px;padding:2px 10px;font:600 14px var(--f-body);cursor:pointer}
+/* ภาพตัวอย่าง: พื้นที่จำลอง ใช้สีคงที่ทั้งสองธีม */
+.pv{display:flex;flex-direction:column;background:#e8edf2;color:#111;border-radius:6px;overflow:hidden;font-family:system-ui,sans-serif;font-size:15px;min-height:60px}
+.pv>div{background:#fff;border:1px solid #556;padding:6px 12px;color:#111}
+.pv>.txt{background:transparent;border:0}
+.cap{font-size:.85rem;color:var(--mu);margin-top:4px}
+ul.ex{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:4px}
+.warn{background:var(--no-soft);border-radius:8px;padding:8px 12px;font-size:.95rem}
+.empty{text-align:center;padding:32px 0}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+</style>
+</head><body><p style="margin:0;padding:8px 16px;font:14px system-ui,sans-serif"><a href="/">&larr; หน้ารวมวิชา</a></p>
+
+
+
+<main>
+  <div>
+    <h1>คู่มือสไตล์ React Native</h1>
+    <p class="mu">ค้นหาคุณสมบัติที่ใช้ใน StyleSheet ว่าใช้ทำอะไร ใส่ค่าอะไรได้ พร้อมตัวอย่างโค้ดและภาพผลลัพธ์ ใช้คู่กับใบงานแอปแรก (วิชา 31901-2009)</p>
+  </div>
+  <div class="tools">
+    <input id="q" type="search" placeholder="ค้นหา เช่น กึ่งกลาง, ระยะห่าง, มุมมน, ตัวหนา, สีพื้นหลัง" aria-label="ค้นหาคุณสมบัติ">
+    <div class="chips" id="chips" role="group" aria-label="กรองตามกลุ่ม"></div>
+    <p class="mu" id="count" aria-live="polite"></p>
+  </div>
+  <div id="list" style="display:contents"></div>
+  <p class="mu">รายการครบถ้วนอยู่ในเอกสารทางการ <a href="https://reactnative.dev/docs/view-style-props" target="_blank" rel="noopener" style="color:var(--ac)">View Style Props</a>, <a href="https://reactnative.dev/docs/text-style-props" target="_blank" rel="noopener" style="color:var(--ac)">Text Style Props</a> และ <a href="https://reactnative.dev/docs/flexbox" target="_blank" rel="noopener" style="color:var(--ac)">Layout with Flexbox</a> ภาพตัวอย่างในหน้านี้จำลองบนเว็บ ผลจริงบนมือถืออาจต่างเล็กน้อย</p>
+</main>
+
+<script>
+/* ฟิลด์: n ชื่อ, g กลุ่ม, tag กล่องที่ใช้, use ใช้ทำอะไร, v ค่าที่ใช้ได้, s ตัวอย่างโค้ดในสไตล์,
+   c สไตล์เว็บของกล่องนอก, k ของกล่องลูกตัวที่ 2, a ของลูกทุกตัว, t ของข้อความ, ex คำอธิบาย, w ข้อควรระวัง, kw คำค้นเพิ่ม */
+var G={L:'จัดวางลูก',Z:'ขนาด',P:'ระยะภายใน',M:'ระยะภายนอก',C:'สี',B:'กรอบ',T:'ข้อความ',O:'ตำแหน่งลอย'};
+var D=[
+{n:'flex',g:'L',tag:'View',use:'ให้กล่องขยายกินพื้นที่ที่เหลือ',v:'ตัวเลข เช่น 1 (ยิ่งมากยิ่งได้ส่วนแบ่งมาก)',s:'flex: 1',c:'height:150px',k:'flex:1',
+ ex:['ใส่ flex: 1 ที่กล่องนอกสุดของหน้า กล่องนั้นจะเต็มหน้าจอ','ถ้ากล่องพี่น้องมี flex: 1 และ flex: 2 พื้นที่จะแบ่งกัน 1 ต่อ 2','ในภาพ กล่องตัวที่ 2 ใส่ flex: 1 จึงขยายกินพื้นที่ที่เหลือ'],kw:'เต็มหน้าจอ ขยาย เต็มพื้นที่'},
+{n:'flexDirection',g:'L',tag:'View',use:'กำหนดว่ากล่องลูกเรียงแนวตั้งหรือแนวนอน',v:"'column' (ค่าเริ่มต้น), 'row', 'column-reverse', 'row-reverse'",s:"flexDirection: 'row'",c:'flex-direction:row',
+ ex:["'column' เรียงจากบนลงล่าง ส่วน 'row' เรียงจากซ้ายไปขวา","ค่าเริ่มต้นของ React Native คือ column ต่างจากเว็บที่ flex เริ่มต้นเป็น row","ค่านี้เป็นตัวกำหนดว่า \"แนวหลัก\" คือแนวใด ซึ่งมีผลกับ justifyContent และ alignItems"],kw:'แนวนอน แนวตั้ง เรียง แถว คอลัมน์'},
+{n:'justifyContent',g:'L',tag:'View',use:'จัดลูกตาม \"แนวหลัก\" (แนวเดียวกับ flexDirection)',v:"'flex-start' (ค่าเริ่มต้น), 'center', 'flex-end', 'space-between', 'space-around', 'space-evenly'",s:"justifyContent: 'center'",c:'height:150px;justify-content:center',
+ ex:["ถ้า flexDirection เป็น column แนวหลักคือแนวตั้ง 'center' จึงจัดกึ่งกลางแนวตั้ง","ถ้าเป็น row แนวหลักคือแนวนอน 'center' จึงจัดกึ่งกลางแนวนอน","'space-between' ดันลูกตัวแรกชิดต้นและตัวสุดท้ายชิดปลาย ที่เหลือเว้นเท่ากัน"],kw:'จัดกึ่งกลาง ตรงกลาง กระจาย'},
+{n:'alignItems',g:'L',tag:'View',use:'จัดลูกตาม \"แนวขวาง\" (ตั้งฉากกับแนวหลัก)',v:"'stretch' (ค่าเริ่มต้น), 'flex-start', 'center', 'flex-end'",s:"alignItems: 'center'",c:'height:150px;align-items:center',
+ ex:["ถ้า flexDirection เป็น column แนวขวางคือแนวนอน 'center' จึงจัดกึ่งกลางแนวนอน","'stretch' ทำให้ลูกขยายเต็มแนวขวาง ถ้าลูกไม่ได้กำหนดความกว้าง (หรือสูง) ไว้","จัดกึ่งกลางทั้งสองแนว ใช้ justifyContent: 'center' คู่กับ alignItems: 'center'"],kw:'จัดกึ่งกลาง ตรงกลาง'},
+{n:'alignSelf',g:'L',tag:'View',use:'ให้ลูกตัวเดียวจัดแนวขวางต่างจากตัวอื่น',v:"'auto', 'flex-start', 'center', 'flex-end', 'stretch'",s:"alignSelf: 'flex-end'",k:'align-self:flex-end',
+ ex:['ใส่ที่กล่องลูก ไม่ใช่กล่องแม่','ทับค่า alignItems ของกล่องแม่เฉพาะลูกตัวนั้น'],kw:'ลูกตัวเดียว'},
+{n:'gap',g:'L',tag:'View',use:'เว้นระยะระหว่างลูกทุกตัวในกล่อง',v:'ตัวเลข เช่น 12 (ยังมี rowGap และ columnGap แยกแนว)',s:'gap: 12',c:'gap:12px',
+ ex:['ไม่ต้องเขียน marginBottom ให้ลูกทีละตัว','ระยะเว้นเฉพาะระหว่างลูก ไม่เว้นที่ขอบด้านนอกของกล่อง'],kw:'ช่องว่าง เว้นระยะ ระยะห่างระหว่าง'},
+{n:'flexWrap',g:'L',tag:'View',use:'ให้ลูกขึ้นบรรทัดใหม่เมื่อที่ไม่พอ',v:"'nowrap' (ค่าเริ่มต้น), 'wrap'",s:"flexDirection: 'row', flexWrap: 'wrap'",c:'flex-direction:row;flex-wrap:wrap;gap:6px',a:'width:42%',
+ ex:["มักใช้คู่กับ flexDirection: 'row' เพื่อทำตารางไอคอนหรือแท็ก","ในภาพ ลูกแต่ละตัวกว้าง 42% จึงขึ้นบรรทัดใหม่ทีละ 2 ตัว"],kw:'ขึ้นบรรทัดใหม่ ตาราง'},
+
+{n:'width',g:'Z',tag:'View',use:'กำหนดความกว้างของกล่อง',v:"ตัวเลข เช่น 120 หรือข้อความเปอร์เซ็นต์ เช่น '50%'",s:"width: '50%'",k:'width:50%;align-self:flex-start',
+ ex:["ตัวเลขไม่มีหน่วย ส่วนเปอร์เซ็นต์ต้องเป็นข้อความที่มีเครื่องหมายคำพูด","เปอร์เซ็นต์อิงจากความกว้างของกล่องแม่"],kw:'ความกว้าง กว้าง'},
+{n:'height',g:'Z',tag:'View',use:'กำหนดความสูงของกล่อง',v:"ตัวเลข เช่น 80 หรือ '50%'",s:'height: 80',k:'height:80px',
+ ex:['ถ้าไม่กำหนด กล่องจะสูงตามเนื้อหาข้างใน','เปอร์เซ็นต์ใช้ได้เมื่อกล่องแม่มีความสูงที่แน่นอนหรือมี flex'],kw:'ความสูง สูง'},
+{n:'minHeight',g:'Z',tag:'View',use:'กำหนดความสูงต่ำสุด กล่องไม่เตี้ยกว่านี้แต่ยืดได้ถ้าเนื้อหายาว',v:'ตัวเลข',s:'minHeight: 100',k:'min-height:100px',
+ ex:['ใช้กับการ์ดหรือช่องกรอกที่ต้องการขนาดอย่างน้อยเท่านี้','ต่างจาก height ที่ตรึงขนาดไว้ตายตัว'],kw:'ความสูงต่ำสุด'},
+{n:'maxWidth',g:'Z',tag:'View',use:'กำหนดความกว้างสูงสุด กล่องไม่กว้างเกินนี้',v:"ตัวเลข หรือ '80%'",s:'maxWidth: 160',k:'max-width:160px',
+ ex:['ใช้จำกัดความกว้างข้อความหรือการ์ดบนจอใหญ่ เช่น แท็บเล็ต'],kw:'ความกว้างสูงสุด จำกัดความกว้าง'},
+
+{n:'padding',g:'P',tag:'View',use:'เว้นระยะระหว่างขอบกล่องกับเนื้อหาข้างในทั้ง 4 ด้าน',v:'ตัวเลข เช่น 16',s:'padding: 16, backgroundColor: \'pink\'',c:'padding:16px;background:pink',
+ ex:['พื้นหลังของกล่องยังครอบคลุมพื้นที่ padding ด้วย','ถ้าต้องการเว้นห่างจากกล่องข้างเคียง ให้ใช้ margin'],kw:'ระยะห่างภายใน เว้นขอบ ช่องไฟ'},
+{n:'paddingHorizontal / paddingVertical',g:'P',tag:'View',use:'เว้นระยะภายในเฉพาะซ้ายขวา (Horizontal) หรือบนล่าง (Vertical)',v:'ตัวเลข',s:'paddingHorizontal: 24, paddingVertical: 8, backgroundColor: \'pink\'',c:'padding:8px 24px;background:pink',
+ ex:['paddingHorizontal เท่ากับเขียน paddingLeft และ paddingRight ค่าเดียวกัน','ใช้บ่อยกับปุ่ม: แนวนอนกว้างกว่าแนวตั้ง'],kw:'ปุ่ม ซ้ายขวา บนล่าง'},
+{n:'paddingTop / paddingBottom / paddingLeft / paddingRight',g:'P',tag:'View',use:'เว้นระยะภายในทีละด้าน',v:'ตัวเลข',s:'paddingTop: 32, backgroundColor: \'pink\'',c:'padding-top:32px;background:pink',
+ ex:['เลือกเฉพาะด้านที่ต้องการ ด้านอื่นเป็น 0','ตัวอย่างนี้เว้นเฉพาะด้านบน เนื้อหาจึงเลื่อนลง'],kw:'เว้นด้านบน'},
+
+{n:'margin',g:'M',tag:'View',use:'เว้นระยะรอบนอกของกล่อง ห่างจากกล่องข้างเคียง',v:'ตัวเลข เช่น 20',s:'margin: 20',c:'background:#c9d3dc',k:'margin:20px',
+ ex:['ในภาพ กล่องตัวที่ 2 มี margin 20 จึงห่างจากกล่องข้างเคียงและขอบ','margin อยู่นอกกรอบ ส่วน padding อยู่ในกรอบ'],kw:'ระยะห่างภายนอก เว้นระยะ ห่างกัน'},
+{n:'marginHorizontal / marginVertical',g:'M',tag:'View',use:'เว้นระยะภายนอกเฉพาะซ้ายขวาหรือบนล่าง',v:'ตัวเลข',s:'marginHorizontal: 24, marginVertical: 8',c:'background:#c9d3dc',k:'margin:8px 24px',
+ ex:['ใช้กับการ์ดในรายการ เช่น marginHorizontal: 16 ให้การ์ดไม่ชิดขอบจอ'],kw:'ซ้ายขวา บนล่าง การ์ด'},
+{n:'marginTop / marginBottom / marginLeft / marginRight',g:'M',tag:'View',use:'เว้นระยะภายนอกทีละด้าน',v:'ตัวเลข',s:'marginBottom: 24',c:'background:#c9d3dc',k:'margin-bottom:24px',
+ ex:['marginBottom มักใช้เว้นระหว่างหัวเรื่องกับเนื้อหาด้านล่าง'],kw:'เว้นด้านล่าง'},
+
+{n:'backgroundColor',g:'C',tag:'View',use:'กำหนดสีพื้นหลังของกล่อง',v:"ชื่อสี 'pink' หรือรหัส '#ffd6e0' หรือ 'rgb(255, 214, 224)'",s:"backgroundColor: 'pink'",c:'background:pink',
+ ex:['เป็นข้อความ ต้องมีเครื่องหมายคำพูด','ชื่อคุณสมบัติเป็น camelCase ไม่ใช่ background-color','ใช้ค่าเดียวกันซ้ำหลายที่ ให้เก็บเป็นตัวแปร เช่น const bg = \'pink\''],kw:'สีพื้นหลัง สีพื้น เปลี่ยนสี'},
+{n:'opacity',g:'C',tag:'View',use:'ทำให้กล่องและสิ่งที่อยู่ข้างในโปร่งใส',v:'ตัวเลข 0 (โปร่งใสหมด) ถึง 1 (ทึบ)',s:'opacity: 0.4',k:'opacity:.4',
+ ex:['มีผลกับทั้งกล่องรวมข้อความข้างใน','ใช้ทำปุ่มที่ปิดใช้งาน (disabled) ให้ดูจาง'],kw:'โปร่งใส จาง'},
+
+{n:'borderWidth / borderColor',g:'B',tag:'View',use:'ทำเส้นกรอบรอบกล่อง ต้องกำหนดทั้งความหนาและสี',v:"borderWidth ตัวเลข เช่น 2, borderColor สีแบบข้อความ",s:"borderWidth: 3, borderColor: '#0b6e99'",c:'border:3px solid #0b6e99',
+ ex:['ไม่มี border: \'1px solid black\' แบบ CSS ต้องแยกเป็น 2 คุณสมบัติ','ถ้ากำหนดแค่ borderColor โดยไม่มี borderWidth จะไม่เห็นกรอบ'],w:'ผิดบ่อย: เขียน border แบบย่อของ CSS',kw:'เส้น ขอบ กรอบ'},
+{n:'borderRadius',g:'B',tag:'View',use:'ทำมุมของกล่องให้มน',v:'ตัวเลข ยิ่งมากยิ่งมน (ครึ่งหนึ่งของความกว้างความสูง ทำให้เป็นวงกลม)',s:"borderRadius: 16, backgroundColor: 'pink'",c:'background:pink;padding:6px',a:'border-radius:16px',
+ ex:['ใช้ทำปุ่มและการ์ดมุมมน','ทำวงกลม: กำหนดความกว้างความสูงเท่ากัน แล้วตั้ง borderRadius เป็นครึ่งหนึ่ง'],kw:'มุมมน วงกลม โค้ง'},
+
+{n:'color',g:'T',tag:'Text',use:'กำหนดสีตัวอักษร',v:"ชื่อสีหรือรหัสสีแบบข้อความ เช่น 'white' '#222'",s:"color: 'crimson'",t:'color:crimson',
+ ex:['ใช้กับ Text เท่านั้น ใส่ใน View ไม่มีผล','ต่างจาก backgroundColor ที่เป็นสีพื้นหลัง','Text ไม่สืบทอดสีมาจาก View แม่ ต้องกำหนดที่ Text เอง'],w:'ผิดบ่อย: ใส่ color ไว้ที่ View',kw:'สีตัวอักษร สีข้อความ'},
+{n:'fontSize',g:'T',tag:'Text',use:'กำหนดขนาดตัวอักษร',v:'ตัวเลข เช่น 14 (ปกติ) 20 24 28',s:'fontSize: 28',t:'font-size:28px',
+ ex:['ไม่ใส่หน่วย (ไม่ใช่ \'28px\')','ในหน้าเดียวกันควรใช้ไม่เกิน 3 ขนาดเพื่อให้อ่านง่ายและสม่ำเสมอ'],kw:'ขนาดตัวอักษร ตัวใหญ่ ตัวเล็ก'},
+{n:'fontWeight',g:'T',tag:'Text',use:'กำหนดความหนาตัวอักษร',v:"'normal', 'bold', หรือ '100' ถึง '900' (เป็นข้อความ)",s:"fontWeight: 'bold'",t:'font-weight:bold',
+ ex:["'bold' คือตัวหนา","ค่าตัวเลขต้องอยู่ในเครื่องหมายคำพูด เช่น '600'","ฟอนต์บางแบบรองรับน้ำหนักไม่ครบทุกค่า"],kw:'ตัวหนา หนา'},
+{n:'fontStyle',g:'T',tag:'Text',use:'ทำตัวอักษรเอียง',v:"'normal', 'italic'",s:"fontStyle: 'italic'",t:'font-style:italic',
+ ex:['ใช้ทำตัวเอียงเพื่อเน้นข้อความ'],kw:'ตัวเอียง เอียง'},
+{n:'textAlign',g:'T',tag:'Text',use:'จัดข้อความชิดซ้าย กึ่งกลาง หรือชิดขวา ภายในกล่อง Text เอง',v:"'left', 'center', 'right', 'justify', 'auto'",s:"textAlign: 'center'",t:'text-align:center',
+ ex:['จัดข้อความภายในความกว้างของ Text นั้น','ถ้าต้องการจัดกล่อง Text ทั้งอันให้อยู่กึ่งกลางหน้า ใช้ alignItems ที่กล่องแม่'],kw:'จัดกึ่งกลางข้อความ ชิดขวา ชิดซ้าย'},
+{n:'lineHeight',g:'T',tag:'Text',use:'กำหนดความสูงของบรรทัดข้อความ',v:'ตัวเลข (ค่าความสูงจริง ไม่ใช่ตัวคูณ)',s:'fontSize: 16, lineHeight: 28',t:'font-size:16px;line-height:28px',
+ ex:['ใน React Native ใส่ 28 หมายถึง 28 หน่วย ไม่ใช่ 1.75 เท่า','ภาษาไทยมีสระและวรรณยุกต์ ควรตั้งอย่างน้อยประมาณ 1.5 เท่าของ fontSize เพื่อไม่ให้ตัวอักษรชนกัน'],kw:'ระยะบรรทัด ช่องไฟบรรทัด'},
+{n:'textDecorationLine',g:'T',tag:'Text',use:'ขีดเส้นใต้หรือเส้นขีดฆ่าข้อความ',v:"'none', 'underline', 'line-through'",s:"textDecorationLine: 'underline'",t:'text-decoration-line:underline',
+ ex:["'underline' เส้นใต้ ใช้กับลิงก์","'line-through' ขีดฆ่า ใช้กับงานที่ทำเสร็จในรายการสิ่งที่ต้องทำ"],kw:'เส้นใต้ ขีดฆ่า ขีดเส้น'},
+
+{n:'position',g:'O',tag:'View',use:'วางกล่องลอยทับตำแหน่งเฉพาะ ไม่เรียงตามลำดับปกติ',v:"'relative' (ค่าเริ่มต้น), 'absolute'",s:"position: 'absolute', top: 0, right: 0",c:'position:relative;height:150px',k:'position:absolute;top:0;right:0',
+ ex:["เมื่อใช้ 'absolute' กล่องจะไม่ถูกนับในการเรียงของพี่น้อง แล้ววางตามระยะ top left right bottom จากขอบกล่องแม่","ใช้ทำป้ายแจ้งเตือน ปุ่มลอย (FAB) หรือวางข้อความทับรูป"],kw:'ลอย ทับ ปุ่มลอย วางทับ'},
+{n:'top / left / right / bottom',g:'O',tag:'View',use:'บอกระยะจากขอบของกล่องแม่ ใช้คู่กับ position: \'absolute\'',v:'ตัวเลข',s:"position: 'absolute', bottom: 8, left: 8",c:'position:relative;height:150px',k:'position:absolute;bottom:8px;left:8px',
+ ex:['bottom: 8, left: 8 คือห่างจากขอบล่าง 8 และขอบซ้าย 8','ถ้าใส่ top: 0, left: 0, right: 0, bottom: 0 พร้อมกัน กล่องจะเต็มพื้นที่ของแม่'],kw:'ระยะจากขอบ ตำแหน่ง'}
+];
+
+var KEEP='';
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function pv(d){
+  if(d.t) return '<div class="pv" style="'+(d.c||'')+'"><div class="txt" style="'+d.t+'">สวัสดี React Native<br>ตัวอย่างข้อความ</div></div>';
+  var kids=[1,2,3].map(function(i){var st=(d.a||'')+(i===2&&d.k?';'+d.k:'');return '<div'+(st?' style="'+st+'"':'')+'>'+i+'</div>'});
+  if(d.n==='flexWrap')kids=kids.concat(['<div style="'+d.a+'">4</div>']);
+  return '<div class="pv" style="'+(d.c||'')+'">'+kids.join('')+'</div>';
+}
+function code(d){return 'const styles = StyleSheet.create({\n  box: { '+d.s+' },\n});\n\n<'+d.tag+' style={styles.box}>...</'+d.tag+'>'}
+var list=document.getElementById('list');
+D.forEach(function(d,i){
+  var el=document.createElement('section');el.className='card';el.id='p'+i;
+  el.dataset.g=d.g;el.dataset.s=(d.n+' '+G[d.g]+' '+d.use+' '+d.v+' '+(d.kw||'')+' '+d.ex.join(' ')).toLowerCase();
+  el.innerHTML='<div class="head"><h2>'+esc(d.n)+'</h2><span class="tag">'+G[d.g]+'</span><span class="tag">ใช้กับ '+d.tag+'</span></div>'
+   +'<div><h3>ใช้ทำอะไร</h3><p>'+esc(d.use)+'</p></div>'
+   +'<div><h3>ค่าที่ใช้ได้</h3><p>'+esc(d.v)+'</p></div>'
+   +'<div class="cols"><div style="min-width:0"><h3>ตัวอย่างโค้ด</h3><div class="codewrap"><button class="copy" type="button">คัดลอก</button><pre>'+esc(code(d))+'</pre></div></div>'
+   +'<div><h3>ภาพตัวอย่าง</h3>'+pv(d)+'<p class="cap">จำลองบนเว็บ</p></div></div>'
+   +'<div><h3>อธิบาย</h3><ul class="ex">'+d.ex.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul></div>'
+   +(d.w?'<div class="warn">'+esc(d.w)+'</div>':'');
+  list.appendChild(el);
+  el.querySelector('.copy').onclick=function(){var b=this;
+    function ok(){b.textContent='คัดลอกแล้ว';setTimeout(function(){b.textContent='คัดลอก'},1500)}
+    function fb(){var r=document.createRange();r.selectNodeContents(el.querySelector('pre'));var s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='เลือกแล้ว กด Ctrl+C'}
+    try{navigator.clipboard.writeText(code(d)).then(ok,fb)}catch(e){fb()}};
+});
+var empty=document.createElement('p');empty.className='mu empty';empty.hidden=true;empty.textContent='ไม่พบคุณสมบัติที่ค้นหา ลองคำอื่น เช่น กึ่งกลาง ระยะห่าง มุมมน';list.appendChild(empty);
+
+var cur='all';
+var chips=document.getElementById('chips');
+[['all','ทั้งหมด']].concat(Object.keys(G).map(function(k){return [k,G[k]]})).forEach(function(p){
+  var b=document.createElement('button');b.type='button';b.className='chip';b.textContent=p[1];b.setAttribute('aria-pressed',p[0]==='all');
+  b.onclick=function(){cur=p[0];chips.querySelectorAll('.chip').forEach(function(x){x.setAttribute('aria-pressed',x===b)});apply()};chips.appendChild(b)});
+var q=document.getElementById('q');q.oninput=apply;
+function apply(){
+  var t=q.value.trim().toLowerCase().split(/\s+/).filter(Boolean),n=0;
+  list.querySelectorAll('.card').forEach(function(c){
+    var ok=(cur==='all'||c.dataset.g===cur)&&t.every(function(w){return c.dataset.s.indexOf(w)>-1});
+    c.hidden=!ok;if(ok)n++});
+  empty.hidden=n>0;
+  document.getElementById('count').textContent='แสดง '+n+' จาก '+D.length+' คุณสมบัติ';
+}
+apply();
+</script>
+
+</body></html>

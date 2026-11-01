@@ -1,0 +1,296 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ฝึกเขียนแอปแรก Ionic React</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: หน้าเดียว เลื่อนลงทีละขั้น แต่ละขั้นมี 4 ส่วน: เป้าหมาย / ภาพที่ควรเห็น / โค้ดพร้อมคำอธิบายทีละบรรทัด / ถามตอบ */
+:root{
+  --bg:#f4f6f8; --card:#ffffff; --fg:#17212b; --mu:#5b6b7a; --bd:#d9e0e7;
+  --ac:#0b6e99; --ac-soft:#e1f1f8; --ok:#1a7f4b; --ok-soft:#e2f5ea; --no:#b3261e; --no-soft:#fcebe9;
+  --code-bg:#0f1b26; --code-fg:#e6edf3; --code-hl:#ffd479;
+  --f-body:'Sarabun',system-ui,sans-serif; --f-mono:'JetBrains Mono',Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e151c; --card:#16212b; --fg:#e6edf3; --mu:#9aabba; --bd:#2a3947;
+  --ac:#5cc0ea; --ac-soft:#16303d; --ok:#5fd394; --ok-soft:#14301f; --no:#ff8f86; --no-soft:#3a1c1a;
+  --code-bg:#091219; --code-fg:#e6edf3; --code-hl:#ffd479; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e151c; --card:#16212b; --fg:#e6edf3; --mu:#9aabba; --bd:#2a3947;
+  --ac:#5cc0ea; --ac-soft:#16303d; --ok:#5fd394; --ok-soft:#14301f; --no:#ff8f86; --no-soft:#3a1c1a;
+  --code-bg:#091219; --code-fg:#e6edf3; --code-hl:#ffd479; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:18px/1.7 var(--f-body);
+  padding-block:20px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1{font-size:1.7rem;line-height:1.25;margin:0;text-wrap:balance}
+h2{font-size:1.3rem;margin:0;text-wrap:balance}
+h3{font-size:.85rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mu);margin:0 0 8px}
+p{margin:0}
+.mu{color:var(--mu)}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--ac-soft);padding:1px 6px;border-radius:4px}
+.top{display:flex;flex-direction:column;gap:8px}
+.bar{height:8px;background:var(--bd);border-radius:4px;overflow:hidden}
+.bar>i{display:block;height:100%;width:0;background:var(--ac);transition:width .3s}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.tag{align-self:flex-start;font-size:.85rem;font-weight:700;color:var(--ac);background:var(--ac-soft);padding:2px 10px;border-radius:99px}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:20px;align-items:start}
+@media(max-width:640px){.cols{grid-template-columns:minmax(0,1fr)}}
+ol.todo{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
+/* โทรศัพท์จำลอง */
+.phone{width:220px;max-width:100%;margin:0 auto;border:8px solid #26313c;border-radius:30px;aspect-ratio:9/17;overflow:hidden;position:relative;background:#fff}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px;padding:12px;text-align:center;color:#111;transition:background .25s;font-family:system-ui,sans-serif}
+.screen .t28{font-size:20px}
+.screen .t24{font-size:19px;font-weight:700}
+.screen .t14{font-size:13px}
+.mbtn{background:#2a7de1;color:#fff;border:0;border-radius:4px;padding:8px 16px;font-size:14px;font-family:inherit;cursor:pointer}
+.cap{font-size:.85rem;color:var(--mu);text-align:center;margin-top:8px}
+/* โค้ด */
+.codewrap{position:relative;min-width:0}
+pre{margin:0;background:var(--code-bg);color:var(--code-fg);border-radius:8px;padding:12px 0;overflow-x:auto;font:14px/1.65 var(--f-mono)}
+pre .ln{display:block;padding:0 14px;white-space:pre;cursor:pointer;border-left:3px solid transparent}
+pre .ln:hover{background:#ffffff12}
+pre .ln.on{background:#ffd47926;border-left-color:var(--code-hl)}
+.copy{position:absolute;top:8px;right:8px;background:#ffffff1f;color:#fff;border:1px solid #ffffff55;border-radius:6px;padding:4px 12px;font:600 14px var(--f-body);cursor:pointer}
+.copy:hover{background:#ffffff33}
+.explain{background:var(--ac-soft);border-radius:8px;padding:12px 14px;min-height:3.4em}
+.explain b{color:var(--ac)}
+/* ถามตอบ */
+.q{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px 12px;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--ac)}
+.opt.ok{background:var(--ok-soft);border-color:var(--ok)}
+.opt.no{background:var(--no-soft);border-color:var(--no)}
+.fb{font-size:.95rem;min-height:1.6em}
+.fb.ok{color:var(--ok)}.fb.no{color:var(--no)}
+.name{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px 12px;width:100%;max-width:340px}
+.sw{display:flex;gap:8px;flex-wrap:wrap}
+.sw button{width:36px;height:36px;border-radius:50%;border:2px solid var(--bd);cursor:pointer}
+.sw button[aria-pressed="true"]{border-color:var(--ac);outline:2px solid var(--ac);outline-offset:2px}
+.done{display:flex;gap:10px;align-items:center;cursor:pointer}
+.done input{width:22px;height:22px}
+.warn{background:var(--no-soft);border-radius:8px;padding:10px 14px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.grid2 label{display:flex;flex-direction:column;gap:4px;font-size:.95rem}
+.grid2 select,.grid2 input[type=range]{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:4px 6px;width:100%}
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.95rem}
+th,td{border:1px solid var(--bd);padding:6px 10px;text-align:left;vertical-align:top}
+th{background:var(--ac-soft)}
+.pgbox{height:200px;display:flex;border:0 solid #333;background:pink}
+.pgbox div{background:#fff;color:#111;padding:8px 14px;border:1px solid #555;font-family:system-ui,sans-serif}
+.bad{color:var(--no)}.good{color:var(--ok)}
+a{color:var(--ac)}
+button:focus-visible,input:focus-visible,.opt:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.tb{position:absolute;top:0;left:0;right:0;background:#f8f8f8;border-bottom:1px solid #ccc;padding:8px;font-size:14px;font-weight:600}
+.screen .t24,.screen .t14{position:relative}
+</style>
+</head><body><p style="margin:0;padding:8px 16px;font:14px system-ui,sans-serif"><a href="/">&larr; หน้ารวมวิชา</a></p>
+
+
+
+<main>
+  <div class="top">
+    <h1>ฝึกเขียนแอปแรก Ionic React</h1>
+    <p class="mu">วิชา 31901-2013 · ทำทีละขั้น ดูภาพที่ควรเห็น อ่านโค้ดทีละบรรทัด แล้วตอบคำถามตรวจความเข้าใจ</p>
+    <div class="bar" role="progressbar" aria-label="ความคืบหน้า" aria-valuemin="0" aria-valuemax="100"><i id="prog"></i></div>
+    <p class="mu" id="progtxt"></p>
+  </div>
+
+  <section class="card" id="prep">
+    <span class="tag">เตรียมก่อนเริ่ม</span>
+    <h2>สร้างโปรเจกต์และเปิดดูผลบนเบราว์เซอร์</h2>
+    <ol class="todo">
+      <li>ติดตั้ง <b>Node.js</b> (รุ่น LTS) และ <b>Visual Studio Code</b> จากเว็บทางการ</li>
+      <li>เปิด VS Code แล้วเปิดเทอร์มินัล (เมนู Terminal แล้วเลือก New Terminal) พิมพ์ <code>node --version</code> ต้องขึ้นเลขเวอร์ชัน</li>
+      <li>ติดตั้งเครื่องมือ Ionic: <code>npm install -g @ionic/cli</code></li>
+      <li>สร้างโปรเจกต์: <code>ionic start myFirstApp blank --type=react</code> (ใช้เวลาสักครู่ ถ้ามีคำถามให้สร้างบัญชี Ionic ให้ตอบ No)</li>
+      <li>เข้าโฟลเดอร์โปรเจกต์: <code>cd myFirstApp</code> แล้วรัน <code>ionic serve</code></li>
+      <li>เปิดที่อยู่ที่ขึ้นในเทอร์มินัล (เช่น http://localhost:ตัวเลข) ด้วย Chrome กด F12 แล้วเลือกไอคอนโหมดจำลองอุปกรณ์ ให้เห็นเป็นขนาดมือถือ</li>
+      <li>ไฟล์ที่เราจะแก้คือ <code>src/pages/Home.tsx</code> (เปิดใน VS Code) บันทึกไฟล์ด้วย Ctrl+S แล้วเบราว์เซอร์จะรีโหลดเอง</li>
+    </ol>
+    <p class="mu">ห้ามปิดเทอร์มินัลที่รัน ionic serve ถ้าต้องพิมพ์คำสั่งอื่น ให้เปิดเทอร์มินัลใหม่ ถ้าขึ้นข้อความผิดพลาดสีแดง ให้ถ่ายภาพหน้าจอแล้วแจ้งครู</p>
+  </section>
+
+  <div id="steps" style="display:contents"></div>
+
+  <section class="card" id="stylecard">
+    <span class="tag">ตัวช่วยเรื่องสไตล์</span>
+    <h2>จัดรูปแบบใน Ionic React ทำได้ 3 วิธี</h2>
+    <div class="tblwrap"><table>
+      <tr><th>วิธี</th><th>เขียนอย่างไร</th><th>ใช้เมื่อ</th></tr>
+      <tr><td><b>1. ไฟล์ CSS + className</b></td><td><code>import './Home.css';</code><br><code>&lt;div className="center"&gt;</code><br>แล้วเขียน <code>.center { ... }</code> ในไฟล์ Home.css</td><td>สไตล์ที่ใช้ซ้ำหรือยาว (วิธีหลักที่ควรใช้)</td></tr>
+      <tr><td><b>2. style ในแท็ก</b></td><td><code>&lt;h1 style={{ fontSize: 28 }}&gt;</code><br>วงเล็บชั้นนอกคือ JSX ชั้นในคือออบเจ็กต์</td><td>ค่าที่มาจากตัวแปร หรือสไตล์สั้น ๆ ที่ใช้ครั้งเดียว</td></tr>
+      <tr><td><b>3. คลาสสำเร็จรูปของ Ionic</b></td><td><code>&lt;IonContent className="ion-padding"&gt;</code><br>ตัวอย่างอื่น: <code>ion-text-center</code></td><td>เว้นระยะหรือจัดข้อความอย่างเร็ว (โปรเจกต์เริ่มต้นเปิดใช้ไว้แล้ว)</td></tr>
+    </table></div>
+    <div class="tblwrap"><table>
+      <tr><th>เขียนแบบนี้ผิด</th><th>เขียนแบบนี้ถูก</th><th>เหตุผล</th></tr>
+      <tr><td class="bad"><code>&lt;div class="center"&gt;</code></td><td class="good"><code>&lt;div className="center"&gt;</code></td><td>ใน React ใช้ className (คำว่า class เป็นคำสงวนของ JavaScript)</td></tr>
+      <tr><td class="bad"><code>style="font-size: 28px"</code></td><td class="good"><code>style={{ fontSize: 28 }}</code></td><td>style ต้องเป็นออบเจ็กต์ ชื่อเป็น camelCase</td></tr>
+      <tr><td class="bad"><code>style={{ background-color: 'pink' }}</code></td><td class="good"><code>style={{ backgroundColor: 'pink' }}</code></td><td>ใน JavaScript ชื่อมีขีดไม่ได้ ต้องเป็น camelCase (ใน ไฟล์ .css ยังเขียน background-color ได้ตามปกติ)</td></tr>
+      <tr><td class="bad"><code>style={{ color: red }}</code></td><td class="good"><code>style={{ color: 'red' }}</code></td><td>ชื่อสีเป็นข้อความ ต้องมีเครื่องหมายคำพูด</td></tr>
+      <tr><td class="bad">ลืมบรรทัด <code>import './Home.css'</code></td><td class="good">มี import อยู่ด้านบนไฟล์ .tsx</td><td>ไม่เรียกไฟล์เข้ามา สไตล์จะไม่มีผล</td></tr>
+    </table></div>
+    <p class="mu">รายการคุณสมบัติ CSS และตัวแปรสีของ Ionic ละเอียดกว่านี้ จะทำเป็นคู่มือแยกต่างหาก</p>
+  </section>
+
+  <section class="card">
+    <span class="tag">สิ่งที่ส่ง</span>
+    <h2>ส่งงานวันนี้</h2>
+    <p>ภาพหน้าจอเบราว์เซอร์ (โหมดจำลองมือถือ) ที่แสดง <b>สวัสดี เราคือ (ชื่อของคุณ)</b> บนสีพื้นหลังที่เลือกเอง และไฟล์ <code>Home.tsx</code> ของคุณ ส่งตามช่องทางที่ครูกำหนด</p>
+  </section>
+</main>
+
+<script>
+var CODE={"s0":"import { IonContent, IonPage } from '@ionic/react';\n\nconst name = 'ชื่อของฉัน';\n\nconst Home: React.FC = () => {\n  return (\n    <IonPage>\n      <IonContent>\n        <div style={{ height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>\n          <h1 style={{ fontSize: 28 }}>สวัสดี เราคือ {name}</h1>\n        </div>\n      </IonContent>\n    </IonPage>\n  );\n};\n\nexport default Home;","s1":"import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';\nimport './Home.css';\n\nconst Home: React.FC = () => {\n  return (\n    <IonPage>\n      <IonHeader>\n        <IonToolbar>\n          <IonTitle>ใบงาน 31901-2013</IonTitle>\n        </IonToolbar>\n      </IonHeader>\n      <IonContent>\n        <div className=\"center\">\n          <h2 className=\"title\">แอปแรกของฉัน</h2>\n          <p>สวัสดี นี่คือแอป Ionic React</p>\n        </div>\n      </IonContent>\n    </IonPage>\n  );\n};\n\nexport default Home;","s1css":".center {\n  height: 100%;\n  display: flex;\n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  background-color: #f6f7fb;\n}\n\n.title {\n  font-size: 24px;\n  font-weight: bold;\n  margin-bottom: 8px;\n}","s2":"import { IonContent, IonPage } from '@ionic/react';\n\nconst name = 'ชื่อของฉัน';\n\nconst bg = 'lightblue';\n\nconst Home: React.FC = () => {\n  return (\n    <IonPage>\n      <IonContent style={{ '--background': bg } as React.CSSProperties}>\n        <div style={{ height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>\n          <h1 style={{ fontSize: 28 }}>สวัสดี เราคือ {name}</h1>\n        </div>\n      </IonContent>\n    </IonPage>\n  );\n};\n\nexport default Home;","s3":"import { useState } from 'react';\nimport { IonButton, IonContent, IonPage } from '@ionic/react';\n\nconst name = 'ชื่อของฉัน';\nconst colors = ['lightblue', 'pink', 'gold', 'lightgreen', 'white'];\n\nconst Home: React.FC = () => {\n  const [index, setIndex] = useState(0);\n\n  return (\n    <IonPage>\n      <IonContent style={{ '--background': colors[index] } as React.CSSProperties}>\n        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>\n          <h1 style={{ fontSize: 28 }}>สวัสดี เราคือ {name}</h1>\n          <IonButton onClick={() => setIndex((index + 1) % colors.length)}>เปลี่ยนสี</IonButton>\n        </div>\n      </IonContent>\n    </IonPage>\n  );\n};\n\nexport default Home;"};
+var STEPS=[
+{id:0,tag:'ขั้นที่ 0',title:'หน้าเปล่า แสดงข้อความ สวัสดี เราคือ (ชื่อ)',
+ goal:'แสดงข้อความ 1 บรรทัดกลางหน้าจอ และเปลี่ยนชื่อเป็นของตัวเอง',
+ todo:['เปิดไฟล์ src/pages/Home.tsx ลบโค้ดเดิมทั้งหมด (Ctrl+A) แล้ววางโค้ดขั้นที่ 0','แก้ข้อความในเครื่องหมายคำพูดของ name เป็นชื่อจริงของคุณ','บันทึก (Ctrl+S) แล้วดูที่เบราว์เซอร์ว่าข้อความเปลี่ยน'],
+ mock:'hello',files:[{name:'src/pages/Home.tsx',code:CODE.s0,ex:{
+  1:'<b>import</b> ขอหยิบเครื่องมือจากกล่อง @ionic/react มาใช้ IonPage คือหน้าหนึ่งหน้าของแอป IonContent คือพื้นที่เนื้อหา ถ้าไม่ import จะใช้ไม่ได้',
+  3:'<b>const name</b> สร้างตัวแปรเก็บชื่อ ค่าที่ต้องแก้คือข้อความในเครื่องหมายคำพูด',
+  5:'<b>const Home</b> คือฟังก์ชันที่คืนหน้าตาของหน้า Home เรียกว่า <b>คอมโพเนนต์</b> (ส่วน React.FC เป็นชนิดของ TypeScript คัดลอกตามแบบได้เลย)',
+  6:'<b>return</b> บอกว่าหน้าตาเป็นอย่างไร สิ่งที่อยู่ในวงเล็บคือ JSX (เขียนคล้าย HTML แต่เป็นคอมโพเนนต์)',
+  7:'<b>IonPage</b> ครอบหน้าทั้งหน้า ทุกหน้าของ Ionic ต้องมี',
+  8:'<b>IonContent</b> พื้นที่เนื้อหาของหน้า เลื่อนได้เมื่อเนื้อหายาว',
+  9:'<b>div</b> คือกล่อง <b>style={{ ... }}</b> บอกรูปแบบ <b>height: 100%</b> ให้สูงเต็มพื้นที่ <b>display: flex</b> เปิดการจัดวางแบบ Flexbox <b>justifyContent: center</b> และ <b>alignItems: center</b> จัดกึ่งกลางทั้งสองแนว วงเล็บปีกกา 2 ชั้น: ชั้นนอกคือ JSX ชั้นในคือออบเจ็กต์สไตล์',
+  10:'<b>h1</b> หัวข้อใหญ่ <b>{name}</b> วงเล็บปีกกาแทรกค่าตัวแปรลงในข้อความ ถ้าไม่ใส่ปีกกาจะแสดงคำว่า name ตรง ๆ',
+  11:'<b>&lt;/div&gt;</b> ปิดกล่อง ทุกแท็กที่เปิดต้องมีปิดให้ครบ',
+  17:'<b>export default</b> ส่งออกคอมโพเนนต์ Home ให้ไฟล์อื่น (App.tsx) เรียกใช้ได้ ห้ามลบบรรทัดนี้'}}],
+ qs:[
+  {q:'ถ้าต้องการเปลี่ยนชื่อที่แสดง ควรแก้บรรทัดใด',o:['บรรทัด const name = ...','บรรทัด import ...','บรรทัด export default ...'],a:0,why:'ชื่อเก็บอยู่ในตัวแปร name แก้ตรงนี้ที่เดียว ข้อความบนหน้าจอจะเปลี่ยนตาม'},
+  {q:'style={{ fontSize: 28 }} ทำไมต้องมีวงเล็บปีกกา 2 ชั้น',o:['เป็นเพียงรูปแบบการเขียน ไม่มีความหมาย','ชั้นนอกบอกว่าเป็น JSX ชั้นในคือออบเจ็กต์ของสไตล์','ชั้นหนึ่งสำหรับเปิด อีกชั้นสำหรับปิด'],a:1,why:'ชั้นนอกบอก JSX ว่าต่อไปนี้เป็นโค้ด JavaScript ชั้นในคือออบเจ็กต์ { fontSize: 28 }'}]},
+
+{id:1,tag:'ขั้นที่ 1',title:'เพิ่มแถบหัวเรื่องและแยกสไตล์ไปไฟล์ CSS',
+ goal:'เพิ่ม IonHeader และใช้ className กับไฟล์ Home.css',
+ todo:['วางโค้ดไฟล์ Home.tsx ใหม่ (ลบของเดิมก่อน)','เปิดไฟล์ src/pages/Home.css ลบของเดิมทั้งหมดแล้ววางโค้ด CSS','ดูว่ามีแถบหัวเรื่องด้านบน และข้อความอยู่กลางหน้า','เปลี่ยนข้อความทั้งสองบรรทัดเป็นของคุณ','อ่านการ์ด "จัดรูปแบบใน Ionic React ทำได้ 3 วิธี" ด้านล่างขั้นนี้'],
+ mock:'two',files:[{name:'src/pages/Home.tsx',code:CODE.s1,ex:{
+  1:'นำเข้าเพิ่ม <b>IonHeader</b> (แถบหัว) <b>IonToolbar</b> (แถบเครื่องมือ) และ <b>IonTitle</b> (ชื่อบนแถบ)',
+  2:'<b>import \'./Home.css\'</b> เรียกไฟล์สไตล์เข้ามาใช้กับหน้านี้ ถ้าไม่มีบรรทัดนี้ สไตล์ใน Home.css จะไม่มีผล',
+  7:'<b>IonHeader</b> ส่วนหัวของหน้า',
+  8:'<b>IonToolbar</b> แถบที่วางชื่อหน้าและปุ่มต่าง ๆ',
+  9:'<b>IonTitle</b> ชื่อที่แสดงบนแถบ แก้ข้อความตรงนี้ได้',
+  13:'<b>className="center"</b> บอกให้กล่องนี้ใช้สไตล์ชื่อ center ที่เขียนไว้ในไฟล์ Home.css (ใน React ใช้ className ไม่ใช่ class)',
+  14:'<b>className="title"</b> ใช้สไตล์ title (ตัวใหญ่ หนา) แก้ข้อความหัวเรื่องตรงนี้',
+  15:'ข้อความธรรมดา ไม่ระบุสไตล์ จึงใช้ขนาดมาตรฐาน'}},
+  {name:'src/pages/Home.css',code:CODE.s1css,ex:{
+  1:'<b>.center</b> คือสไตล์ของคลาสชื่อ center (จุดนำหน้าชื่อคลาส) ข้อความใน { } คือคุณสมบัติ',
+  2:'<b>height: 100%</b> สูงเต็มพื้นที่เนื้อหา',
+  3:'<b>display: flex</b> เปิดการจัดวางแบบ Flexbox ให้ลูกในกล่อง',
+  4:'<b>flex-direction: column</b> เรียงลูกจากบนลงล่าง (ใน CSS ชื่อคุณสมบัติมีขีดได้ ต่างจากในออบเจ็กต์ style ของ React)',
+  5:'<b>justify-content: center</b> จัดกึ่งกลางตามแนวหลัก (แนวตั้ง เพราะเป็น column)',
+  6:'<b>align-items: center</b> จัดกึ่งกลางตามแนวขวาง (แนวนอน)',
+  7:'<b>background-color</b> สีพื้นหลังของกล่อง บรรทัดใน CSS ต้องลงท้ายด้วยเครื่องหมาย ;',
+  10:'<b>.title</b> สไตล์ของหัวเรื่อง',
+  11:'<b>font-size: 24px</b> ขนาดตัวอักษร ใน CSS ใส่หน่วย px',
+  12:'<b>font-weight: bold</b> ตัวหนา',
+  13:'<b>margin-bottom: 8px</b> เว้นระยะด้านล่างจากกล่องถัดไป'}}],
+ qs:[
+  {q:'ทำไมใน JSX ต้องเขียน className แทน class',o:['เพราะ class เป็นคำสงวนของภาษา JavaScript','เพราะ className เร็วกว่า','เพราะ Ionic บังคับ'],a:0,why:'JSX คือ JavaScript จึงใช้ชื่อที่ไม่ชนกับคำสงวน'},
+  {q:'ถ้าลบบรรทัด import \'./Home.css\' ออก จะเกิดอะไรขึ้น',o:['แอปพัง ใช้ไม่ได้','สไตล์ใน Home.css ไม่มีผล หน้าตาเปลี่ยนไป','ไม่มีอะไรเปลี่ยน'],a:1,why:'ไฟล์ CSS ต้องถูกเรียกเข้ามาด้วย import จึงมีผลกับหน้านั้น'}]},
+
+{id:2,tag:'ขั้นที่ 2',title:'เปลี่ยนสีพื้นหลัง',
+ goal:'เก็บสีไว้ในตัวแปร แล้วใช้กับพื้นหลัง เปลี่ยนสีได้ในที่เดียว',
+ todo:['ลบโค้ดเดิมใน Home.tsx วางโค้ดขั้นที่ 2 แก้ name เป็นชื่อคุณ','เปลี่ยนค่า bg เป็นสีอื่น เช่น \'pink\' \'gold\' \'lightgreen\' หรือรหัสสี เช่น \'#ffd6e0\'','ลองสีที่ชอบ 3 สี ดูผลที่เบราว์เซอร์แต่ละครั้ง'],
+ mock:'bg',files:[{name:'src/pages/Home.tsx',code:CODE.s2,ex:{
+  3:'ตัวแปร <b>name</b> เก็บชื่อ',
+  5:'ตัวแปร <b>bg</b> เก็บสีพื้นหลัง นี่คือบรรทัดที่แก้เพื่อเปลี่ยนสี ใส่ชื่อสีภาษาอังกฤษหรือรหัสสีก็ได้',
+  10:'<b>IonContent</b> กำหนดสีพื้นผ่านตัวแปร CSS ชื่อ <b>--background</b> จึงเขียนใน style เป็น \'--background\': bg (ไม่มีเครื่องหมายคำพูดรอบ bg เพราะเป็นตัวแปร) ส่วน <b>as React.CSSProperties</b> เป็นข้อความของ TypeScript บอกว่าเป็นสไตล์ คัดลอกตามแบบได้เลย',
+  12:'ข้อความแสดงชื่อเหมือนขั้นที่ 0'}}],
+ qs:[
+  {q:'ถ้าต้องการเปลี่ยนสีพื้นหลังเป็นชมพู ควรแก้ที่ใด',o:["เปลี่ยน 'lightblue' เป็น 'pink' ในบรรทัด const bg","เปลี่ยนคำว่า IonContent","ลบบรรทัด export default"],a:0,why:'สีทั้งหมดมาจากตัวแปร bg แก้ที่เดียวพอ'},
+  {q:"ทำไม '--background': bg ไม่ต้องมีเครื่องหมายคำพูดรอบ bg",o:['เพราะ bg เป็นชื่อตัวแปร ไม่ใช่ข้อความ','เพราะภาษาไทยไม่ต้องใช้','เพราะเป็นกฎของ Chrome'],a:0,why:"ถ้าเขียน 'bg' ในเครื่องหมายคำพูดจะกลายเป็นข้อความคำว่า bg ซึ่งไม่ใช่ชื่อสี"}]},
+
+{id:3,tag:'ท้าทาย',title:'กดปุ่มแล้วสีเปลี่ยนเอง',
+ goal:'เรียนรู้ useState: ข้อมูลที่เปลี่ยนแล้วหน้าจอเปลี่ยนตาม',
+ todo:['ลบโค้ดเดิมใน Home.tsx วางโค้ดท้าทาย แก้ name เป็นชื่อคุณ','กดปุ่ม เปลี่ยนสี สังเกตว่าสีเปลี่ยนวนตามลำดับ','เพิ่มสีที่ชอบอีก 2 สีในอาร์เรย์ colors'],
+ mock:'btn',files:[{name:'src/pages/Home.tsx',code:CODE.s3,ex:{
+  1:'<b>useState</b> เครื่องมือเก็บ "ข้อมูลที่เปลี่ยนได้" ของหน้าจอ ต้อง import จาก react',
+  2:'<b>IonButton</b> ปุ่มของ Ionic เพิ่มเข้ามาใน import',
+  5:'<b>colors</b> เป็นอาร์เรย์ (รายการ) ของสี ลำดับเริ่มนับจาก 0 คือ lightblue',
+  8:'<b>const [index, setIndex] = useState(0)</b> สร้างตัวแปร index ค่าเริ่มต้น 0 และฟังก์ชัน setIndex สำหรับเปลี่ยนค่า ต้องเปลี่ยนค่าด้วย setIndex เท่านั้น หน้าจอจึงอัปเดต',
+  12:'<b>colors[index]</b> เลือกสีตัวที่ลำดับ index มาเป็นพื้นหลัง เมื่อ index เปลี่ยน สีเปลี่ยนตาม',
+  13:'เพิ่ม <b>flexDirection: column</b> ให้ข้อความกับปุ่มเรียงบนลงล่าง',
+  15:'<b>onClick</b> คือสิ่งที่ทำเมื่อกดปุ่ม <b>(index + 1) % colors.length</b> บวก 1 แล้วหารเอาเศษ เมื่อถึงสีสุดท้ายจะวนกลับไปสีแรก'}}],
+ qs:[
+  {q:'ทำไมต้องใช้ setIndex แทนการเขียน index = index + 1',o:['เพราะ setIndex ทำให้หน้าจออัปเดตตามค่าใหม่','เพราะ index เป็นตัวแปรต้องห้าม','ไม่มีความแตกต่าง'],a:0,why:'React ติดตามเฉพาะการเปลี่ยนค่าผ่านฟังก์ชันของ useState จึงวาดหน้าจอใหม่ให้ (ทำนองเดียวกับใบงาน React Native ในวิชา 31901-2009)'},
+  {q:'colors มี 5 สี ถ้า index เป็น 4 แล้วกดปุ่ม index ใหม่จะเป็นเท่าใด',o:['5','0','4'],a:1,why:'(4 + 1) % 5 = 0 วนกลับสีแรก'}]}
+];
+
+var KEY='ws-first-app-31901-2013-react';
+var S={};try{S=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+var COLORS=['lightblue','pink','gold','lightgreen','white'];
+var host=document.getElementById('steps');
+
+STEPS.forEach(function(st){
+  var filesHtml=st.files.map(function(f,fi){
+    var lines=f.code.split('\n');
+    var pre=lines.map(function(l,i){return '<span class="ln" data-i="'+(i+1)+'" tabindex="0">'+(esc(l)||' ')+'</span>'}).join('');
+    return '<div class="file" data-f="'+fi+'" style="min-width:0"><h3 style="text-transform:none;letter-spacing:0;font-size:.9rem">ไฟล์ <code>'+f.name+'</code> (แตะที่บรรทัดเพื่ออ่านคำอธิบาย)</h3><div class="codewrap"><button class="copy" type="button">คัดลอก</button><pre>'+pre+'</pre></div><div class="explain" style="margin-top:10px" aria-live="polite">แตะบรรทัดโค้ดด้านบน เพื่อดูว่าบรรทัดนั้นทำอะไร</div></div>';
+  }).join('');
+  var mock='';
+  if(st.mock==='hello')mock='<div class="screen" style="background:#fff"><div class="t28">สวัสดี เราคือ <span class="nm">ชื่อของฉัน</span></div></div>';
+  if(st.mock==='two')mock='<div class="screen" style="background:#f6f7fb"><div class="tb">ใบงาน 31901-2013</div><div class="t24">แอปแรกของฉัน</div><div class="t14">สวัสดี นี่คือแอป Ionic React</div></div>';
+  if(st.mock==='bg')mock='<div class="screen bgm" style="background:lightblue"><div class="t28">สวัสดี เราคือ <span class="nm">ชื่อของฉัน</span></div></div>';
+  if(st.mock==='btn')mock='<div class="screen bgm" style="background:lightblue"><div class="t28">สวัสดี เราคือ <span class="nm">ชื่อของฉัน</span></div><button class="mbtn" type="button">เปลี่ยนสี</button></div>';
+  var ctrl='';
+  if(st.mock==='bg')ctrl='<div class="sw" role="group" aria-label="ลองเลือกสี">'+COLORS.map(function(c,i){return '<button type="button" style="background:'+c+'" data-c="'+c+'" aria-label="สี '+c+'" aria-pressed="'+(i===0)+'"></button>'}).join('')+'</div>';
+  var qs=st.qs.map(function(q,qi){return '<div class="q" data-q="'+qi+'"><p><b>'+(qi+1)+'.</b> '+esc(q.q)+'</p>'+q.o.map(function(o,oi){return '<button type="button" class="opt" data-o="'+oi+'">'+esc(o)+'</button>'}).join('')+'<p class="fb" aria-live="polite"></p></div>'}).join('');
+  var sec=document.createElement('section');sec.className='card';sec.id='s'+st.id;
+  sec.innerHTML='<span class="tag">'+st.tag+'</span><h2>'+st.title+'</h2><p>เป้าหมาย: '+st.goal+'</p>'
+   +'<div><h3>ลงมือทำ</h3><ol class="todo">'+st.todo.map(function(t){return '<li>'+t+'</li>'}).join('')+'</ol></div>'
+   +'<div class="cols"><div style="min-width:0;display:flex;flex-direction:column;gap:16px">'+filesHtml+'</div>'
+   +'<div><h3>ภาพที่ควรเห็น</h3><div class="phone">'+mock+'</div>'+ctrl+'<p class="cap">ภาพจำลอง ผลจริงบนเบราว์เซอร์อาจต่างเล็กน้อย</p></div></div>'
+   +(st.mock!=='two'?'<div><h3>ลองใส่ชื่อของคุณ</h3><input class="name" type="text" placeholder="พิมพ์ชื่อ เพื่อดูในภาพจำลอง" aria-label="ชื่อของคุณ" id="nm'+st.id+'"></div>':'')
+   +'<div><h3>ตรวจความเข้าใจ</h3><div style="display:flex;flex-direction:column;gap:16px">'+qs+'</div></div>'
+   +'<label class="done"><input type="checkbox" class="dn"> <span>ทำขั้นนี้ครบแล้ว และเห็นผลบนเบราว์เซอร์แล้ว</span></label>';
+  host.appendChild(sec);
+
+  sec.querySelectorAll('.file').forEach(function(fel){
+    var f=st.files[+fel.dataset.f];
+    fel.querySelector('.copy').onclick=function(){var b=this;
+      function ok(){b.textContent='คัดลอกแล้ว';setTimeout(function(){b.textContent='คัดลอก'},1500)}
+      function fb(){var r=document.createRange();r.selectNodeContents(fel.querySelector('pre'));var s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='เลือกแล้ว กด Ctrl+C'}
+      try{navigator.clipboard.writeText(f.code).then(ok,fb)}catch(e){fb()}};
+    var exp=fel.querySelector('.explain');
+    fel.querySelectorAll('.ln').forEach(function(el){
+      function show(){fel.querySelectorAll('.ln.on').forEach(function(x){x.classList.remove('on')});el.classList.add('on');
+        var i=+el.dataset.i;exp.innerHTML='<b>บรรทัด '+i+':</b> '+(f.ex[i]||'ส่วนเดิมหรือบรรทัดว่าง ไม่ต้องแก้')}
+      el.onclick=show;el.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();show()}}});
+  });
+  var inp=sec.querySelector('.name');
+  if(inp)inp.oninput=function(){sec.querySelectorAll('.nm').forEach(function(n){n.textContent=inp.value||'ชื่อของฉัน'})};
+  sec.querySelectorAll('.sw button').forEach(function(b){b.onclick=function(){
+    sec.querySelector('.bgm').style.background=b.dataset.c;
+    sec.querySelectorAll('.sw button').forEach(function(x){x.setAttribute('aria-pressed',x===b)})}});
+  var mb=sec.querySelector('.mbtn');
+  if(mb){var idx=0;mb.onclick=function(){idx=(idx+1)%COLORS.length;sec.querySelector('.bgm').style.background=COLORS[idx]}}
+  sec.querySelectorAll('.q').forEach(function(qel){var q=st.qs[+qel.dataset.q];
+    qel.querySelectorAll('.opt').forEach(function(ob){ob.onclick=function(){
+      var pick=+ob.dataset.o,fb=qel.querySelector('.fb');
+      qel.querySelectorAll('.opt').forEach(function(x){x.classList.remove('ok','no')});
+      if(pick===q.a){ob.classList.add('ok');fb.className='fb ok';fb.textContent='ถูกต้อง '+q.why;S['q'+st.id+'_'+qel.dataset.q]=1}
+      else{ob.classList.add('no');fb.className='fb no';fb.textContent='ยังไม่ถูก ลองอ่านโค้ดอีกครั้งแล้วเลือกใหม่';}
+      save();upd()}})});
+  var dn=sec.querySelector('.dn');dn.checked=!!S['d'+st.id];
+  dn.onchange=function(){S['d'+st.id]=dn.checked;save();upd()};
+});
+STEPS.forEach(function(st){st.qs.forEach(function(q,qi){if(S['q'+st.id+'_'+qi]){
+  var qel=document.querySelector('#s'+st.id+' .q[data-q="'+qi+'"]');
+  qel.querySelectorAll('.opt')[q.a].classList.add('ok');var fb=qel.querySelector('.fb');fb.className='fb ok';fb.textContent='ถูกต้อง '+q.why}})});
+function upd(){
+  var done=STEPS.filter(function(s){return S['d'+s.id]}).length;
+  var qd=0,qt=0;STEPS.forEach(function(s){s.qs.forEach(function(q,i){qt++;if(S['q'+s.id+'_'+i])qd++})});
+  var pct=Math.round((done+qd/qt)/(STEPS.length+1)*100);
+  document.getElementById('prog').style.width=pct+'%';
+  document.querySelector('.bar').setAttribute('aria-valuenow',pct);
+  document.getElementById('progtxt').textContent='ทำครบแล้ว '+done+' จาก '+STEPS.length+' ขั้น · ตอบถูก '+qd+' จาก '+qt+' ข้อ (บันทึกในเครื่องนี้)';
+}
+document.getElementById('s1').after(document.getElementById('stylecard'));
+upd();
+</script>
+
+</body></html>

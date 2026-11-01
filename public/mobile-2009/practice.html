@@ -1,0 +1,339 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ฝึกเขียนแอปแรก React Native</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: หน้าเดียว เลื่อนลงทีละขั้น แต่ละขั้นมี 4 ส่วน: เป้าหมาย / ภาพที่ควรเห็น / โค้ดพร้อมคำอธิบายทีละบรรทัด / ถามตอบ */
+:root{
+  --bg:#f4f6f8; --card:#ffffff; --fg:#17212b; --mu:#5b6b7a; --bd:#d9e0e7;
+  --ac:#0b6e99; --ac-soft:#e1f1f8; --ok:#1a7f4b; --ok-soft:#e2f5ea; --no:#b3261e; --no-soft:#fcebe9;
+  --code-bg:#0f1b26; --code-fg:#e6edf3; --code-hl:#ffd479;
+  --f-body:'Sarabun',system-ui,sans-serif; --f-mono:'JetBrains Mono',Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e151c; --card:#16212b; --fg:#e6edf3; --mu:#9aabba; --bd:#2a3947;
+  --ac:#5cc0ea; --ac-soft:#16303d; --ok:#5fd394; --ok-soft:#14301f; --no:#ff8f86; --no-soft:#3a1c1a;
+  --code-bg:#091219; --code-fg:#e6edf3; --code-hl:#ffd479; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e151c; --card:#16212b; --fg:#e6edf3; --mu:#9aabba; --bd:#2a3947;
+  --ac:#5cc0ea; --ac-soft:#16303d; --ok:#5fd394; --ok-soft:#14301f; --no:#ff8f86; --no-soft:#3a1c1a;
+  --code-bg:#091219; --code-fg:#e6edf3; --code-hl:#ffd479; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:18px/1.7 var(--f-body);
+  padding-block:20px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1{font-size:1.7rem;line-height:1.25;margin:0;text-wrap:balance}
+h2{font-size:1.3rem;margin:0;text-wrap:balance}
+h3{font-size:.85rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mu);margin:0 0 8px}
+p{margin:0}
+.mu{color:var(--mu)}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--ac-soft);padding:1px 6px;border-radius:4px}
+.top{display:flex;flex-direction:column;gap:8px}
+.bar{height:8px;background:var(--bd);border-radius:4px;overflow:hidden}
+.bar>i{display:block;height:100%;width:0;background:var(--ac);transition:width .3s}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.tag{align-self:flex-start;font-size:.85rem;font-weight:700;color:var(--ac);background:var(--ac-soft);padding:2px 10px;border-radius:99px}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:20px;align-items:start}
+@media(max-width:640px){.cols{grid-template-columns:minmax(0,1fr)}}
+ol.todo{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
+/* โทรศัพท์จำลอง */
+.phone{width:220px;max-width:100%;margin:0 auto;border:8px solid #26313c;border-radius:30px;aspect-ratio:9/17;overflow:hidden;position:relative;background:#fff}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px;padding:12px;text-align:center;color:#111;transition:background .25s;font-family:system-ui,sans-serif}
+.screen .t28{font-size:20px}
+.screen .t24{font-size:19px;font-weight:700}
+.screen .t14{font-size:13px}
+.mbtn{background:#2a7de1;color:#fff;border:0;border-radius:4px;padding:8px 16px;font-size:14px;font-family:inherit;cursor:pointer}
+.cap{font-size:.85rem;color:var(--mu);text-align:center;margin-top:8px}
+/* โค้ด */
+.codewrap{position:relative;min-width:0}
+pre{margin:0;background:var(--code-bg);color:var(--code-fg);border-radius:8px;padding:12px 0;overflow-x:auto;font:14px/1.65 var(--f-mono)}
+pre .ln{display:block;padding:0 14px;white-space:pre;cursor:pointer;border-left:3px solid transparent}
+pre .ln:hover{background:#ffffff12}
+pre .ln.on{background:#ffd47926;border-left-color:var(--code-hl)}
+.copy{position:absolute;top:8px;right:8px;background:#ffffff1f;color:#fff;border:1px solid #ffffff55;border-radius:6px;padding:4px 12px;font:600 14px var(--f-body);cursor:pointer}
+.copy:hover{background:#ffffff33}
+.explain{background:var(--ac-soft);border-radius:8px;padding:12px 14px;min-height:3.4em}
+.explain b{color:var(--ac)}
+/* ถามตอบ */
+.q{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px 12px;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--ac)}
+.opt.ok{background:var(--ok-soft);border-color:var(--ok)}
+.opt.no{background:var(--no-soft);border-color:var(--no)}
+.fb{font-size:.95rem;min-height:1.6em}
+.fb.ok{color:var(--ok)}.fb.no{color:var(--no)}
+.name{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px 12px;width:100%;max-width:340px}
+.sw{display:flex;gap:8px;flex-wrap:wrap}
+.sw button{width:36px;height:36px;border-radius:50%;border:2px solid var(--bd);cursor:pointer}
+.sw button[aria-pressed="true"]{border-color:var(--ac);outline:2px solid var(--ac);outline-offset:2px}
+.done{display:flex;gap:10px;align-items:center;cursor:pointer}
+.done input{width:22px;height:22px}
+.warn{background:var(--no-soft);border-radius:8px;padding:10px 14px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.grid2 label{display:flex;flex-direction:column;gap:4px;font-size:.95rem}
+.grid2 select,.grid2 input[type=range]{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:4px 6px;width:100%}
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.95rem}
+th,td{border:1px solid var(--bd);padding:6px 10px;text-align:left;vertical-align:top}
+th{background:var(--ac-soft)}
+.pgbox{height:200px;display:flex;border:0 solid #333;background:pink}
+.pgbox div{background:#fff;color:#111;padding:8px 14px;border:1px solid #555;font-family:system-ui,sans-serif}
+.bad{color:var(--no)}.good{color:var(--ok)}
+a{color:var(--ac)}
+button:focus-visible,input:focus-visible,.opt:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head><body><p style="margin:0;padding:8px 16px;font:14px system-ui,sans-serif"><a href="/">&larr; หน้ารวมวิชา</a></p>
+
+
+
+<main>
+  <div class="top">
+    <h1>ฝึกเขียนแอปแรก React Native</h1>
+    <p class="mu">วิชา 31901-2009 · ทำทีละขั้น ดูภาพที่ควรเห็น อ่านโค้ดทีละบรรทัด แล้วตอบคำถามตรวจความเข้าใจ</p>
+    <div class="bar" role="progressbar" aria-label="ความคืบหน้า" aria-valuemin="0" aria-valuemax="100"><i id="prog"></i></div>
+    <p class="mu" id="progtxt"></p>
+  </div>
+
+  <section class="card" id="prep">
+    <span class="tag">เตรียมก่อนเริ่ม</span>
+    <h2>เปิดที่เขียนโค้ดบนมือถือและคอมพิวเตอร์</h2>
+    <ol class="todo">
+      <li>ติดตั้งแอป <b>Expo Go</b> บนมือถือ (ร้านแอปของเครื่อง)</li>
+      <li>บนคอมพิวเตอร์ เปิด <a href="https://snack.expo.dev" target="_blank" rel="noopener">snack.expo.dev</a></li>
+      <li>มุมล่างของ Snack เลือก SDK เป็น <b>54</b> (iPhone ใช้ Expo Go ได้เฉพาะ SDK 54)</li>
+      <li>ไฟล์ที่เขียนคือ <code>App.js</code> ที่อยู่ในแผงซ้ายมือ ลบโค้ดเดิมทั้งหมดก่อนวางโค้ดใหม่ทุกครั้ง (กด Ctrl+A แล้ว Ctrl+V)</li>
+      <li>สแกน QR ใน Snack ด้วยกล้องหรือในแอป Expo Go เพื่อดูผลบนเครื่องจริง</li>
+    </ol>
+    <p class="mu">ถ้าสแกนแล้วไม่ขึ้น ให้ตรวจว่าเลือก SDK 54 และมือถือต่ออินเทอร์เน็ต แล้วแจ้งครู</p>
+  </section>
+
+  <div id="steps" style="display:contents"></div>
+
+  <section class="card" id="stylecard">
+    <span class="tag">ตัวช่วยเรื่องสไตล์</span>
+    <h2>StyleSheet ใส่อะไรได้บ้าง</h2>
+    <div>
+      <h3>1. โครงสร้างการเขียน</h3>
+      <pre><span class="ln">const styles = StyleSheet.create({</span><span class="ln">  box: { padding: 16, backgroundColor: 'pink' },   // ชื่อสไตล์: { คุณสมบัติ: ค่า }</span><span class="ln">  title: { fontSize: 24, fontWeight: 'bold' },</span><span class="ln">});</span><span class="ln"> </span><span class="ln">&lt;View style={styles.box} /&gt;                  // ใช้ด้วยชื่อ</span><span class="ln">&lt;View style={[styles.box, styles.big]} /&gt;     // หลายสไตล์ ใส่ในอาร์เรย์ อันหลังทับอันหน้า</span><span class="ln">&lt;View style={{ padding: 16 }} /&gt;               // เขียนตรงในแท็ก ต้องมีวงเล็บ 2 ชั้น</span></pre>
+      <ul style="margin:10px 0 0;padding-left:1.3em">
+        <li><b>ชื่อสไตล์</b> (box, title) ตั้งเองได้ ตั้งให้สื่อความหมาย</li>
+        <li><b>ชื่อคุณสมบัติ</b> ต้องเป็นของ React Native และเขียนแบบ camelCase เช่น <code>backgroundColor</code></li>
+        <li><b>ตัวเลข</b> ไม่ใส่หน่วย (<code>16</code> ไม่ใช่ <code>'16px'</code>) <b>ข้อความ</b> ต้องมีเครื่องหมายคำพูด (<code>'pink'</code>)</li>
+        <li>แต่ละคุณสมบัติคั่นด้วยเครื่องหมายจุลภาค (,)</li>
+        <li>วงเล็บ 2 ชั้นใน <code>style={{ ... }}</code>: ชั้นนอกคือ JSX ชั้นในคือออบเจ็กต์สไตล์</li>
+      </ul>
+    </div>
+    <div>
+      <h3>2. คุณสมบัติที่ใช้บ่อย แบ่งตามหน้าที่</h3>
+      <div class="tblwrap"><table>
+        <tr><th>กลุ่ม</th><th>คุณสมบัติ</th><th>ค่าที่ใช้ได้ (ตัวอย่าง)</th></tr>
+        <tr><td>จัดวางลูก (ใส่ที่ View ที่เป็นกล่อง)</td><td><code>flex</code> <code>flexDirection</code> <code>justifyContent</code> <code>alignItems</code> <code>gap</code> <code>flexWrap</code></td><td>flex: 1 (ขยายเต็มพื้นที่) · flexDirection: 'column' (ค่าเริ่มต้น) หรือ 'row' · justifyContent: 'flex-start' 'center' 'flex-end' 'space-between' 'space-around' 'space-evenly' · alignItems: 'flex-start' 'center' 'flex-end' 'stretch' · gap: 8 · flexWrap: 'wrap'</td></tr>
+        <tr><td>ขนาด</td><td><code>width</code> <code>height</code> <code>minHeight</code> <code>maxWidth</code></td><td>ตัวเลข เช่น 100 หรือเปอร์เซ็นต์เป็นข้อความ เช่น '50%'</td></tr>
+        <tr><td>ระยะภายใน (padding)</td><td><code>padding</code> <code>paddingTop</code> <code>paddingBottom</code> <code>paddingLeft</code> <code>paddingRight</code> <code>paddingHorizontal</code> <code>paddingVertical</code></td><td>ตัวเลข เช่น 16</td></tr>
+        <tr><td>ระยะภายนอก (margin)</td><td><code>margin</code> <code>marginTop</code> <code>marginBottom</code> <code>marginLeft</code> <code>marginRight</code> <code>marginHorizontal</code> <code>marginVertical</code></td><td>ตัวเลข เช่น 8</td></tr>
+        <tr><td>สี</td><td><code>backgroundColor</code> <code>opacity</code></td><td>'pink' '#ffd6e0' 'rgb(255,0,0)' · opacity: 0 ถึง 1</td></tr>
+        <tr><td>กรอบ</td><td><code>borderWidth</code> <code>borderColor</code> <code>borderRadius</code></td><td>borderWidth: 2 · borderColor: '#333' · borderRadius: 12 (มุมมน)</td></tr>
+        <tr><td>ข้อความ (ใช้กับ Text เท่านั้น)</td><td><code>color</code> <code>fontSize</code> <code>fontWeight</code> <code>fontStyle</code> <code>textAlign</code> <code>lineHeight</code> <code>textDecorationLine</code></td><td>color: 'white' · fontSize: 20 · fontWeight: 'bold' หรือ '600' · fontStyle: 'italic' · textAlign: 'center' · textDecorationLine: 'underline'</td></tr>
+        <tr><td>ตำแหน่งลอย</td><td><code>position</code> <code>top</code> <code>left</code> <code>right</code> <code>bottom</code></td><td>position: 'absolute' แล้วบอกระยะจากขอบ เช่น top: 0</td></tr>
+      </table></div>
+      <p class="mu" style="margin-top:8px">รายการครบถ้วนดูได้ที่เอกสารทางการ: <a href="https://reactnative.dev/docs/view-style-props" target="_blank" rel="noopener">View Style Props</a> และ <a href="https://reactnative.dev/docs/text-style-props" target="_blank" rel="noopener">Text Style Props</a></p>
+    </div>
+    <div>
+      <h3>3. ตัวทดลอง: ปรับค่าแล้วดูผล พร้อมโค้ดที่ได้</h3>
+      <div class="grid2">
+        <label>flexDirection<select id="pg-dir"><option>column</option><option>row</option></select></label>
+        <label>justifyContent<select id="pg-jc"><option>flex-start</option><option>center</option><option>flex-end</option><option>space-between</option><option>space-around</option><option>space-evenly</option></select></label>
+        <label>alignItems<select id="pg-ai"><option>stretch</option><option>flex-start</option><option>center</option><option>flex-end</option></select></label>
+        <label>padding: <b id="pg-pad-v">8</b><input type="range" id="pg-pad" min="0" max="40" value="8"></label>
+        <label>borderRadius: <b id="pg-rad-v">0</b><input type="range" id="pg-rad" min="0" max="40" value="0"></label>
+        <label>borderWidth: <b id="pg-bw-v">0</b><input type="range" id="pg-bw" min="0" max="8" value="0"></label>
+      </div>
+      <div class="sw" id="pg-sw" role="group" aria-label="เลือกสีพื้นหลัง" style="margin:12px 0"></div>
+      <div class="pgbox" id="pg-box"><div>1</div><div>2</div><div>3</div></div>
+      <pre id="pg-code" style="margin-top:12px;padding:12px 14px"></pre>
+      <p class="mu" style="margin-top:8px">ภาพนี้จำลองบนเว็บ ลักษณะการจัดวางแบบ Flexbox ตรงกับ React Native ข้อสังเกต: เมื่อ alignItems เป็น stretch กล่องลูกจะขยายเต็มแนวขวาง ถ้าลูกไม่ได้กำหนดขนาดไว้</p>
+    </div>
+    <div>
+      <h3>4. ข้อผิดพลาดที่พบบ่อย</h3>
+      <div class="tblwrap"><table>
+        <tr><th>เขียนแบบนี้ผิด</th><th>เขียนแบบนี้ถูก</th><th>เหตุผล</th></tr>
+        <tr><td class="bad"><code>background-color: 'pink'</code></td><td class="good"><code>backgroundColor: 'pink'</code></td><td>ชื่อคุณสมบัติเป็น camelCase</td></tr>
+        <tr><td class="bad"><code>fontSize: '20px'</code></td><td class="good"><code>fontSize: 20</code></td><td>ตัวเลขไม่มีหน่วย</td></tr>
+        <tr><td class="bad"><code>backgroundColor: pink</code></td><td class="good"><code>backgroundColor: 'pink'</code></td><td>สีเป็นข้อความ ต้องมีเครื่องหมายคำพูด</td></tr>
+        <tr><td class="bad"><code>border: '1px solid black'</code></td><td class="good"><code>borderWidth: 1, borderColor: 'black'</code></td><td>ไม่มีคุณสมบัติแบบย่อของ CSS ต้องแยกเขียน</td></tr>
+        <tr><td class="bad"><code>&lt;View style={{ fontSize: 20 }}&gt;</code></td><td class="good"><code>&lt;Text style={{ fontSize: 20 }}&gt;</code></td><td>คุณสมบัติข้อความใช้กับ Text เท่านั้น</td></tr>
+        <tr><td class="bad"><code>box: { padding: 16 }  title: {...}</code></td><td class="good"><code>box: { padding: 16 },  title: {...}</code></td><td>ลืมจุลภาคคั่นระหว่างสไตล์</td></tr>
+      </table></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <span class="tag">สิ่งที่ส่ง</span>
+    <h2>ส่งงานวันนี้</h2>
+    <p>ภาพหน้าจอมือถือที่แสดง <b>สวัสดี เราคือ (ชื่อของคุณ)</b> บนสีพื้นหลังที่เลือกเอง และลิงก์ Snack (กด Save แล้วคัดลอกลิงก์) ส่งตามช่องทางที่ครูกำหนด</p>
+  </section>
+</main>
+
+<script>
+var STEPS=[
+{id:0,tag:'ขั้นที่ 0',title:'หน้าเปล่า แสดงข้อความ สวัสดี เราคือ (ชื่อ)',
+ goal:'แสดงข้อความ 1 บรรทัดกลางหน้าจอ และเปลี่ยนชื่อเป็นของตัวเอง',
+ todo:['วางโค้ดลงใน App.js แล้วดูผลบนมือถือ','แก้ข้อความในเครื่องหมายคำพูดของ name เป็นชื่อจริงของคุณ','บันทึก (Snack บันทึกให้อัตโนมัติ) แล้วดูว่าข้อความบนมือถือเปลี่ยน'],
+ mock:'hello',
+ code:"import { View, Text } from 'react-native';\n\nconst name = 'ชื่อของฉัน';\n\nexport default function App() {\n  return (\n    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>\n      <Text style={{ fontSize: 28 }}>สวัสดี เราคือ {name}</Text>\n    </View>\n  );\n}",
+ ex:{
+  1:'<b>import</b> ขอหยิบเครื่องมือ 2 ชิ้นจากกล่อง react-native มาใช้ View คือกล่องเปล่า Text คือข้อความ ถ้าไม่ import จะใช้ไม่ได้',
+  3:'<b>const name</b> สร้างตัวแปรเก็บชื่อ ค่าที่ต้องการแก้คือข้อความในเครื่องหมายคำพูด',
+  5:'<b>export default function App</b> คือแอปของเรา React Native เริ่มทำงานที่ฟังก์ชันนี้ ต้องชื่อ App เสมอ',
+  6:'<b>return</b> บอกว่าหน้าจอหน้าตาเป็นอย่างไร สิ่งที่อยู่ในวงเล็บคือ JSX (เขียนคล้าย HTML แต่เป็นคอมโพเนนต์)',
+  7:'<b>View</b> คือกล่อง (เหมือน div) <b>style</b> บอกรูปแบบ <b>flex: 1</b> ให้กล่องเต็มหน้าจอ <b>justifyContent: center</b> จัดกึ่งกลางแนวตั้ง <b>alignItems: center</b> จัดกึ่งกลางแนวนอน',
+  8:'<b>Text</b> แสดงข้อความ ข้อความทุกอย่างต้องอยู่ใน Text <b>{name}</b> วงเล็บปีกกาแทรกค่าตัวแปรลงในข้อความ',
+  9:'<b>&lt;/View&gt;</b> ปิดกล่อง ทุกแท็กที่เปิดต้องมีปิดให้ครบ'},
+ qs:[
+  {q:'ถ้าต้องการเปลี่ยนชื่อที่แสดง ควรแก้บรรทัดใด',o:['บรรทัด const name = ...','บรรทัด import ...','บรรทัด export default ...'],a:0,why:'ชื่อเก็บอยู่ในตัวแปร name ที่ประกาศด้วย const แก้ตรงนี้ที่เดียว ข้อความบนหน้าจอจะเปลี่ยนตาม'},
+  {q:'เหตุใดต้องเขียน {name} ในวงเล็บปีกกา',o:['เพื่อให้ตัวอักษรหนา','เพื่อแทรกค่าตัวแปร name ลงในข้อความ','เพื่อปิดแท็ก'],a:1,why:'ถ้าไม่ใส่วงเล็บปีกกา หน้าจอจะแสดงคำว่า name ตรง ๆ'}]},
+
+{id:1,tag:'ขั้นที่ 1',title:'แอปเล็กที่สุดที่มีสไตล์แยกเก็บ',
+ goal:'ย้ายสไตล์ไปรวมไว้ที่ StyleSheet และเพิ่มข้อความหัวเรื่อง',
+ todo:['ลบโค้ดเดิม วางโค้ดขั้นที่ 1','ดูว่าหน้าจอมีหัวเรื่องตัวหนากับข้อความใต้หัวเรื่อง','เปลี่ยนข้อความทั้งสองบรรทัดเป็นของคุณ','อ่านการ์ด "StyleSheet ใส่อะไรได้บ้าง" ด้านล่างขั้นนี้ แล้วลองปรับค่าในตัวทดลอง'],
+ mock:'two',
+ code:"import { View, Text, StyleSheet } from 'react-native';\n\nexport default function App() {\n  return (\n    <View style={styles.container}>\n      <Text style={styles.title}>ใบงาน 31901-2009</Text>\n      <Text>สวัสดี นี่คือแอปแรกของฉัน</Text>\n    </View>\n  );\n}\n\nconst styles = StyleSheet.create({\n  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f6f7fb' },\n  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 8 },\n});",
+ ex:{
+  1:'เพิ่ม <b>StyleSheet</b> เข้ามาในรายการที่ import',
+  5:'<b>style={styles.container}</b> อ้างถึงสไตล์ชื่อ container ที่เขียนไว้ด้านล่าง แทนการเขียนสไตล์ติดไว้ในแท็ก',
+  6:'ข้อความหัวเรื่องใช้สไตล์ <b>title</b> (ตัวใหญ่และหนา)',
+  7:'ข้อความธรรมดาไม่ระบุสไตล์ จึงใช้ขนาดมาตรฐาน',
+  12:'<b>StyleSheet.create</b> รวมสไตล์ทั้งหมดไว้ในที่เดียว อ่านง่ายและแก้ง่ายกว่ากระจายอยู่ตามแท็ก',
+  13:'สไตล์ <b>container</b> เหมือนขั้นที่ 0 แต่เพิ่ม <b>backgroundColor</b> คือสีพื้นหลัง ชื่อสไตล์เป็น camelCase (พิมพ์ติดกัน ตัวอักษรแรกของคำถัดไปเป็นตัวพิมพ์ใหญ่)',
+  14:'สไตล์ <b>title</b> ตัวเลขไม่มีหน่วย <b>marginBottom</b> คือระยะห่างด้านล่าง'},
+ qs:[
+  {q:'StyleSheet.create ช่วยอะไร',o:['ทำให้แอปเร็วขึ้นสองเท่า','รวมสไตล์ไว้ที่เดียว อ้างด้วยชื่อ','ใช้ติดตั้งแพ็กเกจ'],a:1,why:'ใช้ชื่อสไตล์ซ้ำได้หลายแห่งและแก้ที่เดียว'},
+  {q:'เขียน background-color แบบ CSS ในสไตล์ของ React Native ได้หรือไม่',o:['ได้ เหมือนเว็บ','ไม่ได้ ต้องเขียน backgroundColor','ได้ ถ้าใส่ในเครื่องหมายคำพูด'],a:1,why:'ชื่อคุณสมบัติเป็น camelCase เช่น backgroundColor fontSize borderRadius'}]},
+
+{id:2,tag:'ขั้นที่ 2',title:'เปลี่ยนสีพื้นหลัง',
+ goal:'เก็บสีไว้ในตัวแปร แล้วใช้กับพื้นหลัง เปลี่ยนสีได้ในที่เดียว',
+ todo:['ลบโค้ดเดิม วางโค้ดขั้นที่ 2 แก้ name เป็นชื่อคุณ','เปลี่ยนค่า bg เป็นสีอื่น เช่น \'pink\' \'gold\' \'lightgreen\' หรือรหัสสี เช่น \'#ffd6e0\'','ลองสีที่ชอบ 3 สี ดูผลบนมือถือแต่ละครั้ง'],
+ mock:'bg',
+ code:"import { View, Text } from 'react-native';\n\nconst name = 'ชื่อของฉัน';\n\nconst bg = 'lightblue';\n\nexport default function App() {\n  return (\n    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: bg }}>\n      <Text style={{ fontSize: 28 }}>สวัสดี เราคือ {name}</Text>\n    </View>\n  );\n}",
+ ex:{
+  3:'ตัวแปร <b>name</b> เก็บชื่อ',
+  5:'ตัวแปร <b>bg</b> เก็บสีพื้นหลัง นี่คือบรรทัดที่แก้เพื่อเปลี่ยนสี ใส่ชื่อสีภาษาอังกฤษหรือรหัสสีก็ได้',
+  9:'<b>backgroundColor: bg</b> เอาค่าจากตัวแปร bg มาใช้ ไม่มีเครื่องหมายคำพูดรอบ bg เพราะเป็นชื่อตัวแปร ไม่ใช่ข้อความ',
+  10:'ข้อความแสดงชื่อเหมือนขั้นที่ 0'},
+ qs:[
+  {q:'ถ้าต้องการเปลี่ยนสีพื้นหลังเป็นชมพู ควรแก้ที่ใด',o:["เปลี่ยน 'lightblue' เป็น 'pink' ในบรรทัด const bg","เปลี่ยนคำว่า backgroundColor","ลบบรรทัด export default"],a:0,why:'สีทั้งหมดมาจากตัวแปร bg แก้ที่เดียวพอ'},
+  {q:'ทำไม backgroundColor: bg ไม่ต้องมีเครื่องหมายคำพูดรอบ bg',o:['เพราะ bg เป็นชื่อตัวแปร ไม่ใช่ข้อความ','เพราะภาษาไทยไม่ต้องใช้','เพราะเป็นกฎของ Snack'],a:0,why:"ถ้าเขียน 'bg' ในเครื่องหมายคำพูด จะกลายเป็นข้อความคำว่า bg ซึ่งไม่ใช่ชื่อสี"}]},
+
+{id:3,tag:'ท้าทาย',title:'กดปุ่มแล้วสีเปลี่ยนเอง',
+ goal:'เรียนรู้ useState: ข้อมูลที่เปลี่ยนแล้วหน้าจอเปลี่ยนตาม',
+ todo:['ลบโค้ดเดิม วางโค้ดท้าทาย แก้ name เป็นชื่อคุณ','กดปุ่ม เปลี่ยนสี สังเกตว่าสีเปลี่ยนวนตามลำดับ','เพิ่มสีที่ชอบอีก 2 สีในอาร์เรย์ colors'],
+ mock:'btn',
+ code:"import { useState } from 'react';\nimport { View, Text, Button } from 'react-native';\n\nconst name = 'ชื่อของฉัน';\nconst colors = ['lightblue', 'pink', 'gold', 'lightgreen', 'white'];\n\nexport default function App() {\n  const [index, setIndex] = useState(0);\n\n  return (\n    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors[index] }}>\n      <Text style={{ fontSize: 28, marginBottom: 16 }}>สวัสดี เราคือ {name}</Text>\n      <Button title=\"เปลี่ยนสี\" onPress={() => setIndex((index + 1) % colors.length)} />\n    </View>\n  );\n}",
+ ex:{
+  1:'<b>useState</b> เครื่องมือเก็บ "ข้อมูลที่เปลี่ยนได้" ของหน้าจอ ต้อง import จาก react',
+  2:'<b>Button</b> ปุ่มกดสำเร็จรูป เพิ่มเข้ามาใน import',
+  5:'<b>colors</b> เป็นอาร์เรย์ (รายการ) ของสี ลำดับเริ่มนับจาก 0 คือ lightblue',
+  8:'<b>const [index, setIndex] = useState(0)</b> สร้างตัวแปร index ค่าเริ่มต้น 0 และฟังก์ชัน setIndex สำหรับเปลี่ยนค่า ต้องเปลี่ยนค่าด้วย setIndex เท่านั้น หน้าจอจึงอัปเดต',
+  11:'<b>colors[index]</b> เลือกสีตัวที่ลำดับ index มาเป็นพื้นหลัง เมื่อ index เปลี่ยน สีเปลี่ยนตาม',
+  12:'ข้อความชื่อ เพิ่ม marginBottom เพื่อเว้นช่องไฟก่อนถึงปุ่ม',
+  13:'<b>onPress</b> คือสิ่งที่ทำเมื่อกดปุ่ม <b>(index + 1) % colors.length</b> บวก 1 แล้วหารเอาเศษ เมื่อถึงสีสุดท้ายจะวนกลับไปสีแรก (เศษทำให้ค่าไม่เกินจำนวนสี)'},
+ qs:[
+  {q:'ทำไมต้องใช้ setIndex แทนการเขียน index = index + 1',o:['เพราะ setIndex ทำให้หน้าจออัปเดตตามค่าใหม่','เพราะ index เป็นตัวแปรต้องห้าม','ไม่มีความแตกต่าง'],a:0,why:'React ติดตามเฉพาะการเปลี่ยนค่าผ่านฟังก์ชันของ useState จึงวาดหน้าจอใหม่ให้'},
+  {q:'colors มี 5 สี ถ้า index เป็น 4 แล้วกดปุ่ม index ใหม่จะเป็นเท่าใด',o:['5','0','4'],a:1,why:'(4 + 1) % 5 = 0 วนกลับสีแรก'}]}
+];
+
+var KEY='ws-first-app-31901-2009';
+var S={};try{S=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+var COLORS=['lightblue','pink','gold','lightgreen','white'];
+var host=document.getElementById('steps');
+
+STEPS.forEach(function(st){
+  var lines=st.code.split('\n');
+  var pre=lines.map(function(l,i){return '<span class="ln" data-i="'+(i+1)+'" tabindex="0">'+(esc(l)||' ')+'</span>'}).join('');
+  var mock='';
+  if(st.mock==='hello')mock='<div class="screen" style="background:#fff"><div class="t28">สวัสดี เราคือ <span class="nm">ชื่อของฉัน</span></div></div>';
+  if(st.mock==='two')mock='<div class="screen" style="background:#f6f7fb"><div class="t24">ใบงาน 31901-2009</div><div class="t14">สวัสดี นี่คือแอปแรกของฉัน</div></div>';
+  if(st.mock==='bg')mock='<div class="screen bgm" style="background:lightblue"><div class="t28">สวัสดี เราคือ <span class="nm">ชื่อของฉัน</span></div></div>';
+  if(st.mock==='btn')mock='<div class="screen bgm" style="background:lightblue"><div class="t28">สวัสดี เราคือ <span class="nm">ชื่อของฉัน</span></div><button class="mbtn" type="button">เปลี่ยนสี</button></div>';
+  var ctrl='';
+  if(st.mock==='bg')ctrl='<div class="sw" role="group" aria-label="ลองเลือกสี">'+COLORS.map(function(c,i){return '<button type="button" style="background:'+c+'" data-c="'+c+'" aria-label="สี '+c+'" aria-pressed="'+(i===0)+'"></button>'}).join('')+'</div>';
+  var qs=st.qs.map(function(q,qi){return '<div class="q" data-q="'+qi+'"><p><b>'+(qi+1)+'.</b> '+q.q+'</p>'+q.o.map(function(o,oi){return '<button type="button" class="opt" data-o="'+oi+'">'+esc(o)+'</button>'}).join('')+'<p class="fb" aria-live="polite"></p></div>'}).join('');
+  var sec=document.createElement('section');sec.className='card';sec.id='s'+st.id;sec.dataset.step=st.id;
+  sec.innerHTML='<span class="tag">'+st.tag+'</span><h2>'+st.title+'</h2><p>เป้าหมาย: '+st.goal+'</p>'
+   +'<div><h3>ลงมือทำ</h3><ol class="todo">'+st.todo.map(function(t){return '<li>'+t+'</li>'}).join('')+'</ol></div>'
+   +'<div class="cols"><div style="min-width:0"><h3>โค้ด (แตะที่บรรทัดเพื่ออ่านคำอธิบาย)</h3><div class="codewrap"><button class="copy" type="button">คัดลอก</button><pre>'+pre+'</pre></div><div class="explain" style="margin-top:10px" aria-live="polite">แตะบรรทัดโค้ดด้านบน เพื่อดูว่าบรรทัดนั้นทำอะไร</div></div>'
+   +'<div><h3>ภาพที่ควรเห็น</h3><div class="phone">'+mock+'</div>'+ctrl+'<p class="cap">ภาพจำลอง ผลจริงบนมือถืออาจต่างเล็กน้อย</p></div></div>'
+   +(st.mock!=='two'?'<div><h3>ลองใส่ชื่อของคุณ</h3><input class="name" type="text" placeholder="พิมพ์ชื่อ เพื่อดูในภาพจำลอง" aria-label="ชื่อของคุณ" id="nm'+st.id+'"></div>':'')
+   +'<div><h3>ตรวจความเข้าใจ</h3><div style="display:flex;flex-direction:column;gap:16px">'+qs+'</div></div>'
+   +'<label class="done"><input type="checkbox" class="dn"> <span>ทำขั้นนี้ครบแล้ว และเห็นผลบนมือถือแล้ว</span></label>';
+  host.appendChild(sec);
+
+  // คัดลอก
+  sec.querySelector('.copy').onclick=function(){var b=this;
+    function ok(){b.textContent='คัดลอกแล้ว';setTimeout(function(){b.textContent='คัดลอก'},1500)}
+    function fallback(){var r=document.createRange();r.selectNodeContents(sec.querySelector('pre'));var s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='เลือกโค้ดแล้ว กด Ctrl+C'}
+    try{navigator.clipboard.writeText(st.code).then(ok,fallback)}catch(e){fallback()}};
+  // อธิบายทีละบรรทัด
+  var exp=sec.querySelector('.explain');
+  sec.querySelectorAll('.ln').forEach(function(el){
+    function show(){sec.querySelectorAll('.ln.on').forEach(function(x){x.classList.remove('on')});el.classList.add('on');
+      var i=+el.dataset.i;exp.innerHTML='<b>บรรทัด '+i+':</b> '+(st.ex[i]||'ส่วนเดิมหรือบรรทัดว่าง ไม่ต้องแก้')}
+    el.onclick=show;el.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();show()}}});
+  // ชื่อในภาพจำลอง
+  var inp=sec.querySelector('.name');
+  if(inp)inp.oninput=function(){sec.querySelectorAll('.nm').forEach(function(n){n.textContent=inp.value||'ชื่อของฉัน'})};
+  // สี
+  sec.querySelectorAll('.sw button').forEach(function(b){b.onclick=function(){
+    sec.querySelector('.bgm').style.background=b.dataset.c;
+    sec.querySelectorAll('.sw button').forEach(function(x){x.setAttribute('aria-pressed',x===b)})}});
+  var mb=sec.querySelector('.mbtn');
+  if(mb){var idx=0;mb.onclick=function(){idx=(idx+1)%COLORS.length;sec.querySelector('.bgm').style.background=COLORS[idx]}}
+  // ถามตอบ
+  sec.querySelectorAll('.q').forEach(function(qel){var q=st.qs[+qel.dataset.q];
+    qel.querySelectorAll('.opt').forEach(function(ob){ob.onclick=function(){
+      var pick=+ob.dataset.o,fb=qel.querySelector('.fb');
+      qel.querySelectorAll('.opt').forEach(function(x){x.classList.remove('ok','no')});
+      if(pick===q.a){ob.classList.add('ok');fb.className='fb ok';fb.textContent='ถูกต้อง '+q.why;S['q'+st.id+'_'+qel.dataset.q]=1}
+      else{ob.classList.add('no');fb.className='fb no';fb.textContent='ยังไม่ถูก ลองอ่านโค้ดอีกครั้งแล้วเลือกใหม่';}
+      save();upd()}})});
+  // ติ๊กเสร็จ
+  var dn=sec.querySelector('.dn');dn.checked=!!S['d'+st.id];
+  dn.onchange=function(){S['d'+st.id]=dn.checked;save();upd()};
+});
+// คืนสถานะคำตอบ
+STEPS.forEach(function(st){st.qs.forEach(function(q,qi){if(S['q'+st.id+'_'+qi]){
+  var qel=document.querySelector('#s'+st.id+' .q[data-q="'+qi+'"]');
+  qel.querySelectorAll('.opt')[q.a].classList.add('ok');var fb=qel.querySelector('.fb');fb.className='fb ok';fb.textContent='ถูกต้อง '+q.why}})});
+function upd(){
+  var done=STEPS.filter(function(s){return S['d'+s.id]}).length;
+  var qd=0,qt=0;STEPS.forEach(function(s){s.qs.forEach(function(q,i){qt++;if(S['q'+s.id+'_'+i])qd++})});
+  var pct=Math.round((done+qd/ qt)/ (STEPS.length+1)*100);
+  document.getElementById('prog').style.width=pct+'%';
+  document.querySelector('.bar').setAttribute('aria-valuenow',pct);
+  document.getElementById('progtxt').textContent='ทำครบแล้ว '+done+' จาก '+STEPS.length+' ขั้น · ตอบถูก '+qd+' จาก '+qt+' ข้อ (บันทึกในเครื่องนี้)';
+}
+(function(){
+  var card=document.getElementById('stylecard');document.getElementById('s1').after(card);
+  function g(i){return document.getElementById(i)}
+  var PC=['pink','lightblue','gold','lightgreen','white','#ffd6e0'],color='pink',sw=g('pg-sw');
+  PC.forEach(function(c){var b=document.createElement('button');b.type='button';b.style.background=c;b.setAttribute('aria-label','สี '+c);b.setAttribute('aria-pressed',c===color);
+    b.onclick=function(){color=c;sw.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',x===b)});render()};sw.appendChild(b)});
+  function render(){
+    var dir=g('pg-dir').value,jc=g('pg-jc').value,ai=g('pg-ai').value,pad=+g('pg-pad').value,rad=+g('pg-rad').value,bw=+g('pg-bw').value,bx=g('pg-box');
+    bx.style.flexDirection=dir;bx.style.justifyContent=jc;bx.style.alignItems=ai;bx.style.padding=pad+'px';bx.style.borderRadius=rad+'px';bx.style.borderWidth=bw+'px';bx.style.background=color;
+    g('pg-pad-v').textContent=pad;g('pg-rad-v').textContent=rad;g('pg-bw-v').textContent=bw;
+    var L=['const styles = StyleSheet.create({','  box: {',"    flexDirection: '"+dir+"',","    justifyContent: '"+jc+"',","    alignItems: '"+ai+"',",'    padding: '+pad+',','    borderRadius: '+rad+','];
+    if(bw>0){L.push('    borderWidth: '+bw+',');L.push("    borderColor: '#333',")}
+    L.push("    backgroundColor: '"+color+"',");L.push('  },');L.push('});');
+    g('pg-code').textContent=L.join('\n');
+  }
+  ['pg-dir','pg-jc','pg-ai','pg-pad','pg-rad','pg-bw'].forEach(function(i){g(i).oninput=render});
+  render();
+})();
+upd();
+</script>
+
+</body></html>

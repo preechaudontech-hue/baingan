@@ -3,26 +3,66 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>คลังใบงาน</title>
+<title>คลังใบงาน แผนกวิชาเทคโนโลยีสารสนเทศ</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap">
 <style>
-body{font-family:system-ui,"Sarabun",sans-serif;max-width:720px;margin:0 auto;padding:24px 16px;background:#f7f8fa;color:#1c2330}
-h1{font-size:24px}
-.card{display:block;background:#fff;border:1px solid #d9dee7;border-radius:10px;padding:16px;margin:12px 0;text-decoration:none;color:inherit}
-.card:hover{border-color:#3b6fd4}
-.code{font-size:12px;color:#5b6678}
-.t{font-weight:600;font-size:17px}
+/* หน้ารวมวิชา: การ์ดต่อวิชา มีลิงก์หลักและลิงก์ลัด รายการวิชาเขียนตายตัวในไฟล์นี้ เพราะมีทั้งวิชาที่เป็นระบบส่งงานและวิชาที่เป็นหน้าเว็บอย่างเดียว */
+:root{--bg:#f4f6f8;--card:#fff;--fg:#17212b;--mu:#5b6b7a;--bd:#d9e0e7;--ac:#0b6e99;--ac-soft:#e1f1f8}
+@media(prefers-color-scheme:dark){:root{--bg:#0e151c;--card:#16212b;--fg:#e6edf3;--mu:#9aabba;--bd:#2a3947;--ac:#5cc0ea;--ac-soft:#16303d;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:18px/1.7 "Sarabun",system-ui,sans-serif;padding:24px 16px 64px}
+main{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font-size:1.6rem;line-height:1.25;margin:0}
+p{margin:0}.mu{color:var(--mu)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.code{font-size:.85rem;font-weight:700;color:var(--ac)}
+.name{font-size:1.15rem;font-weight:700;line-height:1.35}
+.main{display:block;background:var(--ac);color:#fff;text-decoration:none;font-weight:700;border-radius:8px;padding:10px 14px}
+.main:hover{filter:brightness(1.1)}
+.quick{display:flex;flex-wrap:wrap;gap:8px}
+.quick a{font-size:.95rem;color:var(--ac);background:var(--ac-soft);border-radius:99px;padding:2px 12px;text-decoration:none}
+a:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+footer{font-size:.9rem}
 </style>
 </head>
 <body>
-<h1>คลังใบงาน — เลือกวิชา</h1>
-<div id="list">กำลังโหลด...</div>
-<script>
-fetch('/api/courses').then(r=>r.json()).then(cs=>{
-  const el=document.getElementById('list');
-  const arr=Array.isArray(cs)?cs:(cs.courses||[]);
-  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  el.innerHTML=arr.length?arr.map(c=>`<a class="card" href="/c/${encodeURIComponent(c.code)}/"><div class="code">${esc(c.code)}</div><div class="t">${esc(c.hubTitle||c.shortName||c.code)}</div></a>`).join(''):'ยังไม่มีวิชา';
-}).catch(()=>{document.getElementById('list').textContent='โหลดรายการวิชาไม่สำเร็จ'});
-</script>
+<main>
+  <header>
+    <h1>คลังใบงาน</h1>
+    <p class="mu">แผนกวิชาเทคโนโลยีสารสนเทศ วิทยาลัยเทคนิคอุดรธานี เลือกวิชาที่เรียน</p>
+  </header>
+
+  <section class="card">
+    <span class="code">31901-2008</span>
+    <span class="name">การพัฒนาซอฟต์แวร์รูปแบบเดฟออฟส์</span>
+    <p class="mu">ใบความรู้ ใบงาน และส่งงานออนไลน์ (ต้องเข้าสู่ระบบด้วยบัญชีนักเรียน)</p>
+    <a class="main" href="/c/31901-2008/">เข้าวิชา DevOps</a>
+  </section>
+
+  <section class="card">
+    <span class="code">31901-2009</span>
+    <span class="name">การพัฒนาซอฟต์แวร์สำหรับอุปกรณ์เคลื่อนที่</span>
+    <p class="mu">React Native, Expo Go และ Snack ใบงาน 28 ใบ</p>
+    <a class="main" href="/mobile-2009/">เข้าวิชา Mobile App</a>
+    <div class="quick"><a href="/mobile-2009/practice.html">ฝึกเขียนแอปแรก</a><a href="/mobile-2009/style-guide.html">คู่มือสไตล์</a></div>
+  </section>
+
+  <section class="card">
+    <span class="code">31901-2013</span>
+    <span class="name">การพัฒนาไฮบริดแอปพลิเคชัน</span>
+    <p class="mu">Ionic, React และ Capacitor</p>
+    <a class="main" href="/hybrid-2013/">เข้าวิชา Hybrid App</a>
+    <div class="quick"><a href="/hybrid-2013/practice-react.html">ฝึกเขียนแอปแรก</a></div>
+  </section>
+
+  <section class="card">
+    <span class="code">31908-2003</span>
+    <span class="name">การออกแบบและติดตั้งระบบเครือข่าย</span>
+    <p class="mu">ใบความรู้และใบงาน</p>
+    <a class="main" href="/network-2003/">เข้าวิชาเครือข่าย</a>
+  </section>
+
+  <footer class="mu">ครูปรีชา รักษาพล</footer>
+</main>
 </body>
 </html>
