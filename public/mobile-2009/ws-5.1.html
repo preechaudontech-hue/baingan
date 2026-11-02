@@ -21,6 +21,7 @@ pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:a
 <div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
 <div class="card"><h2>จุดประสงค์</h2>อ่านตำแหน่งของอุปกรณ์ด้วย expo-location จัดการกรณีปฏิเสธสิทธิ์ และคำนวณระยะทางได้</div>
 <div class="card"><h2>คำชี้แจง</h2>สร้างหน้าจอแสดงตำแหน่งปัจจุบันและระยะทางไปยังสถานที่ที่นักเรียนกำหนด (เช่น วิทยาลัย บ้าน หรือร้านอาหารที่ชอบ) พร้อมจัดการกรณีผู้ใช้ปฏิเสธสิทธิ์</div>
+
 <div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>ใบความรู้ที่ 5 หัวข้อ ตำแหน่ง</li><li>มือถือจริงที่เปิด GPS (ตัวจำลองและเว็บอาจไม่ให้ตำแหน่ง)</li></ul></div>
 <div class="card"><h2>โค้ดตั้งต้น</h2><div class="mu">คัดลอกไปวางใน Snack ที่ไฟล์ App.js</div><pre id="code">import { useState } from 'react';
 import { View, Text, Button, Linking, StyleSheet } from 'react-native';

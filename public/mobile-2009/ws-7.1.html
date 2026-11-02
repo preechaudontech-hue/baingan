@@ -21,6 +21,7 @@ pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:a
 <div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
 <div class="card"><h2>จุดประสงค์</h2>เรียก API ด้วย fetch (GET) แสดงข้อมูลเป็นรายการ และจัดการสถานะกำลังโหลด ข้อผิดพลาด และรายการว่างได้</div>
 <div class="card"><h2>คำชี้แจง</h2>สร้างแอปแสดงรายชื่อผู้ใช้จาก JSONPlaceholder (endpoint /users) พร้อมช่องค้นหา ปุ่มดึงข้อมูลใหม่ และการจัดการข้อผิดพลาดที่ครบถ้วน</div>
+
 <div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>ใบความรู้ที่ 7 หัวข้อ fetch</li><li>อินเทอร์เน็ตที่เสถียร</li></ul></div>
 <div class="card"><h2>โค้ดตั้งต้น</h2><div class="mu">คัดลอกไปวางใน Snack ที่ไฟล์ App.js</div><pre id="code">import { useState, useEffect } from 'react';
 import { View, Text, TextInput, FlatList, ActivityIndicator, Button, StyleSheet } from 'react-native';

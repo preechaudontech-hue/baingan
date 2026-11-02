@@ -19,13 +19,18 @@ function copyDir(from, to, filter) {
   for (const f of fs.readdirSync(from)) if (filter(f)) fs.copyFileSync(path.join(from, f), path.join(to, f));
 }
 
+// ---- ไฟล์แบบฟอร์มให้ดาวน์โหลด ----
+const DL = path.join(PUB, "downloads");
+fs.mkdirSync(DL, { recursive: true });
+fs.copyFileSync(path.join(ROOT, "31901-2009_การพัฒนาซอฟต์แวร์สำหรับอุปกรณ์เคลื่อนที่", "แบบฟอร์ม", "แบบฝึก_UseCaseDiagram.docx"), path.join(DL, "usecase-diagram-form.docx"));
+
 // ---- 31901-2009 ----
 const D09 = path.join(PUB, "mobile-2009");
 copyDir(SRC09, D09, f => /^ws-\d+\.\d+\.html$/.test(f));
 fs.writeFileSync(path.join(D09, "practice.html"), wrap(fs.readFileSync(path.join(SRC09, "ฝึกแอปแรก.html"), "utf8")));
 fs.writeFileSync(path.join(D09, "style-guide.html"), wrap(fs.readFileSync(path.join(SRC09, "คู่มือสไตล์.html"), "utf8")));
 let idx = fs.readFileSync(path.join(SRC09, "index.html"), "utf8");
-const extra09 = '<div class="card"><h2>เริ่มที่นี่</h2><div class="li"><a href="practice.html">ฝึกเขียนแอปแรก React Native (ทีละขั้น)</a><a href="style-guide.html">คู่มือสไตล์ StyleSheet (ค้นหาได้)</a></div></div>';
+const extra09 = '<div class="card"><h2>เริ่มที่นี่</h2><div class="li"><a href="practice.html">ฝึกเขียนแอปแรก React Native (ทีละขั้น)</a><a href="style-guide.html">คู่มือสไตล์ StyleSheet (ค้นหาได้)</a></div></div><div class="card"><h2>แบบฟอร์มดาวน์โหลด</h2><div class="li"><a href="/downloads/usecase-diagram-form.docx" download>แบบฝึก Use Case Diagram (ใบงาน 2.2) ไฟล์ Word</a></div></div>';
 idx = idx.replace(/<main>/, "<main>" + hubLink + extra09);
 fs.writeFileSync(path.join(D09, "index.html"), idx);
 
@@ -47,6 +52,7 @@ h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.1rem;margin:0 0 .4em}.mu{color:
 <h1>31901-2013 การพัฒนาไฮบริดแอปพลิเคชัน</h1>
 <p class="mu">เครื่องมือ: Node.js, VS Code, Ionic CLI, React, Capacitor และ Chrome (โหมดจำลองอุปกรณ์)</p>
 <div class="card"><h2>เริ่มที่นี่</h2><div class="li"><a href="practice-react.html">ฝึกเขียนแอปแรก Ionic React (ทีละขั้น)</a></div></div>
+<div class="card"><h2>แบบฟอร์มดาวน์โหลด</h2><div class="li"><a href="/downloads/usecase-diagram-form.docx" download>แบบฝึก Use Case Diagram (ใบงาน 2.2) ไฟล์ Word</a></div></div>
 <div class="card"><h2>ใบงานอื่น ๆ</h2><p class="mu">ครูกำลังทยอยเพิ่มใบงานของแต่ละหน่วย</p></div>
 </main></body></html>
 `);
