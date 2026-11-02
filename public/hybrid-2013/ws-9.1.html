@@ -1,0 +1,60 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap"><title>ใบงานที่ 9.1 ตรวจความพร้อมและเผยแพร่แอปเป็นเว็บแอป</title><style>:root{--bg:#f6f7fb;--card:#fff;--tx:#1f2937;--mu:#6b7280;--ac:#2563eb;--bd:#e5e7eb;--cb:#0f172a}
+@media(prefers-color-scheme:dark){:root{--bg:#0f172a;--card:#1e293b;--tx:#e5e7eb;--mu:#94a3b8;--ac:#60a5fa;--bd:#334155;--cb:#020617}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:19px/1.75 "Sarabun","Noto Sans Thai","Leelawadee UI",system-ui,sans-serif}
+main{max-width:760px;margin:0 auto;padding:20px 16px 60px}a{color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px 18px;margin:14px 0}
+h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.15rem;margin:0 0 .4em;color:var(--ac)}.mu{color:var(--mu);font-size:.9rem}
+.id{display:flex;gap:10px;flex-wrap:wrap}.id input{flex:1;min-width:150px}
+input[type=text],textarea{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+ol.s{list-style:none;padding:0;margin:0}.step{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--bd)}.step:first-child{border-top:0}
+.chk{cursor:pointer;flex:none}.chk input{display:none}.n{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;border:2px solid var(--ac);color:var(--ac);font-weight:700}
+.chk input:checked+.n{background:var(--ac);color:#fff}.body{flex:1;min-width:0}.body p{margin:0 0 6px}.step.done p{color:var(--mu)}
+table{width:100%;border-collapse:collapse}td{border-top:1px solid var(--bd);padding:6px 4px}td:last-child{text-align:right;width:60px}
+.bar{height:8px;background:var(--bd);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .2s}
+button{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--ac);background:var(--ac);color:#fff;cursor:pointer}button.g{background:none;color:var(--ac)}
+pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:auto;font:14px/1.5 Consolas,monospace;max-height:420px;margin:6px 0}code{font-family:Consolas,monospace;background:var(--bd);padding:0 4px;border-radius:4px}
+.nav{display:flex;justify-content:space-between;margin-top:18px}
+.u{font-weight:700;margin:18px 0 4px}.li a{display:block;padding:8px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card);margin:6px 0;text-decoration:none}
+@media print{body{background:#fff;color:#000}.noprint{display:none}.card{break-inside:avoid}}</style></head><body><main>
+<div class="mu"><a href="index.html">สารบัญ</a> · วิชา 31901-2013 การพัฒนาไฮบริดแอปพลิเคชัน · หน่วยที่ 9 เผยแพร่และคู่มือ</div>
+<h1>ใบงานที่ 9.1 ตรวจความพร้อมและเผยแพร่แอปเป็นเว็บแอป</h1><div class="mu">เวลา 120 นาที · งานเดี่ยว · คะแนนเต็ม 10</div>
+<div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
+<div class="card"><h2>จุดประสงค์</h2>ตรวจความพร้อมของแอปก่อนเผยแพร่ build และเผยแพร่เป็นเว็บแอปแบบ HTTPS และเตรียมข้อมูลประกอบการเผยแพร่ได้ครบถ้วน</div>
+<div class="card"><h2>คำชี้แจง</h2>ตรวจความพร้อมของแอปของตนเองตามรายการตรวจสอบในใบความรู้ แก้ไขสิ่งที่ยังไม่ผ่าน แล้วเผยแพร่เป็นเว็บแอป เตรียมไอคอน นโยบายความเป็นส่วนตัว ตารางสิทธิ์ เวอร์ชัน และบันทึกการเปลี่ยนแปลง ขั้นตอนสร้างแอป Android เป็นขั้นเสริมสำหรับผู้ที่เครื่องพร้อม</div>
+
+<div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>ผลงานแอปของตนเองจากหน่วยที่ 4 - 8</li><li>ใบความรู้ที่ 9</li><li>บัญชี GitHub และบัญชีของบริการโฮสติ้งที่ครูกำหนด</li></ul></div>
+<div class="card"><h2>โค้ดตั้งต้น</h2><div class="mu">คัดลอกไปวางในไฟล์ที่ระบุในโค้ด</div><pre id="code">import type { CapacitorConfig } from '@capacitor/cli';
+
+const config: CapacitorConfig = {
+  // TODO: appId เป็นชื่อแบบโดเมนกลับด้าน ต้องไม่ซ้ำกับแอปอื่น และเปลี่ยนไม่ได้เมื่อเผยแพร่บนร้านแอป
+  // ใช้โดเมนหรือบัญชีของตนเอง เช่น io.github.ชื่อผู้ใช้ของคุณ.myexpense (ภาษาอังกฤษพิมพ์เล็ก ไม่มีช่องว่าง)
+  appId: 'io.github.yourname.myexpense',
+
+  // TODO: ชื่อแอปที่ผู้ใช้เห็นใต้ไอคอน
+  appName: 'MyExpense',
+
+  // โฟลเดอร์ผลลัพธ์ของ npm run build (Vite ใช้ dist)
+  webDir: 'dist',
+};
+
+export default config;</pre><button class="noprint" id="cp">คัดลอกโค้ด</button></div>
+<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>ทำรายการตรวจสอบก่อนเผยแพร่ของแอปตนเองเป็นตาราง (หมวด รายการตรวจ ผล หลักฐาน) อย่างน้อย 12 ข้อ ตามหมวดในใบความรู้ ประเมินแต่ละข้อว่าผ่านหรือไม่ผ่าน</p><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>แก้ไขข้อที่ไม่ผ่านอย่างน้อย 3 ข้อ (เช่น ลบ console.log ที่ไม่จำเป็น ตรวจหากุญแจลับในโค้ดและประวัติ Git ลบข้อมูลทดสอบ แก้การเข้าถึง) แล้วรัน npm run test:unit และ npm run build ให้ผ่านโดยไม่มี error บันทึกขนาดไฟล์ที่ได้จากผลของ npm run build</p><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>เปิดดูเวอร์ชัน build ด้วย npm run preview ทดสอบ use case หลัก 2 ข้อ และเปิดลิงก์ลึก (เช่น /item/1) แล้วรีเฟรช</p><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>เผยแพร่เป็นเว็บแอปบนบริการโฮสติ้งที่ครูกำหนด (คำสั่ง build npm install &amp;&amp; npm run build โฟลเดอร์ dist) ตั้งค่าให้ทุกเส้นทางตอบ index.html (SPA fallback) แล้วเปิดลิงก์จริงบนมือถือ ทดสอบลิงก์ลึกและรีเฟรช ถ่ายภาพ</p><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>ตั้งค่าไฟล์ capacitor.config.ts จากโค้ดตั้งต้น (appId ชื่อแอป) และเตรียมภาพต้นฉบับของไอคอนและ splash: assets/icon-only.png (1024 x 1024) และ assets/splash.png ถ้าทำขั้นเสริม (ข้อ 9) จนมีโฟลเดอร์ android แล้ว ให้รัน npx capacitor-assets generate --android และบันทึกผลที่ได้ (ถ้ายังไม่มีโฟลเดอร์ android ให้เตรียมแค่ภาพต้นฉบับ)</p><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>เตรียมข้อมูลประกอบเป็นเอกสารหนึ่งไฟล์: ชื่อและรหัสแอป คำอธิบายสั้นและยาว ภาพหน้าจอ 3 ภาพ ตารางสิทธิ์ที่ขอและเหตุผล กลุ่มผู้ใช้เป้าหมาย และรายการอ้างอิง (API ไลบรารี รูปภาพ)</p><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>เขียนนโยบายความเป็นส่วนตัวของแอป (ข้อมูลที่เก็บ ข้อมูลที่ส่งออก ที่เก็บ สิทธิ์ของผู้ใช้ ช่องทางติดต่อ) ความยาวอย่างน้อย 1 หน้า และนำไปเผยแพร่เป็นหน้าเว็บ หรืออย่างน้อยเป็นหน้า "เกี่ยวกับ" ในแอป</p><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c7"><span class="n">8</span></label><div class="body"><p>กำหนดเวอร์ชัน: ตั้งเวอร์ชันใน package.json เป็น 1.0.0 เขียนไฟล์ CHANGELOG.md ของเวอร์ชันนี้ ติดแท็ก Git v1.0.0 และ push ขึ้น GitHub</p><textarea data-k="n7" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c8"><span class="n">9</span></label><div class="body"><p>ขั้นเสริม (เมื่อเครื่องพร้อม: Node.js 22 ขึ้นไป Android Studio JDK 21): รัน npx cap add android, npx cap sync แล้วเปิดด้วย npx cap open android ตรวจ AndroidManifest.xml ว่าต้องเพิ่มสิทธิ์อะไรให้ตรงกับตารางสิทธิ์ ถ้าทำได้ ให้ติดตั้งบนมือถือจริง ทดสอบกล้องหรือตำแหน่ง และบันทึกผล ถ้าเครื่องยังไม่พร้อม ให้ระบุว่ายังไม่ได้ทดสอบและเขียนแผนว่าจะทำเมื่อใด</p><textarea data-k="n8" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
+<div class="card"><h2>คำแนะนำ</h2><ul><li>ถ้าลิงก์ลึกขึ้น 404 บนเว็บที่เผยแพร่ ให้เพิ่มกฎ rewrite ทุกเส้นทางไป /index.html ตามเอกสารของบริการ</li><li>ห้ามอัปโหลดไฟล์ keystore ไฟล์ .env หรือรหัสผ่านขึ้น GitHub ตรวจไฟล์ .gitignore ก่อนทุกครั้ง</li><li>ไอคอนต้นฉบับควรเป็นภาพสี่เหลี่ยมจัตุรัสขนาดใหญ่ ตัวอักษรหรือสัญลักษณ์ควรอยู่ตรงกลาง ไม่ชิดขอบ เพราะบางเครื่องตัดมุมหรือขอบ</li><li>appId เปลี่ยนไม่ได้หลังเผยแพร่บนร้านแอป ตั้งให้ถูกตั้งแต่ต้นและใช้ตัวพิมพ์เล็กภาษาอังกฤษ</li></ul></div>
+<div class="card"><h2>สิ่งที่ต้องส่ง</h2><p>ลิงก์ GitHub + ลิงก์เว็บแอปที่เผยแพร่ + รายการตรวจสอบก่อนเผยแพร่ + ภาพการทดสอบลิงก์ลึกบนมือถือ + เอกสารข้อมูลประกอบ + นโยบายความเป็นส่วนตัว + CHANGELOG.md และแท็กเวอร์ชัน + บันทึกขั้นเสริม (ถ้าทำ) (ส่งตามช่องทางที่ครูกำหนด)</p>
+<input type="text" data-k="link" placeholder="ลิงก์ GitHub หรือเว็บที่ deploy" style="margin-bottom:8px"><textarea data-k="summary" rows="3" placeholder="สรุปผล / ปัญหาที่พบ (ถ้ามี)"></textarea></div>
+<div class="card"><h2>เกณฑ์การให้คะแนน</h2><table><tr><td>รายการตรวจสอบครบถ้วน แก้ข้อที่ไม่ผ่านได้ และ build ผ่าน</td><td>4</td></tr><tr><td>เผยแพร่เป็นเว็บแอปได้จริงและทดสอบบนมือถือ รวมลิงก์ลึก</td><td>4</td></tr><tr><td>ข้อมูลประกอบ นโยบายความเป็นส่วนตัว และเวอร์ชันครบถ้วน</td><td>2</td></tr><tr><td><b>รวม</b></td><td><b>10</b></td></tr></table></div>
+<div class="noprint"><button id="pr">พิมพ์ / บันทึกเป็น PDF</button> <button class="g" id="cl">ล้างข้อมูล</button><p class="mu">ข้อมูลที่กรอกเก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น ยังไม่ส่งถึงครู</p>
+<div class="nav"><span><a href="ws-8.2.html">&larr; ใบงาน 8.2</a></span><span><a href="ws-9.2.html">ใบงาน 9.2 &rarr;</a></span></div></div>
+</main><script>
+var K="ws13-9.1",S={};try{S=JSON.parse(localStorage.getItem(K)||"{}")}catch(e){}
+var els=[].slice.call(document.querySelectorAll("[data-k]"));
+function upd(){var c=els.filter(function(e){return e.type==="checkbox"});var d=c.filter(function(e){return e.checked}).length;
+document.getElementById("bar").style.width=(100*d/c.length)+"%";document.getElementById("pct").textContent="ทำแล้ว "+d+" จาก "+c.length+" ขั้นตอน";
+c.forEach(function(e){e.closest(".step").classList.toggle("done",e.checked)});try{localStorage.setItem("done-"+K,d+"/"+c.length)}catch(x){}}
+els.forEach(function(e){var k=e.dataset.k;if(e.type==="checkbox")e.checked=!!S[k];else if(S[k])e.value=S[k];
+e.addEventListener("input",function(){S[k]=e.type==="checkbox"?e.checked:e.value;try{localStorage.setItem(K,JSON.stringify(S))}catch(x){}upd()})});upd();
+document.getElementById("pr").onclick=function(){print()};
+document.getElementById("cl").onclick=function(){if(confirm("ล้างทุกอย่าง?")){try{localStorage.removeItem(K);localStorage.removeItem("done-"+K)}catch(x){}location.reload()}};
+var cp=document.getElementById("cp");if(cp)cp.onclick=function(){var t=document.getElementById("code").textContent;
+(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){cp.textContent="คัดลอกแล้ว"},function(){var r=document.createRange();r.selectNodeContents(document.getElementById("code"));var s=getSelection();s.removeAllRanges();s.addRange(r);cp.textContent="เลือกข้อความแล้ว กด Ctrl+C"})};
+</script></body></html>

@@ -1,0 +1,151 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap"><title>ใบงานที่ 7.1 ดึงข้อมูลสภาพอากาศจาก API มาแสดง</title><style>:root{--bg:#f6f7fb;--card:#fff;--tx:#1f2937;--mu:#6b7280;--ac:#2563eb;--bd:#e5e7eb;--cb:#0f172a}
+@media(prefers-color-scheme:dark){:root{--bg:#0f172a;--card:#1e293b;--tx:#e5e7eb;--mu:#94a3b8;--ac:#60a5fa;--bd:#334155;--cb:#020617}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:19px/1.75 "Sarabun","Noto Sans Thai","Leelawadee UI",system-ui,sans-serif}
+main{max-width:760px;margin:0 auto;padding:20px 16px 60px}a{color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px 18px;margin:14px 0}
+h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.15rem;margin:0 0 .4em;color:var(--ac)}.mu{color:var(--mu);font-size:.9rem}
+.id{display:flex;gap:10px;flex-wrap:wrap}.id input{flex:1;min-width:150px}
+input[type=text],textarea{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+ol.s{list-style:none;padding:0;margin:0}.step{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--bd)}.step:first-child{border-top:0}
+.chk{cursor:pointer;flex:none}.chk input{display:none}.n{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;border:2px solid var(--ac);color:var(--ac);font-weight:700}
+.chk input:checked+.n{background:var(--ac);color:#fff}.body{flex:1;min-width:0}.body p{margin:0 0 6px}.step.done p{color:var(--mu)}
+table{width:100%;border-collapse:collapse}td{border-top:1px solid var(--bd);padding:6px 4px}td:last-child{text-align:right;width:60px}
+.bar{height:8px;background:var(--bd);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .2s}
+button{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--ac);background:var(--ac);color:#fff;cursor:pointer}button.g{background:none;color:var(--ac)}
+pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:auto;font:14px/1.5 Consolas,monospace;max-height:420px;margin:6px 0}code{font-family:Consolas,monospace;background:var(--bd);padding:0 4px;border-radius:4px}
+.nav{display:flex;justify-content:space-between;margin-top:18px}
+.u{font-weight:700;margin:18px 0 4px}.li a{display:block;padding:8px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card);margin:6px 0;text-decoration:none}
+@media print{body{background:#fff;color:#000}.noprint{display:none}.card{break-inside:avoid}}</style></head><body><main>
+<div class="mu"><a href="index.html">สารบัญ</a> · วิชา 31901-2013 การพัฒนาไฮบริดแอปพลิเคชัน · หน่วยที่ 7 เชื่อมต่อ API</div>
+<h1>ใบงานที่ 7.1 ดึงข้อมูลสภาพอากาศจาก API มาแสดง</h1><div class="mu">เวลา 120 นาที · งานเดี่ยว · คะแนนเต็ม 10</div>
+<div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
+<div class="card"><h2>จุดประสงค์</h2>เรียก API ด้วย fetch (GET) แสดงข้อมูลสภาพอากาศ และจัดการสถานะกำลังโหลด ผิดพลาด และไม่พบข้อมูลได้</div>
+<div class="card"><h2>คำชี้แจง</h2>สร้างหน้าสภาพอากาศที่ผู้ใช้พิมพ์ชื่อเมือง แล้วแอปแปลงเป็นพิกัดและแสดงอุณหภูมิปัจจุบันจาก Open-Meteo ใช้โค้ดตั้งต้นแล้วเติมส่วนที่เป็น TODO</div>
+
+<div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>ผลงานใบงาน 3.4 และ 6.1</li><li>ใบความรู้ที่ 7 หัวข้อ fetch และ Open-Meteo</li><li>ไฟล์ src/api/http.ts (คัดลอกจากใบความรู้)</li></ul></div>
+<div class="card"><h2>โค้ดตั้งต้น</h2><div class="mu">คัดลอกไปวางในไฟล์ที่ระบุในโค้ด</div><pre id="code">import { useState } from 'react';
+import {
+  IonButton, IonContent, IonHeader, IonItem, IonLabel, IonList, IonPage, IonSearchbar, IonSpinner, IonTitle,
+  IonToolbar,
+} from '@ionic/react';
+import { getJson } from '../api/http';
+
+interface Place { name: string; latitude: number; longitude: number; country?: string }
+interface GeoResponse { results?: Place[] } // ไม่พบเมือง = ไม่มีฟิลด์ results
+
+interface Forecast {
+  current: { time: string; temperature_2m: number; relative_humidity_2m: number; weather_code: number; wind_speed_10m: number };
+  daily: { time: string[]; temperature_2m_max: number[]; temperature_2m_min: number[]; precipitation_probability_max: number[] };
+}
+
+// TODO: เติมข้อความของรหัสอื่นให้ครบตามตารางรหัส WMO ในเอกสาร Open-Meteo
+function describe(code: number): string {
+  if (code === 0) return 'ท้องฟ้าโปร่ง';
+  if (code &gt;= 1 &amp;&amp; code &lt;= 3) return 'มีเมฆ';
+  if (code === 45 || code === 48) return 'หมอก';
+  if (code &gt;= 51 &amp;&amp; code &lt;= 57) return 'ฝนปรอย';
+  if (code &gt;= 61 &amp;&amp; code &lt;= 67) return 'ฝนตก';
+  if (code &gt;= 80 &amp;&amp; code &lt;= 82) return 'ฝนตกเป็นช่วง ๆ';
+  if (code &gt;= 95) return 'พายุฝนฟ้าคะนอง';
+  return `รหัสสภาพอากาศ ${code}`;
+}
+
+const Weather: React.FC = () =&gt; {
+  const [query, setQuery] = useState('อุดรธานี');
+  const [place, setPlace] = useState&lt;Place | null&gt;(null);
+  const [weather, setWeather] = useState&lt;Forecast | null&gt;(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function search() {
+    const name = query.trim();
+    if (!name) {
+      setError('กรุณาพิมพ์ชื่อเมือง');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&amp;count=1&amp;language=th`;
+      const geo = await getJson&lt;GeoResponse&gt;(geoUrl);
+      const found = geo.results?.[0];
+      if (!found) {
+        setPlace(null);
+        setWeather(null);
+        setError('ไม่พบเมืองนี้ ลองพิมพ์ชื่ออื่น');
+        return;
+      }
+      const url =
+        `https://api.open-meteo.com/v1/forecast?latitude=${found.latitude}&amp;longitude=${found.longitude}` +
+        '&amp;current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m' +
+        '&amp;daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&amp;timezone=auto&amp;forecast_days=3';
+      setWeather(await getJson&lt;Forecast&gt;(url));
+      setPlace(found);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    &lt;IonPage&gt;
+      &lt;IonHeader&gt;
+        &lt;IonToolbar color="primary"&gt;
+          &lt;IonTitle&gt;สภาพอากาศ&lt;/IonTitle&gt;
+        &lt;/IonToolbar&gt;
+      &lt;/IonHeader&gt;
+      &lt;IonContent className="ion-padding"&gt;
+        &lt;IonSearchbar
+          value={query}
+          placeholder="ชื่อเมือง"
+          onIonInput={e =&gt; setQuery(String(e.detail.value ?? ''))}
+        /&gt;
+        &lt;IonButton expand="block" onClick={search} disabled={loading}&gt;ดูสภาพอากาศ&lt;/IonButton&gt;
+
+        {loading &amp;&amp; &lt;p className="ion-text-center"&gt;&lt;IonSpinner /&gt; กำลังโหลด...&lt;/p&gt;}
+        {error &amp;&amp; &lt;p&gt;{error}&lt;/p&gt;}
+
+        {place &amp;&amp; weather &amp;&amp; (
+          &lt;IonList&gt;
+            &lt;IonItem&gt;
+              &lt;IonLabel&gt;
+                &lt;h2&gt;{place.name}{place.country ? `, ${place.country}` : ''}&lt;/h2&gt;
+                &lt;p&gt;{describe(weather.current.weather_code)}&lt;/p&gt;
+              &lt;/IonLabel&gt;
+            &lt;/IonItem&gt;
+            &lt;IonItem&gt;
+              &lt;IonLabel&gt;
+                &lt;h2&gt;{weather.current.temperature_2m} °C&lt;/h2&gt;
+                &lt;p&gt;ความชื้น {weather.current.relative_humidity_2m}% · ลม {weather.current.wind_speed_10m} กม./ชม.&lt;/p&gt;
+              &lt;/IonLabel&gt;
+            &lt;/IonItem&gt;
+            {/* TODO: แสดงพยากรณ์ 3 วัน (weather.daily) วันที่ อุณหภูมิสูงสุด/ต่ำสุด และโอกาสฝน */}
+          &lt;/IonList&gt;
+        )}
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default Weather;</pre><button class="noprint" id="cp">คัดลอกโค้ด</button></div>
+<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>สร้างไฟล์ src/api/http.ts จากใบความรู้ (โค้ดทั้งไฟล์) แล้วสร้างหน้าสภาพอากาศจากโค้ดตั้งต้น ทดสอบค้นหา "อุดรธานี" ตรวจว่าได้อุณหภูมิ</p><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>เปิดแท็บ Network ใน DevTools แล้วค้นหาอีกครั้ง ดูคำขอทั้งสองที่ส่งไป (geocoding และ forecast) จดว่ามีเมธอด รหัสสถานะ และขนาดข้อมูลเท่าใด และดูตัวอย่างคำตอบ JSON ของ forecast ถ่ายภาพ</p><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>เติมส่วน TODO แสดงพยากรณ์ 3 วัน (วันที่ สูงสุด/ต่ำสุด โอกาสฝน) ด้วย map และ key</p><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>เติมข้อความของ describe ให้ครบอย่างน้อยกลุ่มหิมะ (71 - 77) และกลุ่มฝนตกหนัก ตามตารางรหัส WMO ในเอกสาร</p><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>ทดสอบกรณีผิดปกติ 4 กรณี: ช่องว่าง ชื่อเมืองที่ไม่มีอยู่จริง (เช่น พิมพ์ว่า asdfgh) ปิดอินเทอร์เน็ตแล้วกดค้นหา (ใช้ Offline ในแท็บ Network) และเมืองที่ชื่อซ้ำกับหลายประเทศ (เช่น Udon) บันทึกข้อความที่แอปแสดง และอธิบายว่ากรณีเมืองที่ไม่มีอยู่จริงโค้ดส่วนใดป้องกันไม่ให้แอปพัง</p><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>แก้ให้ผู้ใช้เลือกเมืองได้เมื่อมีหลายผลลัพธ์: ใช้ count=5 แสดงรายการเมือง (ชื่อ ประเทศ) ให้แตะเลือกแล้วจึงโหลดสภาพอากาศ</p><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>เปิดเอกสาร Open-Meteo อ่านเงื่อนไขการใช้งาน แล้วเขียน 2 บรรทัดว่าแอปของเราต้องทำอะไรเพื่อใช้ API นี้อย่างถูกต้อง และเพิ่มข้อความอ้างอิงแหล่งข้อมูลไว้ท้ายหน้า</p><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
+<div class="card"><h2>คำแนะนำ</h2><ul><li>ถ้าขึ้นข้อความ blocked by CORS policy ให้ตรวจ URL ว่าพิมพ์ถูกต้อง (Open-Meteo อนุญาต CORS แล้ว)</li><li>ชื่อเมืองภาษาไทยต้องผ่าน encodeURIComponent ซึ่งโค้ดตั้งต้นทำให้แล้ว</li><li>ค่า timezone=auto ทำให้เวลาของพยากรณ์ตรงกับเขตเวลาของพิกัดนั้น</li><li>ถ้า TypeScript ฟ้องว่า results อาจเป็น undefined แปลว่ากำลังทำถูกทาง ให้ตรวจก่อนใช้เสมอ</li></ul></div>
+<div class="card"><h2>สิ่งที่ต้องส่ง</h2><p>ภาพหน้าจอ 4 ภาพ (มีข้อมูล กำลังโหลด ไม่พบเมือง และออฟไลน์) + ภาพแท็บ Network พร้อมข้อมูลคำขอ + คำอธิบายข้อ 5 และ 7 + ลิงก์ GitHub (ส่งตามช่องทางที่ครูกำหนด)</p>
+<input type="text" data-k="link" placeholder="ลิงก์ GitHub หรือเว็บที่ deploy" style="margin-bottom:8px"><textarea data-k="summary" rows="3" placeholder="สรุปผล / ปัญหาที่พบ (ถ้ามี)"></textarea></div>
+<div class="card"><h2>เกณฑ์การให้คะแนน</h2><table><tr><td>เรียก API ทั้งสองขั้นและแสดงข้อมูลถูกต้อง รวมพยากรณ์ 3 วัน</td><td>4</td></tr><tr><td>จัดการกำลังโหลด ผิดพลาด ไม่พบเมือง และออฟไลน์ได้ถูกต้อง</td><td>3</td></tr><tr><td>ภาพ คำอธิบายเงื่อนไขการใช้งาน และลิงก์ครบถ้วน</td><td>3</td></tr><tr><td><b>รวม</b></td><td><b>10</b></td></tr></table></div>
+<div class="noprint"><button id="pr">พิมพ์ / บันทึกเป็น PDF</button> <button class="g" id="cl">ล้างข้อมูล</button><p class="mu">ข้อมูลที่กรอกเก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น ยังไม่ส่งถึงครู</p>
+<div class="nav"><span><a href="ws-6.3.html">&larr; ใบงาน 6.3</a></span><span><a href="ws-7.2.html">ใบงาน 7.2 &rarr;</a></span></div></div>
+</main><script>
+var K="ws13-7.1",S={};try{S=JSON.parse(localStorage.getItem(K)||"{}")}catch(e){}
+var els=[].slice.call(document.querySelectorAll("[data-k]"));
+function upd(){var c=els.filter(function(e){return e.type==="checkbox"});var d=c.filter(function(e){return e.checked}).length;
+document.getElementById("bar").style.width=(100*d/c.length)+"%";document.getElementById("pct").textContent="ทำแล้ว "+d+" จาก "+c.length+" ขั้นตอน";
+c.forEach(function(e){e.closest(".step").classList.toggle("done",e.checked)});try{localStorage.setItem("done-"+K,d+"/"+c.length)}catch(x){}}
+els.forEach(function(e){var k=e.dataset.k;if(e.type==="checkbox")e.checked=!!S[k];else if(S[k])e.value=S[k];
+e.addEventListener("input",function(){S[k]=e.type==="checkbox"?e.checked:e.value;try{localStorage.setItem(K,JSON.stringify(S))}catch(x){}upd()})});upd();
+document.getElementById("pr").onclick=function(){print()};
+document.getElementById("cl").onclick=function(){if(confirm("ล้างทุกอย่าง?")){try{localStorage.removeItem(K);localStorage.removeItem("done-"+K)}catch(x){}location.reload()}};
+var cp=document.getElementById("cp");if(cp)cp.onclick=function(){var t=document.getElementById("code").textContent;
+(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){cp.textContent="คัดลอกแล้ว"},function(){var r=document.createRange();r.selectNodeContents(document.getElementById("code"));var s=getSelection();s.removeAllRanges();s.addRange(r);cp.textContent="เลือกข้อความแล้ว กด Ctrl+C"})};
+</script></body></html>

@@ -1,0 +1,129 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap"><title>ใบงานที่ 5.1 ตำแหน่งปัจจุบันและระยะทาง</title><style>:root{--bg:#f6f7fb;--card:#fff;--tx:#1f2937;--mu:#6b7280;--ac:#2563eb;--bd:#e5e7eb;--cb:#0f172a}
+@media(prefers-color-scheme:dark){:root{--bg:#0f172a;--card:#1e293b;--tx:#e5e7eb;--mu:#94a3b8;--ac:#60a5fa;--bd:#334155;--cb:#020617}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:19px/1.75 "Sarabun","Noto Sans Thai","Leelawadee UI",system-ui,sans-serif}
+main{max-width:760px;margin:0 auto;padding:20px 16px 60px}a{color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px 18px;margin:14px 0}
+h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.15rem;margin:0 0 .4em;color:var(--ac)}.mu{color:var(--mu);font-size:.9rem}
+.id{display:flex;gap:10px;flex-wrap:wrap}.id input{flex:1;min-width:150px}
+input[type=text],textarea{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+ol.s{list-style:none;padding:0;margin:0}.step{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--bd)}.step:first-child{border-top:0}
+.chk{cursor:pointer;flex:none}.chk input{display:none}.n{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;border:2px solid var(--ac);color:var(--ac);font-weight:700}
+.chk input:checked+.n{background:var(--ac);color:#fff}.body{flex:1;min-width:0}.body p{margin:0 0 6px}.step.done p{color:var(--mu)}
+table{width:100%;border-collapse:collapse}td{border-top:1px solid var(--bd);padding:6px 4px}td:last-child{text-align:right;width:60px}
+.bar{height:8px;background:var(--bd);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .2s}
+button{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--ac);background:var(--ac);color:#fff;cursor:pointer}button.g{background:none;color:var(--ac)}
+pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:auto;font:14px/1.5 Consolas,monospace;max-height:420px;margin:6px 0}code{font-family:Consolas,monospace;background:var(--bd);padding:0 4px;border-radius:4px}
+.nav{display:flex;justify-content:space-between;margin-top:18px}
+.u{font-weight:700;margin:18px 0 4px}.li a{display:block;padding:8px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card);margin:6px 0;text-decoration:none}
+@media print{body{background:#fff;color:#000}.noprint{display:none}.card{break-inside:avoid}}</style></head><body><main>
+<div class="mu"><a href="index.html">สารบัญ</a> · วิชา 31901-2013 การพัฒนาไฮบริดแอปพลิเคชัน · หน่วยที่ 5 ทรัพยากรอุปกรณ์ด้วย Capacitor</div>
+<h1>ใบงานที่ 5.1 ตำแหน่งปัจจุบันและระยะทาง</h1><div class="mu">เวลา 120 นาที · งานเดี่ยว · คะแนนเต็ม 10</div>
+<div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
+<div class="card"><h2>จุดประสงค์</h2>อ่านตำแหน่งปัจจุบันด้วย Geolocation จัดการกรณีปฏิเสธสิทธิ์ และคำนวณระยะทางถึงสถานที่ที่กำหนดได้</div>
+<div class="card"><h2>คำชี้แจง</h2>สร้างหน้าที่อ่านตำแหน่งของอุปกรณ์แล้วแสดงระยะทางไปยังสถานที่หนึ่งแห่ง ทดสอบบนคอมพิวเตอร์ที่ localhost ก่อน ซึ่งเบราว์เซอร์จะถามสิทธิ์ตำแหน่ง</div>
+
+<div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>ผลงานใบงาน 4.4 หรือโปรเจกต์ Ionic React ที่รัน ionic serve ได้</li><li>ใบความรู้ที่ 5 หัวข้อสิทธิ์และ Geolocation</li></ul></div>
+<div class="card"><h2>โค้ดตั้งต้น</h2><div class="mu">คัดลอกไปวางในไฟล์ที่ระบุในโค้ด</div><pre id="code">import { useState } from 'react';
+import { IonButton, IonContent, IonHeader, IonItem, IonLabel, IonList, IonPage, IonTitle, IonToolbar } from '@ionic/react';
+import { Geolocation } from '@capacitor/geolocation';
+
+interface Point { lat: number; lng: number }
+
+// TODO: เปลี่ยนเป็นพิกัดสถานที่ที่ต้องการ (ค่านี้เป็นค่าประมาณกลางเมืองอุดรธานี ให้ค้นพิกัดจริงจาก Google Maps)
+const TARGET: Point = { lat: 17.41, lng: 102.79 };
+const TARGET_NAME = 'จุดอ้างอิง';
+
+// ระยะทางระหว่างสองพิกัด (กิโลเมตร) ด้วยสูตร Haversine
+function distanceKm(a: Point, b: Point): number {
+  const R = 6371;
+  const toRad = (d: number) =&gt; (d * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+type Status = 'idle' | 'loading' | 'ok' | 'denied' | 'error';
+
+const Where: React.FC = () =&gt; {
+  const [status, setStatus] = useState&lt;Status&gt;('idle');
+  const [pos, setPos] = useState&lt;Point | null&gt;(null);
+  const [accuracy, setAccuracy] = useState(0);
+
+  async function locate() {
+    setStatus('loading');
+    try {
+      const perm = await Geolocation.checkPermissions();
+      if (perm.location === 'denied') {
+        setStatus('denied');
+        return;
+      }
+      const p = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 });
+      setPos({ lat: p.coords.latitude, lng: p.coords.longitude });
+      setAccuracy(p.coords.accuracy);
+      setStatus('ok');
+    } catch (e) {
+      // TODO: แยกกรณีผู้ใช้กดไม่อนุญาตกับกรณีอื่น ๆ ให้ข้อความต่างกัน
+      setStatus('error');
+    }
+  }
+
+  return (
+    &lt;IonPage&gt;
+      &lt;IonHeader&gt;
+        &lt;IonToolbar color="primary"&gt;
+          &lt;IonTitle&gt;ตำแหน่งของฉัน&lt;/IonTitle&gt;
+        &lt;/IonToolbar&gt;
+      &lt;/IonHeader&gt;
+      &lt;IonContent className="ion-padding"&gt;
+        &lt;IonButton expand="block" onClick={locate} disabled={status === 'loading'}&gt;
+          {status === 'loading' ? 'กำลังอ่านตำแหน่ง...' : 'ดูตำแหน่งของฉัน'}
+        &lt;/IonButton&gt;
+
+        {status === 'denied' &amp;&amp; &lt;p&gt;ไม่ได้รับสิทธิ์ตำแหน่ง เปิดสิทธิ์ได้ในการตั้งค่าของเบราว์เซอร์หรือเครื่อง&lt;/p&gt;}
+        {status === 'error' &amp;&amp; &lt;p&gt;อ่านตำแหน่งไม่สำเร็จ ลองใหม่อีกครั้ง&lt;/p&gt;}
+
+        {status === 'ok' &amp;&amp; pos &amp;&amp; (
+          &lt;IonList&gt;
+            &lt;IonItem&gt;
+              &lt;IonLabel&gt;
+                &lt;h2&gt;พิกัดของคุณ&lt;/h2&gt;
+                &lt;p&gt;{pos.lat.toFixed(5)}, {pos.lng.toFixed(5)} (ผิดพลาดได้ประมาณ {Math.round(accuracy)} ม.)&lt;/p&gt;
+              &lt;/IonLabel&gt;
+            &lt;/IonItem&gt;
+            &lt;IonItem&gt;
+              &lt;IonLabel&gt;
+                &lt;h2&gt;ระยะทางถึง{TARGET_NAME}&lt;/h2&gt;
+                &lt;p&gt;{distanceKm(pos, TARGET).toFixed(2)} กม.&lt;/p&gt;
+              &lt;/IonLabel&gt;
+            &lt;/IonItem&gt;
+          &lt;/IonList&gt;
+        )}
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default Where;</pre><button class="noprint" id="cp">คัดลอกโค้ด</button></div>
+<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>ติดตั้งปลั๊กอินด้วยคำสั่ง npm install @capacitor/geolocation แล้วรีสตาร์ท ionic serve ถ้าจำเป็น</p><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>สร้างไฟล์หน้าใหม่จากโค้ดตั้งต้น เปิดที่ localhost แล้วกดปุ่ม ดูว่าเบราว์เซอร์ถามสิทธิ์ตำแหน่ง ลองกด อนุญาต และตรวจว่าแสดงพิกัดและระยะทาง</p><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>เปลี่ยน TARGET และ TARGET_NAME เป็นสถานที่ที่เกี่ยวกับแอปของตนเอง (ค้นพิกัดจาก Google Maps) และตรวจว่าระยะทางสมเหตุสมผล</p><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>ทดสอบกรณีปฏิเสธ: เข้าไปตั้งค่าสิทธิ์ตำแหน่งของเว็บไซต์ในเบราว์เซอร์ให้เป็น บล็อก แล้วกดปุ่มอีกครั้ง ดูว่าแอปแสดงข้อความอธิบายและยังใช้งานต่อได้ ถ่ายภาพ</p><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>ปรับปรุงการจัดการข้อผิดพลาดตามคอมเมนต์ TODO ให้ข้อความของแต่ละกรณีบอกผู้ใช้ว่าต้องทำอะไรต่อ</p><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>เขียนฟังก์ชันทดสอบ distanceKm ด้วยค่าที่รู้คำตอบ (จุดเดียวกันต้องได้ 0 กม. และจุด 0,0 กับ 0,1 องศาต้องได้ประมาณ 111 กม.) ตรวจใน Console แล้วบันทึกผล</p><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>ตอบคำถาม: เหตุใดเปิดแอปบนมือถือผ่าน http://หมายเลข-IP แล้วใช้ตำแหน่งไม่ได้ และจะทดสอบบนมือถือได้อย่างไร (อ้างอิงใบความรู้)</p><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
+<div class="card"><h2>คำแนะนำ</h2><ul><li>ถ้าไม่ขึ้นหน้าต่างขอสิทธิ์ ให้ตรวจว่าเปิดที่ localhost ไม่ใช่หมายเลข IP และดูไอคอนที่แถบที่อยู่ของเบราว์เซอร์</li><li>บนคอมพิวเตอร์ ตำแหน่งที่ได้อาจคลาดเคลื่อนหลายร้อยเมตรถึงหลายกิโลเมตร เพราะไม่มี GPS ข้อมูลนี้ปกติ ให้ดูค่า accuracy ประกอบ</li><li>พิกัดละติจูดอยู่ก่อนลองจิจูดเสมอ (lat, lng) ถ้าสลับกันระยะทางจะผิดมาก</li></ul></div>
+<div class="card"><h2>สิ่งที่ต้องส่ง</h2><p>ภาพหน้าจอ 3 ภาพ (ก่อนกด แสดงตำแหน่งและระยะทาง และกรณีปฏิเสธสิทธิ์) + ผลทดสอบฟังก์ชัน distanceKm + คำตอบข้อ 7 + ลิงก์ GitHub (ส่งตามช่องทางที่ครูกำหนด)</p>
+<input type="text" data-k="link" placeholder="ลิงก์ GitHub หรือเว็บที่ deploy" style="margin-bottom:8px"><textarea data-k="summary" rows="3" placeholder="สรุปผล / ปัญหาที่พบ (ถ้ามี)"></textarea></div>
+<div class="card"><h2>เกณฑ์การให้คะแนน</h2><table><tr><td>อ่านตำแหน่งและคำนวณระยะทางถูกต้อง</td><td>4</td></tr><tr><td>จัดการกรณีปฏิเสธสิทธิ์และข้อผิดพลาดได้ ผู้ใช้เข้าใจและใช้งานต่อได้</td><td>4</td></tr><tr><td>ทดสอบฟังก์ชันและตอบคำถามครบ</td><td>2</td></tr><tr><td><b>รวม</b></td><td><b>10</b></td></tr></table></div>
+<div class="noprint"><button id="pr">พิมพ์ / บันทึกเป็น PDF</button> <button class="g" id="cl">ล้างข้อมูล</button><p class="mu">ข้อมูลที่กรอกเก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น ยังไม่ส่งถึงครู</p>
+<div class="nav"><span><a href="ws-4.4.html">&larr; ใบงาน 4.4</a></span><span><a href="ws-5.2.html">ใบงาน 5.2 &rarr;</a></span></div></div>
+</main><script>
+var K="ws13-5.1",S={};try{S=JSON.parse(localStorage.getItem(K)||"{}")}catch(e){}
+var els=[].slice.call(document.querySelectorAll("[data-k]"));
+function upd(){var c=els.filter(function(e){return e.type==="checkbox"});var d=c.filter(function(e){return e.checked}).length;
+document.getElementById("bar").style.width=(100*d/c.length)+"%";document.getElementById("pct").textContent="ทำแล้ว "+d+" จาก "+c.length+" ขั้นตอน";
+c.forEach(function(e){e.closest(".step").classList.toggle("done",e.checked)});try{localStorage.setItem("done-"+K,d+"/"+c.length)}catch(x){}}
+els.forEach(function(e){var k=e.dataset.k;if(e.type==="checkbox")e.checked=!!S[k];else if(S[k])e.value=S[k];
+e.addEventListener("input",function(){S[k]=e.type==="checkbox"?e.checked:e.value;try{localStorage.setItem(K,JSON.stringify(S))}catch(x){}upd()})});upd();
+document.getElementById("pr").onclick=function(){print()};
+document.getElementById("cl").onclick=function(){if(confirm("ล้างทุกอย่าง?")){try{localStorage.removeItem(K);localStorage.removeItem("done-"+K)}catch(x){}location.reload()}};
+var cp=document.getElementById("cp");if(cp)cp.onclick=function(){var t=document.getElementById("code").textContent;
+(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){cp.textContent="คัดลอกแล้ว"},function(){var r=document.createRange();r.selectNodeContents(document.getElementById("code"));var s=getSelection();s.removeAllRanges();s.addRange(r);cp.textContent="เลือกข้อความแล้ว กด Ctrl+C"})};
+</script></body></html>

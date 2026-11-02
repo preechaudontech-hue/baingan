@@ -1,0 +1,66 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap"><title>ใบงานที่ 7.2 ส่ง แก้ไข และลบข้อมูลผ่าน API</title><style>:root{--bg:#f6f7fb;--card:#fff;--tx:#1f2937;--mu:#6b7280;--ac:#2563eb;--bd:#e5e7eb;--cb:#0f172a}
+@media(prefers-color-scheme:dark){:root{--bg:#0f172a;--card:#1e293b;--tx:#e5e7eb;--mu:#94a3b8;--ac:#60a5fa;--bd:#334155;--cb:#020617}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:19px/1.75 "Sarabun","Noto Sans Thai","Leelawadee UI",system-ui,sans-serif}
+main{max-width:760px;margin:0 auto;padding:20px 16px 60px}a{color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px 18px;margin:14px 0}
+h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.15rem;margin:0 0 .4em;color:var(--ac)}.mu{color:var(--mu);font-size:.9rem}
+.id{display:flex;gap:10px;flex-wrap:wrap}.id input{flex:1;min-width:150px}
+input[type=text],textarea{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+ol.s{list-style:none;padding:0;margin:0}.step{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--bd)}.step:first-child{border-top:0}
+.chk{cursor:pointer;flex:none}.chk input{display:none}.n{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;border:2px solid var(--ac);color:var(--ac);font-weight:700}
+.chk input:checked+.n{background:var(--ac);color:#fff}.body{flex:1;min-width:0}.body p{margin:0 0 6px}.step.done p{color:var(--mu)}
+table{width:100%;border-collapse:collapse}td{border-top:1px solid var(--bd);padding:6px 4px}td:last-child{text-align:right;width:60px}
+.bar{height:8px;background:var(--bd);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .2s}
+button{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--ac);background:var(--ac);color:#fff;cursor:pointer}button.g{background:none;color:var(--ac)}
+pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:auto;font:14px/1.5 Consolas,monospace;max-height:420px;margin:6px 0}code{font-family:Consolas,monospace;background:var(--bd);padding:0 4px;border-radius:4px}
+.nav{display:flex;justify-content:space-between;margin-top:18px}
+.u{font-weight:700;margin:18px 0 4px}.li a{display:block;padding:8px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card);margin:6px 0;text-decoration:none}
+@media print{body{background:#fff;color:#000}.noprint{display:none}.card{break-inside:avoid}}</style></head><body><main>
+<div class="mu"><a href="index.html">สารบัญ</a> · วิชา 31901-2013 การพัฒนาไฮบริดแอปพลิเคชัน · หน่วยที่ 7 เชื่อมต่อ API</div>
+<h1>ใบงานที่ 7.2 ส่ง แก้ไข และลบข้อมูลผ่าน API</h1><div class="mu">เวลา 120 นาที · งานเดี่ยว · คะแนนเต็ม 10</div>
+<div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
+<div class="card"><h2>จุดประสงค์</h2>เรียก API ด้วยเมธอด POST PATCH และ DELETE พร้อมจัดการผลและข้อผิดพลาด และอัปเดตหน้าจอให้สอดคล้องกับผลที่ได้</div>
+<div class="card"><h2>คำชี้แจง</h2>สร้างหน้าจัดการโพสต์ที่ดึงรายการ เพิ่ม แก้ไข และลบ ผ่าน JSONPlaceholder (API จำลองที่ไม่บันทึกข้อมูลจริง) โดยเติมฟังก์ชันที่เป็น TODO ในไฟล์ posts.ts แล้วเชื่อมกับหน้าจอ</div>
+
+<div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>ผลงานใบงาน 7.1 และ 4.2 - 4.3</li><li>ใบความรู้ที่ 7 หัวข้อ ส่ง แก้ไข และลบข้อมูล</li><li>ไฟล์ src/api/http.ts</li></ul></div>
+<div class="card"><h2>โค้ดตั้งต้น</h2><div class="mu">คัดลอกไปวางในไฟล์ที่ระบุในโค้ด</div><pre id="code">// src/api/posts.ts
+import { getJson, sendJson } from './http';
+
+export interface Post { id: number; userId: number; title: string; body: string }
+
+const BASE = 'https://jsonplaceholder.typicode.com';
+
+export const listPosts = (signal?: AbortSignal) =&gt; getJson&lt;Post[]&gt;(`${BASE}/posts?_limit=10`, signal);
+
+export const createPost = (title: string, body: string) =&gt;
+  sendJson&lt;Post&gt;('POST', `${BASE}/posts`, { title, body, userId: 1 });
+
+export async function updatePost(id: number, changes: Partial&lt;Post&gt;): Promise&lt;Post&gt; {
+  // TODO: ส่ง PATCH ไปที่ `${BASE}/posts/${id}` ด้วย sendJson แล้วคืนโพสต์ที่ได้
+  throw new Error('ยังไม่ได้เขียน updatePost ' + id + JSON.stringify(changes));
+}
+
+export async function deletePost(id: number): Promise&lt;void&gt; {
+  // TODO: ส่ง DELETE ไปที่ `${BASE}/posts/${id}` ด้วย sendJson
+  throw new Error('ยังไม่ได้เขียน deletePost ' + id);
+}</pre><button class="noprint" id="cp">คัดลอกโค้ด</button></div>
+<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>สร้างไฟล์ src/api/posts.ts จากโค้ดตั้งต้น แล้วเติมฟังก์ชัน updatePost (PATCH) และ deletePost (DELETE) ตามคอมเมนต์</p><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>สร้างหน้ารายการโพสต์ ใช้ useEffect เรียก listPosts พร้อมยกเลิกคำขอเมื่อออกจากหน้า (AbortController) และมีสถานะกำลังโหลด ผิดพลาด ว่าง</p><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>เพิ่มฟอร์มสร้างโพสต์ (ชื่อเรื่อง เนื้อหา) ที่ตรวจข้อมูลก่อนส่ง ปิดปุ่มขณะรอคำตอบ แล้วเพิ่มโพสต์ที่ได้ไว้บนสุดของรายการ (JSONPlaceholder ตอบ id 101 เสมอ ให้ใช้ id ชั่วคราวฝั่งแอปสำหรับ key ไม่ให้ซ้ำ)</p><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>เพิ่มการแก้ไขชื่อเรื่องด้วย PATCH และอัปเดตรายการในหน้าจอจากคำตอบ</p><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>เพิ่มการลบด้วย DELETE พร้อมกล่องถามยืนยัน (useIonAlert) แล้วลบรายการออกจากหน้าจอเมื่อสำเร็จ</p><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>ทดสอบความผิดพลาด: ปิดอินเทอร์เน็ตแล้วกดสร้างและลบ ดูว่าหน้าจอไม่เปลี่ยนผิดและแจ้งผู้ใช้อย่างเข้าใจ จากนั้นเรียกโพสต์ที่ไม่มีอยู่ (เช่น /posts/9999) ตรวจว่าได้ 404 และแอปแสดงข้อความ ถ่ายภาพ</p><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>เขียนตาราง 3 แถว (สร้าง แก้ไข ลบ): เมธอด URL เนื้อหาที่ส่ง รหัสสถานะที่ได้ (ดูจากแท็บ Network) และข้อความที่ผู้ใช้เห็น</p><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c7"><span class="n">8</span></label><div class="body"><p>รีเฟรชหน้าแล้วดูว่ารายการที่สร้างหายไป อธิบายเหตุผล (อ้างอิงข้อจำกัดของ JSONPlaceholder) และอธิบายว่า API จริงของแอปที่มีฐานข้อมูลจะต่างอย่างไร</p><textarea data-k="n7" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
+<div class="card"><h2>คำแนะนำ</h2><ul><li>ถ้า PATCH หรือ DELETE ถูกบล็อก ให้ตรวจว่าใช้ HTTPS และพิมพ์ URL ถูก</li><li>ปิดปุ่มขณะรอคำตอบเพื่อกันการกดซ้ำ แล้วเปิดปุ่มคืนใน finally</li><li>การแก้ state ของรายการต้องสร้างอาร์เรย์ใหม่ด้วย map หรือ filter</li></ul></div>
+<div class="card"><h2>สิ่งที่ต้องส่ง</h2><p>ลิงก์ GitHub + ภาพหน้าจอ (รายการ ฟอร์มกรอกผิด และกรณีออฟไลน์) + ตาราง 3 แถวพร้อมภาพแท็บ Network + คำอธิบายข้อ 8 (ส่งตามช่องทางที่ครูกำหนด)</p>
+<input type="text" data-k="link" placeholder="ลิงก์ GitHub หรือเว็บที่ deploy" style="margin-bottom:8px"><textarea data-k="summary" rows="3" placeholder="สรุปผล / ปัญหาที่พบ (ถ้ามี)"></textarea></div>
+<div class="card"><h2>เกณฑ์การให้คะแนน</h2><table><tr><td>สร้าง แก้ไข และลบผ่าน API ได้ถูกต้อง อัปเดตหน้าจอสอดคล้องกับผล</td><td>4</td></tr><tr><td>จัดการข้อผิดพลาด การกดซ้ำ และการยืนยันก่อนลบได้</td><td>3</td></tr><tr><td>ตาราง ภาพหลักฐาน และคำอธิบายครบถ้วน</td><td>3</td></tr><tr><td><b>รวม</b></td><td><b>10</b></td></tr></table></div>
+<div class="noprint"><button id="pr">พิมพ์ / บันทึกเป็น PDF</button> <button class="g" id="cl">ล้างข้อมูล</button><p class="mu">ข้อมูลที่กรอกเก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น ยังไม่ส่งถึงครู</p>
+<div class="nav"><span><a href="ws-7.1.html">&larr; ใบงาน 7.1</a></span><span><a href="ws-7.3.html">ใบงาน 7.3 &rarr;</a></span></div></div>
+</main><script>
+var K="ws13-7.2",S={};try{S=JSON.parse(localStorage.getItem(K)||"{}")}catch(e){}
+var els=[].slice.call(document.querySelectorAll("[data-k]"));
+function upd(){var c=els.filter(function(e){return e.type==="checkbox"});var d=c.filter(function(e){return e.checked}).length;
+document.getElementById("bar").style.width=(100*d/c.length)+"%";document.getElementById("pct").textContent="ทำแล้ว "+d+" จาก "+c.length+" ขั้นตอน";
+c.forEach(function(e){e.closest(".step").classList.toggle("done",e.checked)});try{localStorage.setItem("done-"+K,d+"/"+c.length)}catch(x){}}
+els.forEach(function(e){var k=e.dataset.k;if(e.type==="checkbox")e.checked=!!S[k];else if(S[k])e.value=S[k];
+e.addEventListener("input",function(){S[k]=e.type==="checkbox"?e.checked:e.value;try{localStorage.setItem(K,JSON.stringify(S))}catch(x){}upd()})});upd();
+document.getElementById("pr").onclick=function(){print()};
+document.getElementById("cl").onclick=function(){if(confirm("ล้างทุกอย่าง?")){try{localStorage.removeItem(K);localStorage.removeItem("done-"+K)}catch(x){}location.reload()}};
+var cp=document.getElementById("cp");if(cp)cp.onclick=function(){var t=document.getElementById("code").textContent;
+(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){cp.textContent="คัดลอกแล้ว"},function(){var r=document.createRange();r.selectNodeContents(document.getElementById("code"));var s=getSelection();s.removeAllRanges();s.addRange(r);cp.textContent="เลือกข้อความแล้ว กด Ctrl+C"})};
+</script></body></html>

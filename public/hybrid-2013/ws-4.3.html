@@ -1,0 +1,111 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap"><title>ใบงานที่ 4.3 แสดงรายการ ค้นหา และลบรายการ</title><style>:root{--bg:#f6f7fb;--card:#fff;--tx:#1f2937;--mu:#6b7280;--ac:#2563eb;--bd:#e5e7eb;--cb:#0f172a}
+@media(prefers-color-scheme:dark){:root{--bg:#0f172a;--card:#1e293b;--tx:#e5e7eb;--mu:#94a3b8;--ac:#60a5fa;--bd:#334155;--cb:#020617}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:19px/1.75 "Sarabun","Noto Sans Thai","Leelawadee UI",system-ui,sans-serif}
+main{max-width:760px;margin:0 auto;padding:20px 16px 60px}a{color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px 18px;margin:14px 0}
+h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.15rem;margin:0 0 .4em;color:var(--ac)}.mu{color:var(--mu);font-size:.9rem}
+.id{display:flex;gap:10px;flex-wrap:wrap}.id input{flex:1;min-width:150px}
+input[type=text],textarea{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+ol.s{list-style:none;padding:0;margin:0}.step{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--bd)}.step:first-child{border-top:0}
+.chk{cursor:pointer;flex:none}.chk input{display:none}.n{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;border:2px solid var(--ac);color:var(--ac);font-weight:700}
+.chk input:checked+.n{background:var(--ac);color:#fff}.body{flex:1;min-width:0}.body p{margin:0 0 6px}.step.done p{color:var(--mu)}
+table{width:100%;border-collapse:collapse}td{border-top:1px solid var(--bd);padding:6px 4px}td:last-child{text-align:right;width:60px}
+.bar{height:8px;background:var(--bd);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .2s}
+button{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--ac);background:var(--ac);color:#fff;cursor:pointer}button.g{background:none;color:var(--ac)}
+pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:auto;font:14px/1.5 Consolas,monospace;max-height:420px;margin:6px 0}code{font-family:Consolas,monospace;background:var(--bd);padding:0 4px;border-radius:4px}
+.nav{display:flex;justify-content:space-between;margin-top:18px}
+.u{font-weight:700;margin:18px 0 4px}.li a{display:block;padding:8px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card);margin:6px 0;text-decoration:none}
+@media print{body{background:#fff;color:#000}.noprint{display:none}.card{break-inside:avoid}}</style></head><body><main>
+<div class="mu"><a href="index.html">สารบัญ</a> · วิชา 31901-2013 การพัฒนาไฮบริดแอปพลิเคชัน · หน่วยที่ 4 ส่วนติดต่อผู้ใช้ด้วย Ionic</div>
+<h1>ใบงานที่ 4.3 แสดงรายการ ค้นหา และลบรายการ</h1><div class="mu">เวลา 120 นาที · งานเดี่ยว · คะแนนเต็ม 10</div>
+<div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
+<div class="card"><h2>จุดประสงค์</h2>แสดงรายการข้อมูลด้วย IonList พร้อมช่องค้นหา การลบรายการ และสถานะรายการว่าง โดยไม่แก้ state ตรง ๆ</div>
+<div class="card"><h2>คำชี้แจง</h2>สร้างหน้ารายการของแอปตนเองจากโค้ดตั้งต้น แล้วปรับข้อมูลและคอมโพเนนต์ให้ตรงกับแบบร่าง ตอนนี้ข้อมูลอยู่ในหน่วยความจำของหน้าและหายเมื่อรีเฟรช (เก็บถาวรในหน่วยที่ 6)</div>
+
+<div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>ผลงานใบงาน 4.1 และ 4.2</li><li>ใบความรู้ที่ 3 หัวข้อ useState และใบความรู้ที่ 4 หัวข้อรายการ</li></ul></div>
+<div class="card"><h2>โค้ดตั้งต้น</h2><div class="mu">คัดลอกไปวางในไฟล์ที่ระบุในโค้ด</div><pre id="code">import { useState } from 'react';
+import {
+  IonContent, IonHeader, IonItem, IonItemOption, IonItemOptions, IonItemSliding, IonLabel, IonList,
+  IonNote, IonPage, IonSearchbar, IonTitle, IonToolbar,
+} from '@ionic/react';
+
+interface Item { id: number; title: string; category: string; amount: number }
+
+const INITIAL: Item[] = [
+  { id: 1, title: 'ข้าวกลางวัน', category: 'อาหาร', amount: 60 },
+  { id: 2, title: 'ค่ารถ', category: 'เดินทาง', amount: 40 },
+  { id: 3, title: 'ซื้อสมุด', category: 'การเรียน', amount: 85 },
+  { id: 4, title: 'ชานมไข่มุก', category: 'อาหาร', amount: 55 },
+];
+
+const ItemList: React.FC = () =&gt; {
+  const [items, setItems] = useState&lt;Item[]&gt;(INITIAL);
+  const [query, setQuery] = useState('');
+
+  const visible = items.filter(i =&gt; i.title.includes(query) || i.category.includes(query));
+
+  function remove(id: number) {
+    setItems(items.filter(i =&gt; i.id !== id));
+  }
+
+  return (
+    &lt;IonPage&gt;
+      &lt;IonHeader&gt;
+        &lt;IonToolbar color="primary"&gt;
+          &lt;IonTitle&gt;รายการ ({visible.length})&lt;/IonTitle&gt;
+        &lt;/IonToolbar&gt;
+        &lt;IonToolbar&gt;
+          &lt;IonSearchbar
+            value={query}
+            placeholder="ค้นหาชื่อหรือหมวด"
+            onIonInput={e =&gt; setQuery(String(e.detail.value ?? ''))}
+          /&gt;
+        &lt;/IonToolbar&gt;
+      &lt;/IonHeader&gt;
+      &lt;IonContent&gt;
+        {visible.length === 0 ? (
+          &lt;p className="ion-padding ion-text-center"&gt;ไม่พบรายการ&lt;/p&gt;
+        ) : (
+          &lt;IonList&gt;
+            {visible.map(i =&gt; (
+              &lt;IonItemSliding key={i.id}&gt;
+                &lt;IonItem&gt;
+                  &lt;IonLabel&gt;
+                    &lt;h2&gt;{i.title}&lt;/h2&gt;
+                    &lt;p&gt;{i.category}&lt;/p&gt;
+                  &lt;/IonLabel&gt;
+                  &lt;IonNote slot="end"&gt;{i.amount} บาท&lt;/IonNote&gt;
+                &lt;/IonItem&gt;
+                &lt;IonItemOptions side="end"&gt;
+                  &lt;IonItemOption color="danger" onClick={() =&gt; remove(i.id)}&gt;ลบ&lt;/IonItemOption&gt;
+                &lt;/IonItemOptions&gt;
+              &lt;/IonItemSliding&gt;
+            ))}
+          &lt;/IonList&gt;
+        )}
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default ItemList;</pre><button class="noprint" id="cp">คัดลอกโค้ด</button></div>
+<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>วางโค้ดตั้งต้นในไฟล์หน้าใหม่ (เช่น src/pages/ItemList.tsx) และทดสอบการค้นหาและการลบ (ใช้เมาส์ลากรายการไปทางซ้ายเพื่อให้ปุ่มลบปรากฏ)</p><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>ปรับข้อมูลและแถวรายการให้ตรงกับแอปของตนเองตามแบบร่าง (ข้อมูลอย่างน้อย 5 รายการ)</p><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>เพิ่มส่วนสรุปด้านบนหรือล่างของรายการ เช่น ผลรวมหรือจำนวนรายการ โดยคำนวณจากข้อมูลโดยตรง ไม่เก็บเป็น state แยก</p><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>เพิ่มการเพิ่มรายการ: ปุ่มลอย (IonFab) ที่เพิ่มรายการใหม่ในรายการด้วย setItems([...items, รายการใหม่]) ใช้ id ที่ไม่ซ้ำ (เช่น Date.now())</p><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>เพิ่มการยืนยันก่อนลบ ด้วย useIonAlert (แสดงกล่องถามยืนยัน ปุ่ม ยกเลิก และ ลบ) ศึกษาวิธีใช้จากเอกสาร Ionic</p><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>ปรับข้อความสถานะว่างให้บอกผู้ใช้ว่าทำอะไรต่อได้ (เช่น "ยังไม่มีรายการ กดปุ่ม + เพื่อเพิ่ม") และทดสอบทั้งสถานะว่างจากการค้นหาและจากการลบจนหมด</p><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>ถ่ายภาพหน้าจอ 3 ภาพ (มีรายการ ผลการค้นหา สถานะว่าง) และเขียนอธิบายสั้น ๆ ว่าเหตุใดต้องมี key และเหตุใดผลรวมไม่ควรเก็บเป็น state แยก</p><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
+<div class="card"><h2>คำแนะนำ</h2><ul><li>ห้ามใช้ items.push(...) หรือแก้ค่าในอาร์เรย์ตรง ๆ ให้สร้างอาร์เรย์ใหม่ด้วย spread หรือ filter</li><li>ถ้าลบแล้วรายการสลับตำแหน่งแปลก ๆ ให้ตรวจว่า key เป็น id ไม่ใช่ลำดับ (index)</li><li>IonItemSliding ใช้ได้ดีบนมือถือ บนคอมพิวเตอร์ให้ใช้เมาส์ลาก</li></ul></div>
+<div class="card"><h2>สิ่งที่ต้องส่ง</h2><p>ลิงก์ GitHub + ภาพหน้าจอ 3 ภาพ + คำอธิบายสั้น ๆ ตามข้อ 7 (ส่งตามช่องทางที่ครูกำหนด)</p>
+<input type="text" data-k="link" placeholder="ลิงก์ GitHub หรือเว็บที่ deploy" style="margin-bottom:8px"><textarea data-k="summary" rows="3" placeholder="สรุปผล / ปัญหาที่พบ (ถ้ามี)"></textarea></div>
+<div class="card"><h2>เกณฑ์การให้คะแนน</h2><table><tr><td>เพิ่มและลบรายการด้วย spread/filter ถูกต้อง ไม่แก้ state ตรง ๆ</td><td>4</td></tr><tr><td>ค้นหา ใช้ key สถานะรายการว่าง และส่วนสรุปถูกต้อง</td><td>3</td></tr><tr><td>ภาพ ลิงก์ และคำอธิบายครบถ้วน</td><td>3</td></tr><tr><td><b>รวม</b></td><td><b>10</b></td></tr></table></div>
+<div class="noprint"><button id="pr">พิมพ์ / บันทึกเป็น PDF</button> <button class="g" id="cl">ล้างข้อมูล</button><p class="mu">ข้อมูลที่กรอกเก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น ยังไม่ส่งถึงครู</p>
+<div class="nav"><span><a href="ws-4.2.html">&larr; ใบงาน 4.2</a></span><span><a href="ws-4.4.html">ใบงาน 4.4 &rarr;</a></span></div></div>
+</main><script>
+var K="ws13-4.3",S={};try{S=JSON.parse(localStorage.getItem(K)||"{}")}catch(e){}
+var els=[].slice.call(document.querySelectorAll("[data-k]"));
+function upd(){var c=els.filter(function(e){return e.type==="checkbox"});var d=c.filter(function(e){return e.checked}).length;
+document.getElementById("bar").style.width=(100*d/c.length)+"%";document.getElementById("pct").textContent="ทำแล้ว "+d+" จาก "+c.length+" ขั้นตอน";
+c.forEach(function(e){e.closest(".step").classList.toggle("done",e.checked)});try{localStorage.setItem("done-"+K,d+"/"+c.length)}catch(x){}}
+els.forEach(function(e){var k=e.dataset.k;if(e.type==="checkbox")e.checked=!!S[k];else if(S[k])e.value=S[k];
+e.addEventListener("input",function(){S[k]=e.type==="checkbox"?e.checked:e.value;try{localStorage.setItem(K,JSON.stringify(S))}catch(x){}upd()})});upd();
+document.getElementById("pr").onclick=function(){print()};
+document.getElementById("cl").onclick=function(){if(confirm("ล้างทุกอย่าง?")){try{localStorage.removeItem(K);localStorage.removeItem("done-"+K)}catch(x){}location.reload()}};
+var cp=document.getElementById("cp");if(cp)cp.onclick=function(){var t=document.getElementById("code").textContent;
+(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){cp.textContent="คัดลอกแล้ว"},function(){var r=document.createRange();r.selectNodeContents(document.getElementById("code"));var s=getSelection();s.removeAllRanges();s.addRange(r);cp.textContent="เลือกข้อความแล้ว กด Ctrl+C"})};
+</script></body></html>

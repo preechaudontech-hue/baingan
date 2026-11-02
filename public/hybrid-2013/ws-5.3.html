@@ -1,0 +1,104 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap"><title>ใบงานที่ 5.3 ตรวจจับการเขย่าด้วยเซนเซอร์และการสั่น</title><style>:root{--bg:#f6f7fb;--card:#fff;--tx:#1f2937;--mu:#6b7280;--ac:#2563eb;--bd:#e5e7eb;--cb:#0f172a}
+@media(prefers-color-scheme:dark){:root{--bg:#0f172a;--card:#1e293b;--tx:#e5e7eb;--mu:#94a3b8;--ac:#60a5fa;--bd:#334155;--cb:#020617}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:19px/1.75 "Sarabun","Noto Sans Thai","Leelawadee UI",system-ui,sans-serif}
+main{max-width:760px;margin:0 auto;padding:20px 16px 60px}a{color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px 18px;margin:14px 0}
+h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.15rem;margin:0 0 .4em;color:var(--ac)}.mu{color:var(--mu);font-size:.9rem}
+.id{display:flex;gap:10px;flex-wrap:wrap}.id input{flex:1;min-width:150px}
+input[type=text],textarea{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+ol.s{list-style:none;padding:0;margin:0}.step{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--bd)}.step:first-child{border-top:0}
+.chk{cursor:pointer;flex:none}.chk input{display:none}.n{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;border:2px solid var(--ac);color:var(--ac);font-weight:700}
+.chk input:checked+.n{background:var(--ac);color:#fff}.body{flex:1;min-width:0}.body p{margin:0 0 6px}.step.done p{color:var(--mu)}
+table{width:100%;border-collapse:collapse}td{border-top:1px solid var(--bd);padding:6px 4px}td:last-child{text-align:right;width:60px}
+.bar{height:8px;background:var(--bd);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .2s}
+button{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--ac);background:var(--ac);color:#fff;cursor:pointer}button.g{background:none;color:var(--ac)}
+pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:auto;font:14px/1.5 Consolas,monospace;max-height:420px;margin:6px 0}code{font-family:Consolas,monospace;background:var(--bd);padding:0 4px;border-radius:4px}
+.nav{display:flex;justify-content:space-between;margin-top:18px}
+.u{font-weight:700;margin:18px 0 4px}.li a{display:block;padding:8px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card);margin:6px 0;text-decoration:none}
+@media print{body{background:#fff;color:#000}.noprint{display:none}.card{break-inside:avoid}}</style></head><body><main>
+<div class="mu"><a href="index.html">สารบัญ</a> · วิชา 31901-2013 การพัฒนาไฮบริดแอปพลิเคชัน · หน่วยที่ 5 ทรัพยากรอุปกรณ์ด้วย Capacitor</div>
+<h1>ใบงานที่ 5.3 ตรวจจับการเขย่าด้วยเซนเซอร์และการสั่น</h1><div class="mu">เวลา 90 นาที · งานเดี่ยว · คะแนนเต็ม 10</div>
+<div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
+<div class="card"><h2>จุดประสงค์</h2>อ่านค่าความเร่งด้วย Motion ตรวจจับการเขย่า ให้ผลตอบสนองด้วยการสั่น และยกเลิกการรับค่าเมื่อเลิกใช้ได้</div>
+<div class="card"><h2>คำชี้แจง</h2>สร้างหน้าที่นับจำนวนครั้งที่เขย่าเครื่อง และสั่นเมื่อตรวจจับได้ ส่วนที่ต้องมีเซนเซอร์ทดสอบได้บนมือถือจริงเท่านั้น จึงให้ทดสอบส่วนที่เหลือ (การจัดการกรณีไม่รองรับ) บนคอมพิวเตอร์</div>
+
+<div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>ผลงานใบงาน 5.1 - 5.2</li><li>ใบความรู้ที่ 5 หัวข้อเซนเซอร์และการสั่น</li></ul></div>
+<div class="card"><h2>โค้ดตั้งต้น</h2><div class="mu">คัดลอกไปวางในไฟล์ที่ระบุในโค้ด</div><pre id="code">import { useEffect, useState } from 'react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
+import type { PluginListenerHandle } from '@capacitor/core';
+import { Motion } from '@capacitor/motion';
+
+const SHAKE_DELTA = 8; // ความต่างจาก 9.8 ที่ถือว่าเขย่า (ปรับตามเครื่อง)
+
+const Shake: React.FC = () =&gt; {
+  const [count, setCount] = useState(0);
+  const [magnitude, setMagnitude] = useState(0);
+  const [error, setError] = useState('');
+
+  useEffect(() =&gt; {
+    let handle: PluginListenerHandle | undefined;
+    let cancelled = false;
+    let last = 0;
+
+    Motion.addListener('accel', e =&gt; {
+      const a = e.accelerationIncludingGravity;
+      const m = Math.sqrt(a.x ** 2 + a.y ** 2 + a.z ** 2);
+      if (m === 0) return; // ไม่มีข้อมูลจากเซนเซอร์ (เช่น บนคอมพิวเตอร์)
+      setMagnitude(m);
+      const now = Date.now();
+      if (Math.abs(m - 9.8) &gt; SHAKE_DELTA &amp;&amp; now - last &gt; 800) {
+        last = now;
+        setCount(c =&gt; c + 1);
+        // TODO: สั่นเบา ๆ เมื่อตรวจจับได้ ด้วย Haptics.impact({ style: ImpactStyle.Medium }) (ต้อง import เพิ่ม และห่อด้วย try/catch)
+      }
+    })
+      .then(h =&gt; {
+        if (cancelled) h.remove();
+        else handle = h;
+      })
+      .catch(() =&gt; setError('เครื่องนี้ไม่รองรับเซนเซอร์การเคลื่อนไหว'));
+
+    return () =&gt; {
+      cancelled = true;
+      handle?.remove();
+    };
+  }, []);
+
+  return (
+    &lt;IonPage&gt;
+      &lt;IonHeader&gt;
+        &lt;IonToolbar color="primary"&gt;
+          &lt;IonTitle&gt;เขย่าเครื่อง&lt;/IonTitle&gt;
+        &lt;/IonToolbar&gt;
+      &lt;/IonHeader&gt;
+      &lt;IonContent className="ion-padding ion-text-center"&gt;
+        &lt;h1&gt;{count}&lt;/h1&gt;
+        &lt;p&gt;ความเร่งรวม {magnitude.toFixed(1)} m/s²&lt;/p&gt;
+        {error &amp;&amp; &lt;p&gt;{error}&lt;/p&gt;}
+        {/* TODO: เพิ่มปุ่ม "รีเซ็ตตัวนับ" */}
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default Shake;</pre><button class="noprint" id="cp">คัดลอกโค้ด</button></div>
+<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>ติดตั้งปลั๊กอินด้วยคำสั่ง npm install @capacitor/motion @capacitor/haptics แล้วสร้างไฟล์หน้าจากโค้ดตั้งต้น</p><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>เปิดบนคอมพิวเตอร์ ดูว่าหน้าแสดงอะไร (ไม่มีเซนเซอร์ ความเร่งรวมต้องเป็น 0.0 และตัวนับต้องไม่ขึ้น ถ้าตัวนับขึ้นเป็น 1 ทันที แปลว่ายังไม่ได้กรองค่า 0) อธิบายว่าแอปควรแสดงข้อความอะไรเมื่อไม่ได้รับค่า และปรับให้แสดงข้อความ "ไม่ได้รับค่าจากเซนเซอร์" เมื่อผ่านไป 3 วินาทีแล้วยังไม่ได้ค่าเลย</p><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>เติม TODO: import Haptics และ ImpactStyle จาก @capacitor/haptics แล้วสั่นเมื่อตรวจจับการเขย่า (ห่อด้วย try/catch ให้ไม่พังเมื่อไม่รองรับ)</p><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>เพิ่มปุ่มรีเซ็ตตัวนับ</p><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>ทดสอบบนมือถือจริงถ้าทำได้ (ทางที่ทำได้: deploy เว็บแบบ HTTPS แล้วเปิดบนมือถือ หรือสร้างโปรเจกต์ Android ในหน่วยที่ 9) ถ้าทำไม่ได้ ให้ระบุว่ายังไม่ได้ทดสอบ และเขียนแผนทดสอบ</p><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>ทดลองปรับค่า SHAKE_DELTA 3 ค่า (เช่น 4, 8, 14) และเขียนว่ามีผลกับความไวของการตรวจจับอย่างไร (ถ้าทดสอบบนมือถือไม่ได้ ให้อธิบายจากโค้ด)</p><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>ตอบคำถาม: เหตุใดต้องมี cancelled และ handle?.remove() ในฟังก์ชันที่คืนค่าจาก useEffect และเหตุใดต้องหน่วงเวลา 800 มิลลิวินาที</p><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
+<div class="card"><h2>คำแนะนำ</h2><ul><li>ใน React.StrictMode ขณะพัฒนา useEffect ถูกเรียกสองครั้ง ถ้าไม่ลบตัวฟังเดิม จะนับการเขย่าซ้ำสองเท่า</li><li>การสั่นบนเว็บบนคอมพิวเตอร์ไม่ทำงาน ไม่ใช่ข้อผิดพลาดของโค้ด</li><li>iPhone ต้องให้สิทธิ์เข้าถึงเซนเซอร์การเคลื่อนไหวของเบราว์เซอร์ก่อน อ่านเอกสารของปลั๊กอิน Motion</li></ul></div>
+<div class="card"><h2>สิ่งที่ต้องส่ง</h2><p>ภาพหน้าจอ (บนคอมพิวเตอร์ และบนมือถือถ้าทดสอบได้) + บันทึกผลการปรับ SHAKE_DELTA + คำตอบข้อ 7 + ลิงก์ GitHub (ส่งตามช่องทางที่ครูกำหนด)</p>
+<input type="text" data-k="link" placeholder="ลิงก์ GitHub หรือเว็บที่ deploy" style="margin-bottom:8px"><textarea data-k="summary" rows="3" placeholder="สรุปผล / ปัญหาที่พบ (ถ้ามี)"></textarea></div>
+<div class="card"><h2>เกณฑ์การให้คะแนน</h2><table><tr><td>ตรวจจับการเขย่า นับและสั่นได้ถูกต้อง พร้อมปุ่มรีเซ็ต</td><td>4</td></tr><tr><td>ยกเลิกตัวฟังและจัดการกรณีไม่รองรับได้ถูกต้อง</td><td>4</td></tr><tr><td>บันทึกผลทดสอบ คำตอบ และลิงก์ครบถ้วน</td><td>2</td></tr><tr><td><b>รวม</b></td><td><b>10</b></td></tr></table></div>
+<div class="noprint"><button id="pr">พิมพ์ / บันทึกเป็น PDF</button> <button class="g" id="cl">ล้างข้อมูล</button><p class="mu">ข้อมูลที่กรอกเก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น ยังไม่ส่งถึงครู</p>
+<div class="nav"><span><a href="ws-5.2.html">&larr; ใบงาน 5.2</a></span><span><a href="ws-6.1.html">ใบงาน 6.1 &rarr;</a></span></div></div>
+</main><script>
+var K="ws13-5.3",S={};try{S=JSON.parse(localStorage.getItem(K)||"{}")}catch(e){}
+var els=[].slice.call(document.querySelectorAll("[data-k]"));
+function upd(){var c=els.filter(function(e){return e.type==="checkbox"});var d=c.filter(function(e){return e.checked}).length;
+document.getElementById("bar").style.width=(100*d/c.length)+"%";document.getElementById("pct").textContent="ทำแล้ว "+d+" จาก "+c.length+" ขั้นตอน";
+c.forEach(function(e){e.closest(".step").classList.toggle("done",e.checked)});try{localStorage.setItem("done-"+K,d+"/"+c.length)}catch(x){}}
+els.forEach(function(e){var k=e.dataset.k;if(e.type==="checkbox")e.checked=!!S[k];else if(S[k])e.value=S[k];
+e.addEventListener("input",function(){S[k]=e.type==="checkbox"?e.checked:e.value;try{localStorage.setItem(K,JSON.stringify(S))}catch(x){}upd()})});upd();
+document.getElementById("pr").onclick=function(){print()};
+document.getElementById("cl").onclick=function(){if(confirm("ล้างทุกอย่าง?")){try{localStorage.removeItem(K);localStorage.removeItem("done-"+K)}catch(x){}location.reload()}};
+var cp=document.getElementById("cp");if(cp)cp.onclick=function(){var t=document.getElementById("code").textContent;
+(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){cp.textContent="คัดลอกแล้ว"},function(){var r=document.createRange();r.selectNodeContents(document.getElementById("code"));var s=getSelection();s.removeAllRanges();s.addRange(r);cp.textContent="เลือกข้อความแล้ว กด Ctrl+C"})};
+</script></body></html>

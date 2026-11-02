@@ -1,0 +1,77 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap"><title>ใบงานที่ 7.3 เชื่อมแอปของฉันกับ API และเก็บสำเนาในเครื่อง</title><style>:root{--bg:#f6f7fb;--card:#fff;--tx:#1f2937;--mu:#6b7280;--ac:#2563eb;--bd:#e5e7eb;--cb:#0f172a}
+@media(prefers-color-scheme:dark){:root{--bg:#0f172a;--card:#1e293b;--tx:#e5e7eb;--mu:#94a3b8;--ac:#60a5fa;--bd:#334155;--cb:#020617}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:19px/1.75 "Sarabun","Noto Sans Thai","Leelawadee UI",system-ui,sans-serif}
+main{max-width:760px;margin:0 auto;padding:20px 16px 60px}a{color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px 18px;margin:14px 0}
+h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.15rem;margin:0 0 .4em;color:var(--ac)}.mu{color:var(--mu);font-size:.9rem}
+.id{display:flex;gap:10px;flex-wrap:wrap}.id input{flex:1;min-width:150px}
+input[type=text],textarea{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+ol.s{list-style:none;padding:0;margin:0}.step{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--bd)}.step:first-child{border-top:0}
+.chk{cursor:pointer;flex:none}.chk input{display:none}.n{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;border:2px solid var(--ac);color:var(--ac);font-weight:700}
+.chk input:checked+.n{background:var(--ac);color:#fff}.body{flex:1;min-width:0}.body p{margin:0 0 6px}.step.done p{color:var(--mu)}
+table{width:100%;border-collapse:collapse}td{border-top:1px solid var(--bd);padding:6px 4px}td:last-child{text-align:right;width:60px}
+.bar{height:8px;background:var(--bd);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .2s}
+button{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--ac);background:var(--ac);color:#fff;cursor:pointer}button.g{background:none;color:var(--ac)}
+pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:auto;font:14px/1.5 Consolas,monospace;max-height:420px;margin:6px 0}code{font-family:Consolas,monospace;background:var(--bd);padding:0 4px;border-radius:4px}
+.nav{display:flex;justify-content:space-between;margin-top:18px}
+.u{font-weight:700;margin:18px 0 4px}.li a{display:block;padding:8px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card);margin:6px 0;text-decoration:none}
+@media print{body{background:#fff;color:#000}.noprint{display:none}.card{break-inside:avoid}}</style></head><body><main>
+<div class="mu"><a href="index.html">สารบัญ</a> · วิชา 31901-2013 การพัฒนาไฮบริดแอปพลิเคชัน · หน่วยที่ 7 เชื่อมต่อ API</div>
+<h1>ใบงานที่ 7.3 เชื่อมแอปของฉันกับ API และเก็บสำเนาในเครื่อง</h1><div class="mu">เวลา 180 นาที · งานเดี่ยว · คะแนนเต็ม 10</div>
+<div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
+<div class="card"><h2>จุดประสงค์</h2>เชื่อมแอปของตนเองกับ API ภายนอกอย่างน้อย 1 รายการ และเก็บสำเนาข้อมูลในเครื่องเพื่อใช้ตอนออฟไลน์ พร้อมแสดงเวลาที่อัปเดตล่าสุด</div>
+<div class="card"><h2>คำชี้แจง</h2>เลือก API ที่เกี่ยวข้องกับแอปของตนเอง แล้วเชื่อมเข้ากับแอป โดยใช้ฟังก์ชัน fetchWithCache ที่ให้มาเพื่อเก็บสำเนา ถ้าครูจัด API ของวิชาไว้ ให้ใช้ API นั้นแทน</div>
+
+<div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>ผลงานใบงาน 6.3 และ 7.1 - 7.2</li><li>ใบความรู้ที่ 7 หัวข้อเครือข่ายที่ไม่แน่นอน และการอ่านเอกสาร API</li></ul></div>
+<div class="card"><h2>โค้ดตั้งต้น</h2><div class="mu">คัดลอกไปวางในไฟล์ที่ระบุในโค้ด</div><pre id="code">// src/api/cache.ts
+import { Preferences } from '@capacitor/preferences';
+
+interface Cached&lt;T&gt; { savedAt: number; data: T }
+
+export interface Loaded&lt;T&gt; { data: T; fromCache: boolean; savedAt: number }
+
+// โหลดจากเครือข่าย ถ้าล้มเหลวใช้สำเนาที่เก็บไว้ (ถ้าไม่มีสำเนา โยนข้อผิดพลาดเดิม)
+export async function fetchWithCache&lt;T&gt;(key: string, load: () =&gt; Promise&lt;T&gt;): Promise&lt;Loaded&lt;T&gt;&gt; {
+  try {
+    const data = await load();
+    const savedAt = Date.now();
+    await Preferences.set({ key, value: JSON.stringify({ savedAt, data } as Cached&lt;T&gt;) });
+    return { data, fromCache: false, savedAt };
+  } catch (e) {
+    const { value } = await Preferences.get({ key });
+    if (value) {
+      try {
+        const c = JSON.parse(value) as Cached&lt;T&gt;;
+        return { data: c.data, fromCache: true, savedAt: c.savedAt };
+      } catch {
+        // สำเนาเสียหาย ถือว่าไม่มีสำเนา
+      }
+    }
+    throw e;
+  }
+}
+
+// TODO: เขียนฟังก์ชันแปลงเวลา savedAt เป็นข้อความ เช่น "อัปเดตเมื่อ 5 นาทีที่แล้ว" หรือ "อัปเดตเมื่อ 14:30"
+export function timeAgo(savedAt: number): string {
+  return String(savedAt);
+}</pre><button class="noprint" id="cp">คัดลอกโค้ด</button></div>
+<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>เลือก API ที่เกี่ยวข้องกับแอปของตนเอง 1 รายการ ตัวเลือกที่ใช้ได้โดยไม่ต้องสมัคร: Open-Meteo (สภาพอากาศ) PokeAPI (pokeapi.co/api/v2/pokemon ข้อมูลโปเกมอน) หรือ Open Library (openlibrary.org/search.json หนังสือ) หรือ API ที่ครูกำหนด แล้วเขียนสรุปเอกสาร API ตามตารางในใบความรู้ (Base URL, endpoint ที่ใช้, พารามิเตอร์, ตัวอย่างคำตอบ, การยืนยันตัวตน, ขีดจำกัด, เงื่อนไขการใช้งาน)</p><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>ทดสอบเรียก API ด้วยเบราว์เซอร์หรือ DevTools ก่อนเขียนโค้ด แล้วกำหนด interface ของคำตอบ โดยระบุฟิลด์ที่อาจไม่มีเป็น optional</p><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>สร้างไฟล์ src/api/cache.ts จากโค้ดตั้งต้น เขียนฟังก์ชัน timeAgo ให้แสดงเวลาที่อัปเดตล่าสุดเป็นภาษาไทย</p><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>สร้างฟังก์ชันเรียก API ของแอปตนเองด้วย getJson และห่อด้วย fetchWithCache ใช้ในหน้าจอ แสดงสถานะ กำลังโหลด ผิดพลาด ว่าง และข้อความ "กำลังแสดงข้อมูลเก่า อัปเดตเมื่อ ..." เมื่อ fromCache เป็น true</p><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>เพิ่มปุ่มโหลดใหม่ และป้องกันการกดซ้ำขณะโหลด ยกเลิกคำขอเมื่อออกจากหน้า</p><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>ทดสอบ 3 สถานการณ์: ออนไลน์ครั้งแรก, ออนไลน์ครั้งที่สอง, และออฟไลน์ (ใช้ Offline ใน DevTools) แล้วรีเฟรชต้องยังเห็นข้อมูลเดิมพร้อมข้อความ ถ่ายภาพทุกสถานการณ์ และทดสอบกรณีออฟไลน์ตั้งแต่ยังไม่เคยโหลด (ต้องแจ้งข้อผิดพลาดที่เข้าใจได้)</p><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>ตรวจความปลอดภัยของแอป: ตรวจว่าไม่มีกุญแจลับในโค้ด ใช้ HTTPS ทุกที่ และเขียนรายการข้อมูลที่แอปส่งออกไปยัง API (เช่น พิกัด ชื่อเมือง) พร้อมเหตุผลที่จำเป็น</p><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c7"><span class="n">8</span></label><div class="body"><p>เขียนสรุปสิ่งที่ยังไม่สมบูรณ์ และแผนแก้ไข 3 ข้อ</p><textarea data-k="n7" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
+<div class="card"><h2>คำแนะนำ</h2><ul><li>ใช้ key สำหรับเก็บสำเนาที่แยกตามพารามิเตอร์ของคำขอ เช่น weather-อุดรธานี ไม่เช่นนั้นข้อมูลของเมืองหนึ่งจะไปทับของอีกเมือง</li><li>ถ้า API ที่เลือกไม่อนุญาต CORS ให้เปลี่ยนไปเลือก API อื่น หรือปรึกษาครู</li><li>แสดงข้อมูลจากสำเนาด้วยความระมัดระวัง ต้องบอกผู้ใช้ชัดเจนว่าเป็นข้อมูลเก่า</li></ul></div>
+<div class="card"><h2>สิ่งที่ต้องส่ง</h2><p>ลิงก์ GitHub + สรุปเอกสาร API + ภาพหน้าจอ 3 สถานการณ์ (ออนไลน์ ข้อมูลเก่าตอนออฟไลน์ และออฟไลน์ครั้งแรก) + รายการข้อมูลที่ส่งออกและเหตุผล + สิ่งที่ยังไม่สมบูรณ์และแผนแก้ไข (ส่งตามช่องทางที่ครูกำหนด)</p>
+<input type="text" data-k="link" placeholder="ลิงก์ GitHub หรือเว็บที่ deploy" style="margin-bottom:8px"><textarea data-k="summary" rows="3" placeholder="สรุปผล / ปัญหาที่พบ (ถ้ามี)"></textarea></div>
+<div class="card"><h2>เกณฑ์การให้คะแนน</h2><table><tr><td>เชื่อมแอปกับ API ได้ถูกต้อง กำหนด interface และสรุปเอกสาร API ครบ</td><td>3</td></tr><tr><td>เก็บสำเนา แสดงข้อมูลเก่าพร้อมเวลา และรับมือออฟไลน์ได้ถูกต้อง</td><td>4</td></tr><tr><td>ตรวจความปลอดภัย หลักฐาน และแผนแก้ไขครบถ้วน</td><td>3</td></tr><tr><td><b>รวม</b></td><td><b>10</b></td></tr></table></div>
+<div class="noprint"><button id="pr">พิมพ์ / บันทึกเป็น PDF</button> <button class="g" id="cl">ล้างข้อมูล</button><p class="mu">ข้อมูลที่กรอกเก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น ยังไม่ส่งถึงครู</p>
+<div class="nav"><span><a href="ws-7.2.html">&larr; ใบงาน 7.2</a></span><span><a href="ws-8.1.html">ใบงาน 8.1 &rarr;</a></span></div></div>
+</main><script>
+var K="ws13-7.3",S={};try{S=JSON.parse(localStorage.getItem(K)||"{}")}catch(e){}
+var els=[].slice.call(document.querySelectorAll("[data-k]"));
+function upd(){var c=els.filter(function(e){return e.type==="checkbox"});var d=c.filter(function(e){return e.checked}).length;
+document.getElementById("bar").style.width=(100*d/c.length)+"%";document.getElementById("pct").textContent="ทำแล้ว "+d+" จาก "+c.length+" ขั้นตอน";
+c.forEach(function(e){e.closest(".step").classList.toggle("done",e.checked)});try{localStorage.setItem("done-"+K,d+"/"+c.length)}catch(x){}}
+els.forEach(function(e){var k=e.dataset.k;if(e.type==="checkbox")e.checked=!!S[k];else if(S[k])e.value=S[k];
+e.addEventListener("input",function(){S[k]=e.type==="checkbox"?e.checked:e.value;try{localStorage.setItem(K,JSON.stringify(S))}catch(x){}upd()})});upd();
+document.getElementById("pr").onclick=function(){print()};
+document.getElementById("cl").onclick=function(){if(confirm("ล้างทุกอย่าง?")){try{localStorage.removeItem(K);localStorage.removeItem("done-"+K)}catch(x){}location.reload()}};
+var cp=document.getElementById("cp");if(cp)cp.onclick=function(){var t=document.getElementById("code").textContent;
+(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){cp.textContent="คัดลอกแล้ว"},function(){var r=document.createRange();r.selectNodeContents(document.getElementById("code"));var s=getSelection();s.removeAllRanges();s.addRange(r);cp.textContent="เลือกข้อความแล้ว กด Ctrl+C"})};
+</script></body></html>
