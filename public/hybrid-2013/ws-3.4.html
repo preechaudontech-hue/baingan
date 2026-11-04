@@ -15,16 +15,89 @@ button{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--ac
 pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:auto;font:14px/1.5 Consolas,monospace;max-height:420px;margin:6px 0}code{font-family:Consolas,monospace;background:var(--bd);padding:0 4px;border-radius:4px}
 .nav{display:flex;justify-content:space-between;margin-top:18px}
 .u{font-weight:700;margin:18px 0 4px}.li a{display:block;padding:8px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card);margin:6px 0;text-decoration:none}
+.see{background:rgba(26,127,75,.13);border-left:4px solid #1a7f4b;padding:6px 10px;margin:8px 0;border-radius:6px}.fl{font-size:.85rem;color:var(--mu);margin-top:6px}.cps{margin:0 0 6px;padding:4px 12px;font-size:.9rem}pre.sc{max-height:360px}
 @media print{body{background:#fff;color:#000}.noprint{display:none}.card{break-inside:avoid}}</style></head><body><main>
 <div class="mu"><a href="index.html">สารบัญ</a> · วิชา 31901-2013 การพัฒนาไฮบริดแอปพลิเคชัน · หน่วยที่ 3 React และ TypeScript พื้นฐาน</div>
 <h1>ใบงานที่ 3.4 Custom hook และการโหลดข้อมูลแบบอะซิงโครนัส</h1><div class="mu">เวลา 120 นาที · งานเดี่ยว · คะแนนเต็ม 10</div>
 <div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
 <div class="card"><h2>จุดประสงค์</h2>แยกตรรกะรายการงานเป็น custom hook และโหลดข้อมูลแบบอะซิงโครนัสพร้อมสถานะ loading error ว่าง ได้</div>
-<div class="card"><h2>คำชี้แจง</h2>สร้าง custom hook useTasks.ts รวมข้อมูลและฟังก์ชันของรายการงาน แล้วจำลองการโหลดข้อมูลที่ใช้เวลาและบางครั้งล้มเหลว เพื่อฝึกจัดการสถานะ</div>
+<div class="card"><h2>คำชี้แจง</h2>ใบงานนี้แยกตรรกะของรายการงานไปไว้ใน custom hook และจำลองการโหลดข้อมูลที่ใช้เวลาและบางครั้งล้มเหลว ทำทีละขั้นโดยวางโค้ดทั้งไฟล์ ทำใบงาน 3.2 ให้เสร็จก่อน (ไม่จำเป็นต้องทำ 3.3)</div>
 
 <div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>ผลงานใบงาน 3.3</li><li>ใบความรู้ที่ 3 หัวข้อ useEffect อะซิงโครนัส และ custom hook</li></ul></div>
-<div class="card"><h2>โค้ดตั้งต้น</h2><div class="mu">คัดลอกไปวางในไฟล์ที่ระบุในโค้ด</div><pre id="code">// src/hooks/useTasks.ts
-import { useEffect, useState } from 'react';
+
+<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>เตรียมความพร้อม: ionic serve รันอยู่ และเปิดโปรเจกต์ใน VS Code จะสร้างโฟลเดอร์ src/hooks ใหม่ (คลิกขวาที่ src เลือก New Folder ชื่อ hooks)</p><div class="see"><b>ผลที่ควรเห็น:</b> มีโฟลเดอร์ hooks ใน src</div><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>สร้างไฟล์ src/hooks/useTasks.ts (นามสกุล .ts ไม่ใช่ .tsx เพราะไม่มี JSX) แล้ววางโค้ดนี้ กด Ctrl+S ขั้นนี้ hook ยังมีแค่การโหลดข้อมูล</p><div class="fl">ไฟล์ <code>src/hooks/useTasks.ts</code></div><pre class="sc" id="sc1">import { useEffect, useState } from 'react';
+
+export interface Task { id: number; title: string; done: boolean }
+
+const wait = (ms: number) =&gt; new Promise(r =&gt; setTimeout(r, ms));
+
+// จำลองการดึงข้อมูลจากเซิร์ฟเวอร์ ล้มเหลวประมาณ 1 ใน 3 ครั้ง
+async function fetchTasks(): Promise&lt;Task[]&gt; {
+  await wait(800);
+  if (Math.random() &lt; 0.33) throw new Error('network');
+  return [
+    { id: 1, title: 'อ่านใบความรู้', done: true },
+    { id: 2, title: 'ทำใบงาน', done: false },
+  ];
+}
+
+export function useTasks() {
+  const [tasks, setTasks] = useState&lt;Task[]&gt;([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function load() {
+    setLoading(true);
+    setError('');
+    try {
+      setTasks(await fetchTasks());
+    } catch (e) {
+      setError('โหลดข้อมูลไม่สำเร็จ');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() =&gt; {
+    load();
+  }, []);
+
+  return { tasks, loading, error, load };
+}</pre><button class="noprint cps" data-t="sc1" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ยังไม่มีผลบนหน้าเว็บ เพราะยังไม่มีหน้าไหนเรียกใช้ hook นี้</div><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>อ่านโค้ด hook: หาฟังก์ชัน fetchTasks แล้วเขียนในช่องบันทึกว่ามันจำลองอะไร (คำใบ้: wait(800) กับ Math.random() &lt; 0.33) และ useEffect(() =&gt; { load(); }, []) ทำอะไร</p><div class="see"><b>ผลที่ควรเห็น:</b> ตอบได้ว่าจำลองเซิร์ฟเวอร์ที่ตอบช้า 0.8 วินาทีและล้มเหลวประมาณ 1 ใน 3 ครั้ง และ useEffect ที่มี [] เรียก load หนึ่งครั้งตอนเปิดหน้า</div><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>ใช้ hook ในหน้า: เปิด src/pages/Home.tsx ลบโค้ดทั้งหมดแล้ววางโค้ดนี้ กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/pages/Home.tsx</code></div><pre class="sc" id="sc3">import { IonButton, IonContent, IonPage } from '@ionic/react';
+import { useTasks } from '../hooks/useTasks';
+
+const Home: React.FC = () =&gt; {
+  const { tasks, loading, error, load } = useTasks();
+
+  return (
+    &lt;IonPage&gt;
+      &lt;IonContent className="ion-padding"&gt;
+        &lt;h2&gt;รายการงาน&lt;/h2&gt;
+
+        {loading &amp;&amp; &lt;p&gt;กำลังโหลด...&lt;/p&gt;}
+
+        {error &amp;&amp; (
+          &lt;&gt;
+            &lt;p&gt;{error}&lt;/p&gt;
+            &lt;IonButton onClick={load}&gt;ลองใหม่&lt;/IonButton&gt;
+          &lt;/&gt;
+        )}
+
+        {!loading &amp;&amp; !error &amp;&amp; tasks.length === 0 &amp;&amp; &lt;p&gt;ยังไม่มีงาน&lt;/p&gt;}
+
+        {!error &amp;&amp; (
+          &lt;ul&gt;
+            {tasks.map(t =&gt; (
+              &lt;li key={t.id}&gt;{t.title}&lt;/li&gt;
+            ))}
+          &lt;/ul&gt;
+        )}
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default Home;</pre><button class="noprint cps" data-t="sc3" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้นข้อความ กำลังโหลด... ประมาณ 1 วินาที แล้วมีรายการ อ่านใบความรู้ และ ทำใบงาน (หรือขึ้น โหลดข้อมูลไม่สำเร็จ พร้อมปุ่ม ลองใหม่ ถ้าโชคร้าย)</div><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>กด F5 รีเฟรชหน้าเว็บซ้ำ ๆ จนเห็นทั้งสองสถานการณ์ (สำเร็จ และล้มเหลว) แล้วถ่ายภาพแต่ละสถานการณ์ (ในโหมดพัฒนา ข้อมูลอาจโหลดสองรอบเพราะ React.StrictMode เป็นเรื่องปกติ)</p><div class="see"><b>ผลที่ควรเห็น:</b> ได้ภาพ 2 ภาพ: ภาพรายการที่โหลดสำเร็จ และภาพข้อความ โหลดข้อมูลไม่สำเร็จ พร้อมปุ่ม ลองใหม่</div><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>เมื่อเห็นข้อความล้มเหลว ให้กดปุ่ม ลองใหม่ (ถ้าล้มอีกให้กดซ้ำ)</p><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้น กำลังโหลด... แล้วกลับมาแสดงรายการเมื่อสำเร็จ</div><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>ตรวจสถานะ 4 แบบ: ดูโค้ดใน Home.tsx ที่มี loading, error, ข้อความ ยังไม่มีงาน และรายการ แล้วเขียนตาราง 4 แถวในช่องบันทึก: สถานะ / เมื่อใดเกิด / หน้าจอแสดงอะไร</p><div class="see"><b>ผลที่ควรเห็น:</b> ตารางที่ระบุว่า กำลังโหลด (loading เป็น true) ผิดพลาด (error ไม่ว่าง) ว่าง (ไม่ loading ไม่ error และ tasks ว่าง) และมีข้อมูล</div><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c7"><span class="n">8</span></label><div class="body"><p>ขั้นที่ 2: เพิ่ม toggle และ remove ลงใน hook: ลบโค้ดทั้งหมดใน useTasks.ts แล้ววางโค้ดนี้ (เพิ่ม remaining, toggle, remove และส่งออกเพิ่ม) กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/hooks/useTasks.ts</code></div><pre class="sc" id="sc7">import { useEffect, useState } from 'react';
 
 export interface Task { id: number; title: string; done: boolean }
 
@@ -48,16 +121,23 @@ export function useTasks() {
   const remaining = tasks.filter(t =&gt; !t.done).length;
 
   async function load() {
-    // TODO: setLoading(true) ล้าง error แล้วเรียก fetchTasks ใส่ผลลง tasks
-    // จับข้อผิดพลาดแล้ว setError เป็นข้อความภาษาไทย และ setLoading(false) ใน finally
+    setLoading(true);
+    setError('');
+    try {
+      setTasks(await fetchTasks());
+    } catch (e) {
+      setError('โหลดข้อมูลไม่สำเร็จ');
+    } finally {
+      setLoading(false);
+    }
   }
 
   function toggle(id: number) {
-    // TODO: สลับสถานะ done ของงานตาม id (สร้างสำเนาใหม่)
+    setTasks(tasks.map(t =&gt; (t.id === id ? { ...t, done: !t.done } : t)));
   }
 
   function remove(id: number) {
-    // TODO: ลบงานตาม id
+    setTasks(tasks.filter(t =&gt; t.id !== id));
   }
 
   useEffect(() =&gt; {
@@ -65,9 +145,48 @@ export function useTasks() {
   }, []);
 
   return { tasks, loading, error, remaining, load, toggle, remove };
-}</pre><button class="noprint" id="cp">คัดลอกโค้ด</button></div>
-<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>สร้างไฟล์ src/hooks/useTasks.ts จากโค้ดตั้งต้น แล้วเติมฟังก์ชัน load ตามคอมเมนต์ TODO</p><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>เติมฟังก์ชัน toggle และ remove ใน hook (ใช้ setTasks กับ map และ filter)</p><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>ในหน้าแม่ เปลี่ยนมาเรียก const { tasks, loading, error, remaining, load, toggle, remove } = useTasks() และลบ state และฟังก์ชันเดิมที่ซ้ำกันออก</p><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>แสดงสถานะในหน้า: ขณะโหลดแสดง "กำลังโหลด..." เมื่อผิดพลาดแสดงข้อความและปุ่ม "ลองใหม่" (เรียก load) เมื่อไม่มีรายการแสดง "ยังไม่มีงาน"</p><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>ทดสอบโดยโหลดหน้าซ้ำหลายครั้ง จนเห็นทั้งสถานะสำเร็จและล้มเหลว ถ่ายภาพหน้าจอแต่ละสถานะ</p><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>สังเกตใน Console ว่า load ถูกเรียกกี่ครั้งตอนเปิดหน้า ในโหมดพัฒนา (เหตุผลดูใบความรู้หัวข้อ useEffect) แล้วบันทึก</p><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>ตอบคำถาม: ถ้าคอมโพเนนต์สองตัวเรียก useTasks() แต่ละตัวจะได้ข้อมูลชุดเดียวกันหรือไม่ เพราะอะไร (ลองทดสอบ แล้วอธิบายผล)</p><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
-<div class="card"><h2>คำแนะนำ</h2><ul><li>ในฟังก์ชัน load อย่าลืมล้างข้อความ error ก่อนเรียกใหม่</li><li>คำถามข้อสุดท้าย: state ที่ประกาศใน hook ถูกสร้างใหม่ให้ทุกคอมโพเนนต์ที่เรียก hook</li></ul></div>
+}</pre><button class="noprint cps" data-t="sc7" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ยังเหมือนเดิมบนหน้าเว็บ (หน้าแม่ยังไม่ได้ใช้ฟังก์ชันใหม่)</div><textarea data-k="n7" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c8"><span class="n">9</span></label><div class="body"><p>ลบโค้ดทั้งหมดใน Home.tsx แล้ววางโค้ดนี้ ซึ่งเรียกใช้ฟังก์ชันที่เพิ่มใน hook กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/pages/Home.tsx</code></div><pre class="sc" id="sc8">import { IonButton, IonContent, IonPage } from '@ionic/react';
+import { useTasks } from '../hooks/useTasks';
+
+const Home: React.FC = () =&gt; {
+  const { tasks, loading, error, remaining, load, toggle, remove } = useTasks();
+
+  return (
+    &lt;IonPage&gt;
+      &lt;IonContent className="ion-padding"&gt;
+        &lt;h2&gt;รายการงาน ({remaining} ที่ยังไม่เสร็จ)&lt;/h2&gt;
+
+        {loading &amp;&amp; &lt;p&gt;กำลังโหลด...&lt;/p&gt;}
+
+        {error &amp;&amp; (
+          &lt;&gt;
+            &lt;p&gt;{error}&lt;/p&gt;
+            &lt;IonButton onClick={load}&gt;ลองใหม่&lt;/IonButton&gt;
+          &lt;/&gt;
+        )}
+
+        {!loading &amp;&amp; !error &amp;&amp; tasks.length === 0 &amp;&amp; &lt;p&gt;ยังไม่มีงาน&lt;/p&gt;}
+
+        {!error &amp;&amp; (
+          &lt;ul&gt;
+            {tasks.map(t =&gt; (
+              &lt;li key={t.id}&gt;
+                &lt;input type="checkbox" checked={t.done} onChange={() =&gt; toggle(t.id)} /&gt;
+                &lt;span style={{ textDecoration: t.done ? 'line-through' : 'none' }}&gt;{t.title}&lt;/span&gt;
+                &lt;button onClick={() =&gt; remove(t.id)}&gt;ลบ&lt;/button&gt;
+              &lt;/li&gt;
+            ))}
+          &lt;/ul&gt;
+        )}
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default Home;</pre><button class="noprint cps" data-t="sc8" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> รายการมีกล่องติ๊กและปุ่ม ลบ หัวข้อบอกจำนวนที่ยังไม่เสร็จ ติ๊กและลบได้ตามปกติ และเมื่อโหลดล้มเหลวจะซ่อนรายการและแสดงปุ่ม ลองใหม่</div><textarea data-k="n8" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c9"><span class="n">10</span></label><div class="body"><p>ทดสอบ: ติ๊ก 1 งาน ลบ 1 งาน แล้วกด F5 รีเฟรชหน้า</p><div class="see"><b>ผลที่ควรเห็น:</b> หลังรีเฟรชรายการกลับมาเป็นข้อมูลชุดเริ่มต้นทั้งหมด (เพราะข้อมูลอยู่ในหน่วยความจำ ไม่ได้บันทึก จะทำในหน่วยที่ 6)</div><textarea data-k="n9" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c10"><span class="n">11</span></label><div class="body"><p>สังเกตการแยกหน้าที่: เปิดไฟล์ Home.tsx แล้วนับว่ามีกี่บรรทัดที่เกี่ยวกับตรรกะข้อมูล (useState, fetch) เทียบกับใน useTasks.ts เขียนผลในช่องบันทึก</p><div class="see"><b>ผลที่ควรเห็น:</b> เห็นว่า Home.tsx เหลือแต่ส่วนแสดงผล ส่วนข้อมูลและตรรกะอยู่ใน useTasks.ts</div><textarea data-k="n10" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c11"><span class="n">12</span></label><div class="body"><p>สังเกต Console: กด F12 แท็บ Console ใส่ console.log('โหลดข้อมูล'); เป็นบรรทัดแรกในฟังก์ชัน load ของ useTasks.ts แล้วกด Ctrl+S รีเฟรชหน้า นับว่าขึ้นข้อความกี่ครั้ง บันทึกผล</p><div class="see"><b>ผลที่ควรเห็น:</b> ในโหมดพัฒนาขึ้น 2 ครั้ง เพราะ React.StrictMode เรียก useEffect สองครั้งเพื่อช่วยตรวจปัญหา (ตอนใช้งานจริงหลัง build จะเรียกครั้งเดียว) ลบบรรทัด console.log ออก</div><textarea data-k="n11" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c12"><span class="n">13</span></label><div class="body"><p>ทดลองคำถามสุดท้าย: ถ้าสองคอมโพเนนต์เรียก useTasks() แต่ละตัวจะได้ข้อมูลชุดเดียวกันหรือไม่ ลองทดสอบโดยเพิ่ม const second = useTasks(); ชั่วคราวในหน้า Home แล้วเพิ่มบรรทัด &lt;p&gt;ตัวที่สอง: {second.tasks.length} งาน&lt;/p&gt; ใต้หัวข้อ ติ๊กหรือลบงานในรายการหลัก ดูตัวเลขของตัวที่สอง</p><div class="see"><b>ผลที่ควรเห็น:</b> ตัวเลขของตัวที่สองไม่เปลี่ยนตามการลบในรายการหลัก แปลว่าแต่ละครั้งที่เรียก hook ได้ state ของตัวเอง (ไม่ใช้ร่วมกัน) แล้วลบสองบรรทัดที่เพิ่มออก</div><textarea data-k="n12" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c13"><span class="n">14</span></label><div class="body"><p>เขียนคำตอบข้อสุดท้ายในช่องบันทึก 2 - 3 ประโยค: ผลทดสอบเป็นอย่างไร และถ้าต้องการให้หลายหน้าใช้ข้อมูลร่วมกัน ควรทำอย่างไร (คำใบ้ในใบความรู้: ยก state ไปไว้ที่หน้าแม่ หรือใช้ context)</p><div class="see"><b>ผลที่ควรเห็น:</b> คำตอบที่บอกว่าไม่ใช้ร่วมกัน และวิธีแก้</div><textarea data-k="n13" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c14"><span class="n">15</span></label><div class="body"><p>ส่งงานขึ้น GitHub: เปิดเทอร์มินัลใหม่ แล้วพิมพ์ทีละบรรทัด</p><pre class="sc" id="sc14">git add .
+git commit -m "3.4 custom hook useTasks"
+git push</pre><button class="noprint cps" data-t="sc14" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้น Writing objects ... done ที่หน้า GitHub เห็นโฟลเดอร์ src/hooks</div><textarea data-k="n14" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
+<div class="card"><h2>คำแนะนำ</h2><ul><li>ถ้าข้อมูลโหลดล้มเหลวบ่อยจนเสียเวลา เป็นเรื่องปกติของโค้ดจำลอง (ตั้งใจให้ล้มเหลว 1 ใน 3) ให้กดลองใหม่</li><li>ไฟล์ hook ต้องชื่อขึ้นต้นด้วย use และเก็บในโฟลเดอร์ src/hooks</li><li>ถ้า import { useTasks } from '../hooks/useTasks' มีเส้นแดง ให้ตรวจว่าไฟล์ชื่อ useTasks.ts และบันทึกแล้ว</li></ul></div>
 <div class="card"><h2>สิ่งที่ต้องส่ง</h2><p>ภาพหน้าจอ 3 สถานะ (กำลังโหลด สำเร็จ ผิดพลาด) + บันทึกจำนวนครั้งที่เรียก load + คำตอบข้อสุดท้ายพร้อมผลทดสอบ + ลิงก์ GitHub (ส่งตามช่องทางที่ครูกำหนด)</p>
 <input type="text" data-k="link" placeholder="ลิงก์ GitHub หรือเว็บที่ deploy" style="margin-bottom:8px"><textarea data-k="summary" rows="3" placeholder="สรุปผล / ปัญหาที่พบ (ถ้ามี)"></textarea></div>
 <div class="card"><h2>เกณฑ์การให้คะแนน</h2><table><tr><td>custom hook ทำงานถูกต้อง แยกตรรกะออกจากหน้าได้</td><td>4</td></tr><tr><td>จัดการสถานะ loading error ว่าง และปุ่มลองใหม่ได้</td><td>3</td></tr><tr><td>ตอบคำถามพร้อมผลทดสอบและส่งงานครบ</td><td>3</td></tr><tr><td><b>รวม</b></td><td><b>10</b></td></tr></table></div>
@@ -85,4 +204,5 @@ document.getElementById("pr").onclick=function(){print()};
 document.getElementById("cl").onclick=function(){if(confirm("ล้างทุกอย่าง?")){try{localStorage.removeItem(K);localStorage.removeItem("done-"+K)}catch(x){}location.reload()}};
 var cp=document.getElementById("cp");if(cp)cp.onclick=function(){var t=document.getElementById("code").textContent;
 (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){cp.textContent="คัดลอกแล้ว"},function(){var r=document.createRange();r.selectNodeContents(document.getElementById("code"));var s=getSelection();s.removeAllRanges();s.addRange(r);cp.textContent="เลือกข้อความแล้ว กด Ctrl+C"})};
+document.querySelectorAll('.cps').forEach(function(b){b.onclick=function(){var el=document.getElementById(b.dataset.t);(navigator.clipboard?navigator.clipboard.writeText(el.textContent):Promise.reject()).then(function(){b.textContent='คัดลอกแล้ว'},function(){var r=document.createRange();r.selectNodeContents(el);var s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='เลือกข้อความแล้ว กด Ctrl+C'})}});
 </script></body></html>

@@ -15,34 +15,48 @@ button{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--ac
 pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:auto;font:14px/1.5 Consolas,monospace;max-height:420px;margin:6px 0}code{font-family:Consolas,monospace;background:var(--bd);padding:0 4px;border-radius:4px}
 .nav{display:flex;justify-content:space-between;margin-top:18px}
 .u{font-weight:700;margin:18px 0 4px}.li a{display:block;padding:8px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card);margin:6px 0;text-decoration:none}
+.see{background:rgba(26,127,75,.13);border-left:4px solid #1a7f4b;padding:6px 10px;margin:8px 0;border-radius:6px}.fl{font-size:.85rem;color:var(--mu);margin-top:6px}.cps{margin:0 0 6px;padding:4px 12px;font-size:.9rem}pre.sc{max-height:360px}
 @media print{body{background:#fff;color:#000}.noprint{display:none}.card{break-inside:avoid}}</style></head><body><main>
 <div class="mu"><a href="index.html">สารบัญ</a> · วิชา 31901-2013 การพัฒนาไฮบริดแอปพลิเคชัน · หน่วยที่ 3 React และ TypeScript พื้นฐาน</div>
 <h1>ใบงานที่ 3.2 รายการงานด้วย useState และ map</h1><div class="mu">เวลา 120 นาที · งานเดี่ยว · คะแนนเต็ม 10</div>
 <div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
 <div class="card"><h2>จุดประสงค์</h2>สร้างหน้ารายการงานที่เพิ่ม ลบ ติ๊กเสร็จ และนับงานคงเหลือได้ โดยใช้ useState ช่องกรอกแบบ controlled และ map</div>
-<div class="card"><h2>คำชี้แจง</h2>แทนที่ไฟล์ src/pages/Home.tsx ของโปรเจกต์ Ionic React ด้วยโค้ดตั้งต้น แล้วเติมส่วนที่เป็น TODO ใช้แท็ก HTML ปกติก่อนเพื่อให้โฟกัสที่ตรรกะ ส่วนหน้าตาแบบ Ionic จะทำในหน่วยที่ 4</div>
+<div class="card"><h2>คำชี้แจง</h2>ใบงานนี้สร้างหน้ารายการงานทีละขั้น ทุกขั้นวางโค้ดทั้งไฟล์ลงใน src/pages/Home.tsx (ลบของเดิมก่อนทุกครั้งด้วย Ctrl+A แล้ว Delete) แล้วดูผลบนเบราว์เซอร์ จากนั้นอ่านและทดลองแก้ตามคำสั่ง ต้องรัน ionic serve ค้างไว้ตลอด</div>
 
 <div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>โปรเจกต์ myFirstApp จากใบงาน 1.1 และ ionic serve ที่รันอยู่</li><li>ใบความรู้ที่ 3 หัวข้อ useState และช่องกรอก</li></ul></div>
-<div class="card"><h2>โค้ดตั้งต้น</h2><div class="mu">คัดลอกไปวางในไฟล์ที่ระบุในโค้ด</div><pre id="code">import { useState } from 'react';
+
+<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>เตรียมความพร้อม: เปิด VS Code ที่โปรเจกต์ myFirstApp เปิดเทอร์มินัล พิมพ์ ionic serve เปิดหน้าเว็บใน Chrome (โหมดจำลองมือถือ) แล้วเปิดไฟล์ src/pages/Home.tsx</p><div class="see"><b>ผลที่ควรเห็น:</b> เห็นหน้าแอปบนเบราว์เซอร์ และเห็นไฟล์ Home.tsx ใน VS Code</div><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>ขั้นที่ 1: ลบโค้ดเดิมทั้งหมดใน Home.tsx (Ctrl+A แล้ว Delete) แล้ววางโค้ดนี้ กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/pages/Home.tsx</code></div><pre class="sc" id="sc1">import { IonContent, IonPage } from '@ionic/react';
+
+const Home: React.FC = () =&gt; {
+  const tasks = [
+    { id: 1, title: 'อ่านใบความรู้', done: true },
+    { id: 2, title: 'ทำใบงาน', done: false },
+  ];
+
+  return (
+    &lt;IonPage&gt;
+      &lt;IonContent className="ion-padding"&gt;
+        &lt;h2&gt;รายการงาน&lt;/h2&gt;
+        &lt;ul&gt;
+          {tasks.map(t =&gt; (
+            &lt;li key={t.id}&gt;{t.title}&lt;/li&gt;
+          ))}
+        &lt;/ul&gt;
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default Home;</pre><button class="noprint cps" data-t="sc1" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> หน้าจอมีหัวข้อ รายการงาน และรายการ 2 บรรทัด: อ่านใบความรู้, ทำใบงาน</div><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>อ่านโค้ดขั้นที่ 1: ดูบรรทัด const tasks = [ ... ] แล้วเขียนในช่องบันทึกว่า tasks คืออะไร และ tasks.map(t =&gt; ( ... )) ทำอะไร (คำใบ้: ใบความรู้ที่ 3 หัวข้อ JSX และ key)</p><div class="see"><b>ผลที่ควรเห็น:</b> ตอบได้ว่า tasks เป็นอาเรย์ของออบเจ็กต์งาน และ map วนสร้าง &lt;li&gt; หนึ่งอันต่อหนึ่งงาน key ใช้ให้ React แยกแต่ละแถวออกจากกัน</div><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>ทดลอง: เพิ่มงานใหม่ในอาเรย์ tasks อีกหนึ่งรายการด้วยมือ ให้ต่อจากบรรทัด { id: 2, ... }, เช่น { id: 3, title: 'ส่งงาน', done: false }, แล้วกด Ctrl+S</p><div class="see"><b>ผลที่ควรเห็น:</b> หน้าจอมีรายการที่ 3 ชื่อ ส่งงาน (ลบรายการที่เพิ่มออกหลังดูผลแล้วก็ได้)</div><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>ขั้นที่ 2: ลบโค้ดเดิมทั้งหมดแล้ววางโค้ดนี้ ขั้นนี้เปลี่ยนจากตัวแปรธรรมดาเป็น useState และเพิ่มกล่องติ๊ก กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/pages/Home.tsx</code></div><pre class="sc" id="sc4">import { useState } from 'react';
 import { IonContent, IonPage } from '@ionic/react';
 
 interface Task { id: number; title: string; done: boolean }
 
-let nextId = 1;
-
 const Home: React.FC = () =&gt; {
-  const [tasks, setTasks] = useState&lt;Task[]&gt;([]);
-  const [newTitle, setNewTitle] = useState('');
-
-  const remaining = tasks.filter(t =&gt; !t.done).length;
-
-  function add() {
-    // TODO: เพิ่มงานใหม่ (ไม่เพิ่มถ้าช่องว่าง) แล้วล้างช่องกรอก
-  }
-
-  function remove(id: number) {
-    // TODO: ลบงานตาม id
-  }
+  const [tasks, setTasks] = useState&lt;Task[]&gt;([
+    { id: 1, title: 'อ่านใบความรู้', done: true },
+    { id: 2, title: 'ทำใบงาน', done: false },
+  ]);
 
   function toggle(id: number) {
     setTasks(tasks.map(t =&gt; (t.id === id ? { ...t, done: !t.done } : t)));
@@ -51,10 +65,105 @@ const Home: React.FC = () =&gt; {
   return (
     &lt;IonPage&gt;
       &lt;IonContent className="ion-padding"&gt;
+        &lt;h2&gt;รายการงาน&lt;/h2&gt;
+        &lt;ul&gt;
+          {tasks.map(t =&gt; (
+            &lt;li key={t.id}&gt;
+              &lt;input type="checkbox" checked={t.done} onChange={() =&gt; toggle(t.id)} /&gt;
+              &lt;span style={{ textDecoration: t.done ? 'line-through' : 'none' }}&gt;{t.title}&lt;/span&gt;
+            &lt;/li&gt;
+          ))}
+        &lt;/ul&gt;
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default Home;</pre><button class="noprint cps" data-t="sc4" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> แต่ละรายการมีกล่องติ๊ก อ่านใบความรู้ ถูกติ๊กไว้และมีเส้นขีดฆ่าทับชื่อ ส่วน ทำใบงาน ยังไม่ติ๊ก</div><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>คลิกกล่องติ๊กของ ทำใบงาน แล้วคลิกอีกครั้ง</p><div class="see"><b>ผลที่ควรเห็น:</b> คลิกแล้วมีเครื่องหมายถูกและเส้นขีดฆ่า คลิกซ้ำแล้วกลับเป็นเหมือนเดิม</div><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>อ่านฟังก์ชัน toggle ในโค้ด: บรรทัด setTasks(tasks.map(t =&gt; (t.id === id ? { ...t, done: !t.done } : t))); เขียนในช่องบันทึกด้วยคำพูดของตนเองว่ามันทำอะไร (คำใบ้: map สร้างอาเรย์ใหม่ { ...t, done: !t.done } คือสำเนาของงานนั้นที่กลับค่า done)</p><div class="see"><b>ผลที่ควรเห็น:</b> อธิบายได้ว่าสร้างอาเรย์ใหม่ที่งานที่ id ตรงกันถูกสลับค่า done ส่วนงานอื่นเหมือนเดิม แล้วส่งให้ setTasks เพื่อให้หน้าจอวาดใหม่</div><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c7"><span class="n">8</span></label><div class="body"><p>ขั้นที่ 3: ลบโค้ดเดิมทั้งหมดแล้ววางโค้ดนี้ ขั้นนี้เพิ่มช่องกรอกและปุ่มเพิ่ม กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/pages/Home.tsx</code></div><pre class="sc" id="sc7">import { useState } from 'react';
+import { IonContent, IonPage } from '@ionic/react';
+
+interface Task { id: number; title: string; done: boolean }
+
+let nextId = 3;
+
+const Home: React.FC = () =&gt; {
+  const [tasks, setTasks] = useState&lt;Task[]&gt;([
+    { id: 1, title: 'อ่านใบความรู้', done: true },
+    { id: 2, title: 'ทำใบงาน', done: false },
+  ]);
+  const [newTitle, setNewTitle] = useState('');
+
+  function toggle(id: number) {
+    setTasks(tasks.map(t =&gt; (t.id === id ? { ...t, done: !t.done } : t)));
+  }
+
+  function add() {
+    const title = newTitle.trim();
+    if (title === '') return;
+    setTasks([...tasks, { id: nextId++, title, done: false }]);
+    setNewTitle('');
+  }
+
+  return (
+    &lt;IonPage&gt;
+      &lt;IonContent className="ion-padding"&gt;
+        &lt;h2&gt;รายการงาน&lt;/h2&gt;
+
+        &lt;input value={newTitle} onChange={e =&gt; setNewTitle(e.target.value)} placeholder="งานใหม่" /&gt;
+        &lt;button onClick={add}&gt;เพิ่ม&lt;/button&gt;
+
+        &lt;ul&gt;
+          {tasks.map(t =&gt; (
+            &lt;li key={t.id}&gt;
+              &lt;input type="checkbox" checked={t.done} onChange={() =&gt; toggle(t.id)} /&gt;
+              &lt;span style={{ textDecoration: t.done ? 'line-through' : 'none' }}&gt;{t.title}&lt;/span&gt;
+            &lt;/li&gt;
+          ))}
+        &lt;/ul&gt;
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default Home;</pre><button class="noprint cps" data-t="sc7" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ด้านบนรายการมีช่องกรอก (ข้อความจาง ๆ ว่า งานใหม่) และปุ่ม เพิ่ม</div><textarea data-k="n7" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c8"><span class="n">9</span></label><div class="body"><p>ทดสอบ: พิมพ์คำว่า ซื้อสมุด ในช่องกรอก แล้วกดปุ่ม เพิ่ม</p><div class="see"><b>ผลที่ควรเห็น:</b> มีรายการ ซื้อสมุด เพิ่มท้ายรายการ (มีกล่องติ๊ก) และช่องกรอกว่างเปล่า</div><textarea data-k="n8" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c9"><span class="n">10</span></label><div class="body"><p>ทดสอบกรณีผิดปกติ: กดปุ่ม เพิ่ม ตอนช่องกรอกว่าง และอีกครั้งตอนพิมพ์แต่เว้นวรรค (กด Spacebar 3 ครั้ง)</p><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีรายการใหม่เกิดขึ้นทั้งสองกรณี (เพราะโค้ดตรวจ trim ว่างแล้ว return)</div><textarea data-k="n9" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c10"><span class="n">11</span></label><div class="body"><p>อ่านฟังก์ชัน add: เขียนในช่องบันทึกว่าบรรทัด setTasks([...tasks, { id: nextId++, title, done: false }]); ต่างจาก tasks.push(...) อย่างไร และเหตุใดต้องทำแบบแรก (ใบความรู้หัวข้อ useState)</p><div class="see"><b>ผลที่ควรเห็น:</b> อธิบายได้ว่าแบบแรกสร้างอาเรย์ใหม่ที่มีงานใหม่ต่อท้าย ส่วน push แก้อาเรย์เดิม ทำให้ React ไม่รู้ว่าข้อมูลเปลี่ยน หน้าจอไม่อัปเดต</div><textarea data-k="n10" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c11"><span class="n">12</span></label><div class="body"><p>ขั้นที่ 4: ลบโค้ดเดิมทั้งหมดแล้ววางโค้ดนี้ ขั้นนี้เพิ่มปุ่มลบ จำนวนงานที่เหลือ และข้อความเมื่อไม่มีงาน กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/pages/Home.tsx</code></div><pre class="sc" id="sc11">import { useState } from 'react';
+import { IonContent, IonPage } from '@ionic/react';
+
+interface Task { id: number; title: string; done: boolean }
+
+let nextId = 3;
+
+const Home: React.FC = () =&gt; {
+  const [tasks, setTasks] = useState&lt;Task[]&gt;([
+    { id: 1, title: 'อ่านใบความรู้', done: true },
+    { id: 2, title: 'ทำใบงาน', done: false },
+  ]);
+  const [newTitle, setNewTitle] = useState('');
+
+  // ค่าที่คำนวณได้จาก tasks ไม่ต้องเก็บเป็น state เพิ่ม
+  const remaining = tasks.filter(t =&gt; !t.done).length;
+
+  function toggle(id: number) {
+    setTasks(tasks.map(t =&gt; (t.id === id ? { ...t, done: !t.done } : t)));
+  }
+
+  function add() {
+    const title = newTitle.trim();
+    if (title === '') return;
+    setTasks([...tasks, { id: nextId++, title, done: false }]);
+    setNewTitle('');
+  }
+
+  function remove(id: number) {
+    setTasks(tasks.filter(t =&gt; t.id !== id));
+  }
+
+  return (
+    &lt;IonPage&gt;
+      &lt;IonContent className="ion-padding"&gt;
         &lt;h2&gt;รายการงาน ({remaining} ที่ยังไม่เสร็จ)&lt;/h2&gt;
 
         &lt;input value={newTitle} onChange={e =&gt; setNewTitle(e.target.value)} placeholder="งานใหม่" /&gt;
-        &lt;button disabled={!newTitle.trim()} onClick={add}&gt;เพิ่ม&lt;/button&gt;
+        &lt;button disabled={newTitle.trim() === ''} onClick={add}&gt;เพิ่ม&lt;/button&gt;
 
         {tasks.length === 0 ? (
           &lt;p&gt;ยังไม่มีงาน&lt;/p&gt;
@@ -74,9 +183,13 @@ const Home: React.FC = () =&gt; {
   );
 };
 
-export default Home;</pre><button class="noprint" id="cp">คัดลอกโค้ด</button></div>
-<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>วางโค้ดตั้งต้นในไฟล์ Home.tsx แล้วดูผล (ปุ่มเพิ่มและลบยังไม่ทำงาน) ศึกษาฟังก์ชัน toggle ที่เขียนไว้ให้เป็นตัวอย่างการแก้ข้อมูลโดยสร้างสำเนาใหม่</p><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>เติมฟังก์ชัน add ให้เพิ่มงานใหม่ด้วย setTasks([...tasks, ...]) (ไม่เพิ่มถ้าช่องว่างหรือมีแต่ช่องว่าง ใช้ nextId++ ให้ id ไม่ซ้ำ) แล้วล้างช่องกรอกด้วย setNewTitle('')</p><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>เติมฟังก์ชัน remove ให้ลบงานตาม id ด้วย filter และตรวจว่าตัวนับเปลี่ยนตาม</p><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>เพิ่มปุ่ม "ล้างงานที่เสร็จแล้ว" และข้อความ "เสร็จแล้ว x จาก y" ที่คำนวณจาก tasks โดยไม่สร้าง state เพิ่ม</p><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>เพิ่มตัวเลือกกรอง ทั้งหมด / ยังไม่เสร็จ / เสร็จแล้ว ด้วย state ชนิด union ('all' | 'todo' | 'done') และกรองรายการก่อน map</p><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>ใช้ console.log ในฟังก์ชัน add ดูข้อมูลใน Console ของ DevTools ถ่ายภาพ</p><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>ทดสอบกรณีขอบเขต: เพิ่มชื่อซ้ำ ชื่อยาวมาก ลบทุกรายการ แล้วบันทึกพฤติกรรมที่พบ 3 ข้อ</p><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
-<div class="card"><h2>คำแนะนำ</h2><ul><li>ห้ามใช้ tasks.push(...) ให้ใช้ setTasks([...tasks, item])</li><li>ลบโดยกรองรายการใหม่: setTasks(tasks.filter(t =&gt; t.id !== id))</li><li>ถ้าหน้าจอขาว ให้เปิด Console ของ DevTools ดูข้อความผิดพลาดสีแดง</li></ul></div>
+export default Home;</pre><button class="noprint cps" data-t="sc11" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> หัวข้อเปลี่ยนเป็น รายการงาน (1 ที่ยังไม่เสร็จ) แต่ละรายการมีปุ่ม ลบ และปุ่ม เพิ่ม จางกดไม่ได้เมื่อช่องกรอกว่าง</div><textarea data-k="n11" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c12"><span class="n">13</span></label><div class="body"><p>ทดสอบจำนวนงานที่เหลือ: ติ๊กกล่องของ ทำใบงาน แล้วเอาเครื่องหมายถูกออก</p><div class="see"><b>ผลที่ควรเห็น:</b> ตัวเลขในหัวข้อเปลี่ยนจาก 1 เป็น 0 แล้วกลับเป็น 1 ตามการติ๊ก</div><textarea data-k="n12" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c13"><span class="n">14</span></label><div class="body"><p>ทดสอบการลบ: กดปุ่ม ลบ ทีละรายการจนหมด</p><div class="see"><b>ผลที่ควรเห็น:</b> เมื่อไม่เหลือรายการ ขึ้นข้อความ ยังไม่มีงาน และหัวข้อเป็น (0 ที่ยังไม่เสร็จ)</div><textarea data-k="n13" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c14"><span class="n">15</span></label><div class="body"><p>ทดสอบการเพิ่มซ้ำ: เพิ่มงานชื่อเดียวกันสองครั้ง เช่น อ่านหนังสือ แล้วลบอันแรก</p><div class="see"><b>ผลที่ควรเห็น:</b> ทั้งสองรายการแสดงได้ ลบอันแรกแล้วอันที่สองยังอยู่ (เพราะแต่ละรายการมี id ไม่ซ้ำกัน)</div><textarea data-k="n14" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c15"><span class="n">16</span></label><div class="body"><p>ใช้ console.log ดูข้อมูล: ในฟังก์ชัน add เพิ่มบรรทัด console.log(tasks); ก่อนบรรทัด setTasks แล้วกด Ctrl+S กด F12 เปิดแท็บ Console แล้วเพิ่มงาน 2 ครั้ง ถ่ายภาพ</p><div class="see"><b>ผลที่ควรเห็น:</b> ใน Console เห็นอาเรย์ของงานที่ยังไม่รวมงานที่เพิ่งเพิ่ม (เพราะ tasks ยังเป็นค่าเก่า ณ ตอนนั้น) ลบบรรทัด console.log ออกหลังถ่ายภาพ</div><textarea data-k="n15" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c16"><span class="n">17</span></label><div class="body"><p>ท้าทาย (ลองเองก่อนดูคำใบ้): เพิ่มตัวกรอง 3 ปุ่ม ทั้งหมด / ยังไม่เสร็จ / เสร็จแล้ว ใช้ state ชนิด union และกรองรายการก่อน map ตามคำใบ้นี้ แล้วเพิ่มปุ่มสามปุ่มที่เรียก setFilter('all'), setFilter('todo'), setFilter('done')</p><pre class="sc" id="sc16">type Filter = 'all' | 'todo' | 'done';
+const [filter, setFilter] = useState&lt;Filter&gt;('all');
+const visible = tasks.filter(t =&gt; filter === 'all' || (filter === 'todo' ? !t.done : t.done));
+// แล้วเปลี่ยน tasks.map(...) ในรายการเป็น visible.map(...)</pre><button class="noprint cps" data-t="sc16" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> กดปุ่ม ยังไม่เสร็จ แสดงเฉพาะงานที่ยังไม่ติ๊ก กด เสร็จแล้ว แสดงเฉพาะงานที่ติ๊ก กด ทั้งหมด แสดงทุกงาน</div><textarea data-k="n16" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c17"><span class="n">18</span></label><div class="body"><p>ทดสอบกรณีขอบเขต 3 ข้อ แล้วบันทึกพฤติกรรมที่พบในช่องบันทึก: (1) ชื่องานยาวมาก (พิมพ์ 80 ตัวอักษร) (2) ลบงานทุกรายการแล้วเพิ่มใหม่ (3) เพิ่มงานเมื่อติ๊กตัวกรองเป็น เสร็จแล้ว ว่างานใหม่ปรากฏหรือไม่ เพราะอะไร</p><div class="see"><b>ผลที่ควรเห็น:</b> บันทึกพฤติกรรมได้ 3 ข้อ (เช่น ชื่อยาวขึ้นบรรทัดใหม่ งานใหม่ไม่ปรากฏเพราะยังไม่ติ๊กเสร็จ)</div><textarea data-k="n17" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c18"><span class="n">19</span></label><div class="body"><p>ส่งงานขึ้น GitHub: เปิดเทอร์มินัลใหม่ (ปุ่ม +) แล้วพิมพ์ทีละบรรทัด</p><pre class="sc" id="sc18">git add .
+git commit -m "3.2 task list with useState"
+git push</pre><button class="noprint cps" data-t="sc18" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้น Writing objects ... done และเห็นข้อความ 3.2 task list ที่หน้า GitHub</div><textarea data-k="n18" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
+<div class="card"><h2>คำแนะนำ</h2><ul><li>ห้ามใช้ tasks.push(...) ให้ใช้ setTasks([...tasks, ...]) เสมอ</li><li>ถ้าหน้าขาวหลังวางโค้ด ให้ดูแท็บ Console (F12) จะมีข้อความสีแดงบอกบรรทัดที่ผิด และตรวจว่าวางโค้ดครบทั้งไฟล์</li><li>ถ้าเครื่องหมายคำพูดหรือวงเล็บในโค้ดที่วางดูแปลกไป ให้กด Ctrl+Z แล้ววางใหม่อีกครั้ง</li></ul></div>
 <div class="card"><h2>สิ่งที่ต้องส่ง</h2><p>ภาพหน้าจอแอปขณะมีรายการและขณะกรอง + ภาพ Console + บันทึกกรณีขอบเขต 3 ข้อ + ลิงก์ GitHub (ส่งตามช่องทางที่ครูกำหนด)</p>
 <input type="text" data-k="link" placeholder="ลิงก์ GitHub หรือเว็บที่ deploy" style="margin-bottom:8px"><textarea data-k="summary" rows="3" placeholder="สรุปผล / ปัญหาที่พบ (ถ้ามี)"></textarea></div>
 <div class="card"><h2>เกณฑ์การให้คะแนน</h2><table><tr><td>เพิ่ม ลบ ติ๊กเสร็จ และนับคงเหลือถูกต้อง</td><td>4</td></tr><tr><td>ตัวกรองและการแก้ข้อมูลแบบสร้างสำเนาใหม่ถูกต้อง</td><td>3</td></tr><tr><td>ทดสอบกรณีขอบเขตและส่งงานครบ</td><td>3</td></tr><tr><td><b>รวม</b></td><td><b>10</b></td></tr></table></div>
@@ -94,4 +207,5 @@ document.getElementById("pr").onclick=function(){print()};
 document.getElementById("cl").onclick=function(){if(confirm("ล้างทุกอย่าง?")){try{localStorage.removeItem(K);localStorage.removeItem("done-"+K)}catch(x){}location.reload()}};
 var cp=document.getElementById("cp");if(cp)cp.onclick=function(){var t=document.getElementById("code").textContent;
 (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){cp.textContent="คัดลอกแล้ว"},function(){var r=document.createRange();r.selectNodeContents(document.getElementById("code"));var s=getSelection();s.removeAllRanges();s.addRange(r);cp.textContent="เลือกข้อความแล้ว กด Ctrl+C"})};
+document.querySelectorAll('.cps').forEach(function(b){b.onclick=function(){var el=document.getElementById(b.dataset.t);(navigator.clipboard?navigator.clipboard.writeText(el.textContent):Promise.reject()).then(function(){b.textContent='คัดลอกแล้ว'},function(){var r=document.createRange();r.selectNodeContents(el);var s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='เลือกข้อความแล้ว กด Ctrl+C'})}});
 </script></body></html>

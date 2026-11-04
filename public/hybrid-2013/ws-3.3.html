@@ -15,16 +15,17 @@ button{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--ac
 pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:auto;font:14px/1.5 Consolas,monospace;max-height:420px;margin:6px 0}code{font-family:Consolas,monospace;background:var(--bd);padding:0 4px;border-radius:4px}
 .nav{display:flex;justify-content:space-between;margin-top:18px}
 .u{font-weight:700;margin:18px 0 4px}.li a{display:block;padding:8px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card);margin:6px 0;text-decoration:none}
+.see{background:rgba(26,127,75,.13);border-left:4px solid #1a7f4b;padding:6px 10px;margin:8px 0;border-radius:6px}.fl{font-size:.85rem;color:var(--mu);margin-top:6px}.cps{margin:0 0 6px;padding:4px 12px;font-size:.9rem}pre.sc{max-height:360px}
 @media print{body{background:#fff;color:#000}.noprint{display:none}.card{break-inside:avoid}}</style></head><body><main>
 <div class="mu"><a href="index.html">สารบัญ</a> · วิชา 31901-2013 การพัฒนาไฮบริดแอปพลิเคชัน · หน่วยที่ 3 React และ TypeScript พื้นฐาน</div>
 <h1>ใบงานที่ 3.3 แยกคอมโพเนนต์ด้วย props และ callback</h1><div class="mu">เวลา 120 นาที · งานเดี่ยว · คะแนนเต็ม 10</div>
 <div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
 <div class="card"><h2>จุดประสงค์</h2>แยกส่วนแสดงผลรายการเป็นคอมโพเนนต์ลูก ส่งข้อมูลด้วย props และรับเหตุการณ์ด้วย callback ได้</div>
-<div class="card"><h2>คำชี้แจง</h2>นำผลงานใบงาน 3.2 มาแยกแต่ละรายการออกเป็นคอมโพเนนต์ TaskRow.tsx และให้หน้าแม่เป็นผู้เก็บข้อมูลเพียงจุดเดียว</div>
+<div class="card"><h2>คำชี้แจง</h2>ใบงานนี้แยกหน้ารายการงานจากใบงาน 3.2 ออกเป็นคอมโพเนนต์ย่อย โดยที่หน้าตาและการทำงานต้องเหมือนเดิมทุกอย่าง ทำใบงาน 3.2 ให้เสร็จ (ขั้นที่ 4) ก่อน</div>
 
 <div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>ผลงานใบงาน 3.2</li><li>ใบความรู้ที่ 3 หัวข้อ props</li></ul></div>
-<div class="card"><h2>โค้ดตั้งต้น</h2><div class="mu">คัดลอกไปวางในไฟล์ที่ระบุในโค้ด</div><pre id="code">// src/components/TaskRow.tsx
-interface Task { id: number; title: string; done: boolean }
+
+<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>เตรียมความพร้อม: ionic serve ต้องรันอยู่ และไฟล์ src/pages/Home.tsx เป็นโค้ดขั้นที่ 4 ของใบงาน 3.2 (หัวข้อ รายการงาน (... ที่ยังไม่เสร็จ) มีปุ่ม ลบ)</p><div class="see"><b>ผลที่ควรเห็น:</b> หน้าเว็บทำงานเหมือนผลของใบงาน 3.2 ขั้นสุดท้าย</div><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>สร้างโฟลเดอร์ใหม่: ที่แผงซ้ายมือของ VS Code คลิกขวาที่โฟลเดอร์ src เลือก New Folder ตั้งชื่อ components</p><div class="see"><b>ผลที่ควรเห็น:</b> มีโฟลเดอร์ components อยู่ใน src</div><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>สร้างไฟล์ใหม่: คลิกขวาที่โฟลเดอร์ components เลือก New File ตั้งชื่อ TaskRow.tsx (ต้องพิมพ์นามสกุล .tsx ให้ถูกต้อง และ T ใหญ่) แล้ววางโค้ดนี้ กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/components/TaskRow.tsx</code></div><pre class="sc" id="sc2">interface Task { id: number; title: string; done: boolean }
 
 interface TaskRowProps {
   task: Task;
@@ -40,9 +41,155 @@ const TaskRow: React.FC&lt;TaskRowProps&gt; = ({ task, onToggle, onRemove }) =&g
   &lt;/li&gt;
 );
 
-export default TaskRow;</pre><button class="noprint" id="cp">คัดลอกโค้ด</button></div>
-<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>สร้างไฟล์ src/components/TaskRow.tsx จากโค้ดตั้งต้น (ตัดบรรทัดคอมเมนต์บนสุดออกก็ได้)</p><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>ในหน้าแม่ import TaskRow แล้วแทนที่ li เดิมด้วย &lt;TaskRow key={t.id} task={t} onToggle={toggle} onRemove={remove} /&gt;</p><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>ตรวจว่า TaskRow ไม่ได้แก้ค่า task โดยตรง และข้อมูลทั้งหมดอยู่ที่หน้าแม่เพียงที่เดียว</p><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>เพิ่ม prop ใหม่ 1 ตัวที่ไม่บังคับ เช่น showId?: boolean แสดงเลข id ต่อท้ายชื่อเมื่อเป็น true</p><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>สร้างคอมโพเนนต์ TaskSummary.tsx รับ props total และ done แล้วแสดงข้อความสรุป และแถบความคืบหน้าด้วยแท็ก progress ของ HTML นำไปใช้ในหน้าแม่</p><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>วาดแผนภาพสั้น ๆ (บนกระดาษหรือเครื่องมือวาด) แสดงทิศทางของ props และ callback ระหว่างหน้าแม่กับสองคอมโพเนนต์ลูก</p><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
-<div class="card"><h2>คำแนะนำ</h2><ul><li>ถ้าชื่อคอมโพเนนต์ขึ้นสีแดง ให้ตรวจการ import ตัวสะกด และตัวอักษรแรกต้องเป็นตัวพิมพ์ใหญ่</li><li>ถ้าให้ prop ที่ไม่บังคับมีค่าเริ่มต้น ใช้การกำหนดค่าในพารามิเตอร์ เช่น ({ task, showId = false })</li></ul></div>
+export default TaskRow;</pre><button class="noprint cps" data-t="sc2" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> มีไฟล์ TaskRow.tsx พร้อมโค้ด (ตอนนี้ยังไม่มีผลบนหน้าเว็บ เพราะยังไม่มีใครเรียกใช้)</div><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>อ่านโค้ด TaskRow: ดู interface TaskRowProps แล้วเขียนในช่องบันทึกว่า props 3 ตัวคืออะไร แต่ละตัวชนิดอะไร และ onToggle กับ onRemove ต่างจาก task อย่างไร (คำใบ้: ตัวหนึ่งเป็นข้อมูล ตัวอื่นเป็นฟังก์ชัน)</p><div class="see"><b>ผลที่ควรเห็น:</b> ตอบได้ว่า task เป็นข้อมูลงาน ส่วน onToggle และ onRemove เป็นฟังก์ชันที่หน้าแม่ส่งมาให้ลูกเรียกเมื่อผู้ใช้ติ๊กหรือกดลบ</div><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>ใช้ TaskRow ในหน้าแม่: เปิด src/pages/Home.tsx ลบโค้ดทั้งหมดแล้ววางโค้ดนี้ (ต่างจากเดิมที่บรรทัด import TaskRow และตรงที่เรียก &lt;TaskRow ... /&gt; แทน &lt;li&gt; ยาว ๆ) กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/pages/Home.tsx</code></div><pre class="sc" id="sc4">import { useState } from 'react';
+import { IonContent, IonPage } from '@ionic/react';
+import TaskRow from '../components/TaskRow';
+
+interface Task { id: number; title: string; done: boolean }
+
+let nextId = 3;
+
+const Home: React.FC = () =&gt; {
+  const [tasks, setTasks] = useState&lt;Task[]&gt;([
+    { id: 1, title: 'อ่านใบความรู้', done: true },
+    { id: 2, title: 'ทำใบงาน', done: false },
+  ]);
+  const [newTitle, setNewTitle] = useState('');
+
+  const remaining = tasks.filter(t =&gt; !t.done).length;
+
+  function toggle(id: number) {
+    setTasks(tasks.map(t =&gt; (t.id === id ? { ...t, done: !t.done } : t)));
+  }
+
+  function add() {
+    const title = newTitle.trim();
+    if (title === '') return;
+    setTasks([...tasks, { id: nextId++, title, done: false }]);
+    setNewTitle('');
+  }
+
+  function remove(id: number) {
+    setTasks(tasks.filter(t =&gt; t.id !== id));
+  }
+
+  return (
+    &lt;IonPage&gt;
+      &lt;IonContent className="ion-padding"&gt;
+        &lt;h2&gt;รายการงาน ({remaining} ที่ยังไม่เสร็จ)&lt;/h2&gt;
+
+        &lt;input value={newTitle} onChange={e =&gt; setNewTitle(e.target.value)} placeholder="งานใหม่" /&gt;
+        &lt;button disabled={newTitle.trim() === ''} onClick={add}&gt;เพิ่ม&lt;/button&gt;
+
+        {tasks.length === 0 ? (
+          &lt;p&gt;ยังไม่มีงาน&lt;/p&gt;
+        ) : (
+          &lt;ul&gt;
+            {tasks.map(t =&gt; (
+              &lt;TaskRow key={t.id} task={t} onToggle={toggle} onRemove={remove} /&gt;
+            ))}
+          &lt;/ul&gt;
+        )}
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default Home;</pre><button class="noprint cps" data-t="sc4" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> หน้าตาและการทำงานเหมือนใบงาน 3.2 ขั้นสุดท้ายทุกอย่าง (ติ๊ก เพิ่ม ลบ นับจำนวน) นี่คือความสำเร็จของการแยกคอมโพเนนต์</div><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>ทดสอบว่าทำงานจริง: ติ๊ก 1 งาน เพิ่มงานใหม่ 1 งาน ลบ 1 งาน ตรวจว่าตัวเลขในหัวข้อถูกต้อง</p><div class="see"><b>ผลที่ควรเห็น:</b> ตัวเลขที่ยังไม่เสร็จเปลี่ยนถูกต้องทุกครั้ง</div><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>ทำความเข้าใจ props down, events up: หาบรรทัด &lt;TaskRow key={t.id} task={t} onToggle={toggle} onRemove={remove} /&gt; แล้วเขียนในช่องบันทึกว่า ข้อมูลไหลจากไหนไปไหน และเหตุการณ์ (ติ๊ก/ลบ) ไหลกลับทางไหน</p><div class="see"><b>ผลที่ควรเห็น:</b> เขียนได้ว่าข้อมูล task ไหลลงจากหน้าแม่ไปลูก ส่วนเมื่อกดลบ ลูกเรียกฟังก์ชัน onRemove ที่หน้าแม่ส่งให้ แล้วหน้าแม่เป็นคนแก้ state</div><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c7"><span class="n">8</span></label><div class="body"><p>ทดลองพิสูจน์ว่าลูกไม่ควรแก้ข้อมูลเอง: ในไฟล์ TaskRow.tsx ลองเปลี่ยน onChange={() =&gt; onToggle(task.id)} ชั่วคราวเป็น onChange={() =&gt; { task.done = !task.done; }} แล้วกด Ctrl+S จากนั้นทำตามลำดับ (ก) ติ๊กกล่องของ ทำใบงาน แล้วดูหน้าจอ (ข) พิมพ์ตัวอักษรอะไรก็ได้ในช่องกรอก งานใหม่</p><div class="see"><b>ผลที่ควรเห็น:</b> หลังข้อ (ก) หน้าจอไม่เปลี่ยน (กล่องยังว่าง ตัวเลขในหัวข้อเท่าเดิม) แต่หลังข้อ (ข) กล่องถึงถูกติ๊กและตัวเลขเปลี่ยน แปลว่าข้อมูลถูกแก้ไปแล้วแต่หน้าจอไม่ได้วาดใหม่ เพราะไม่ได้ผ่าน setTasks จากนั้นแก้กลับให้เป็น onChange={() =&gt; onToggle(task.id)} ตามเดิม</div><textarea data-k="n7" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c8"><span class="n">9</span></label><div class="body"><p>เพิ่ม prop ที่ไม่บังคับ showId: ลบโค้ดทั้งหมดใน TaskRow.tsx แล้ววางโค้ดนี้ (เพิ่ม showId?: boolean และแสดง (#id) ต่อท้ายชื่อเมื่อเป็น true) กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/components/TaskRow.tsx</code></div><pre class="sc" id="sc8">interface Task { id: number; title: string; done: boolean }
+
+interface TaskRowProps {
+  task: Task;
+  onToggle: (id: number) =&gt; void;
+  onRemove: (id: number) =&gt; void;
+  showId?: boolean;
+}
+
+const TaskRow: React.FC&lt;TaskRowProps&gt; = ({ task, onToggle, onRemove, showId = false }) =&gt; (
+  &lt;li&gt;
+    &lt;input type="checkbox" checked={task.done} onChange={() =&gt; onToggle(task.id)} /&gt;
+    &lt;span style={{ textDecoration: task.done ? 'line-through' : 'none' }}&gt;
+      {task.title}
+      {showId ? ` (#${task.id})` : ''}
+    &lt;/span&gt;
+    &lt;button onClick={() =&gt; onRemove(task.id)}&gt;ลบ&lt;/button&gt;
+  &lt;/li&gt;
+);
+
+export default TaskRow;</pre><button class="noprint cps" data-t="sc8" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> หน้าจอยังเหมือนเดิม (ยังไม่มี #id เพราะหน้าแม่ยังไม่ส่ง showId)</div><textarea data-k="n8" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c9"><span class="n">10</span></label><div class="body"><p>ที่หน้า src/pages/Home.tsx แก้บรรทัด &lt;TaskRow ... /&gt; โดยเพิ่มคำว่า showId ต่อท้ายก่อน /&gt; ให้เป็น &lt;TaskRow key={t.id} task={t} onToggle={toggle} onRemove={remove} showId /&gt; แล้วกด Ctrl+S</p><div class="see"><b>ผลที่ควรเห็น:</b> ชื่อแต่ละงานมี (#1), (#2) ต่อท้าย ลองเอา showId ออกอีกครั้ง ตัวเลขหายไป</div><textarea data-k="n9" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c10"><span class="n">11</span></label><div class="body"><p>สร้างคอมโพเนนต์ที่สอง: สร้างไฟล์ src/components/TaskSummary.tsx แล้ววางโค้ดนี้ กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/components/TaskSummary.tsx</code></div><pre class="sc" id="sc10">interface TaskSummaryProps {
+  total: number;
+  done: number;
+}
+
+const TaskSummary: React.FC&lt;TaskSummaryProps&gt; = ({ total, done }) =&gt; (
+  &lt;div&gt;
+    &lt;p&gt;
+      เสร็จแล้ว {done} จาก {total}
+    &lt;/p&gt;
+    &lt;progress value={done} max={total === 0 ? 1 : total} /&gt;
+  &lt;/div&gt;
+);
+
+export default TaskSummary;</pre><button class="noprint cps" data-t="sc10" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> มีไฟล์ใหม่ (ยังไม่มีผลบนหน้าเว็บ)</div><textarea data-k="n10" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c11"><span class="n">12</span></label><div class="body"><p>ใช้ TaskSummary ในหน้าแม่: ลบโค้ดทั้งหมดใน Home.tsx แล้ววางโค้ดนี้ (เพิ่มบรรทัด import TaskSummary และบรรทัด &lt;TaskSummary total={...} done={...} /&gt; ใต้หัวข้อ) กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/pages/Home.tsx</code></div><pre class="sc" id="sc11">import { useState } from 'react';
+import { IonContent, IonPage } from '@ionic/react';
+import TaskRow from '../components/TaskRow';
+import TaskSummary from '../components/TaskSummary';
+
+interface Task { id: number; title: string; done: boolean }
+
+let nextId = 3;
+
+const Home: React.FC = () =&gt; {
+  const [tasks, setTasks] = useState&lt;Task[]&gt;([
+    { id: 1, title: 'อ่านใบความรู้', done: true },
+    { id: 2, title: 'ทำใบงาน', done: false },
+  ]);
+  const [newTitle, setNewTitle] = useState('');
+
+  const remaining = tasks.filter(t =&gt; !t.done).length;
+
+  function toggle(id: number) {
+    setTasks(tasks.map(t =&gt; (t.id === id ? { ...t, done: !t.done } : t)));
+  }
+
+  function add() {
+    const title = newTitle.trim();
+    if (title === '') return;
+    setTasks([...tasks, { id: nextId++, title, done: false }]);
+    setNewTitle('');
+  }
+
+  function remove(id: number) {
+    setTasks(tasks.filter(t =&gt; t.id !== id));
+  }
+
+  return (
+    &lt;IonPage&gt;
+      &lt;IonContent className="ion-padding"&gt;
+        &lt;h2&gt;รายการงาน ({remaining} ที่ยังไม่เสร็จ)&lt;/h2&gt;
+
+        &lt;TaskSummary total={tasks.length} done={tasks.length - remaining} /&gt;
+
+        &lt;input value={newTitle} onChange={e =&gt; setNewTitle(e.target.value)} placeholder="งานใหม่" /&gt;
+        &lt;button disabled={newTitle.trim() === ''} onClick={add}&gt;เพิ่ม&lt;/button&gt;
+
+        {tasks.length === 0 ? (
+          &lt;p&gt;ยังไม่มีงาน&lt;/p&gt;
+        ) : (
+          &lt;ul&gt;
+            {tasks.map(t =&gt; (
+              &lt;TaskRow key={t.id} task={t} onToggle={toggle} onRemove={remove} showId /&gt;
+            ))}
+          &lt;/ul&gt;
+        )}
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default Home;</pre><button class="noprint cps" data-t="sc11" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ใต้หัวข้อมีข้อความ เสร็จแล้ว 1 จาก 2 และแถบความคืบหน้า ติ๊กงานที่เหลือแล้วแถบเต็มและขึ้น เสร็จแล้ว 2 จาก 2</div><textarea data-k="n11" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c12"><span class="n">13</span></label><div class="body"><p>ทดสอบกรณีไม่มีงาน: ลบงานทุกรายการ</p><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้น เสร็จแล้ว 0 จาก 0 ข้อความ ยังไม่มีงาน และไม่มีข้อผิดพลาดใน Console (ตัวโค้ดใช้ total === 0 ? 1 : total เพื่อกันแถบพัง)</div><textarea data-k="n12" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c13"><span class="n">14</span></label><div class="body"><p>วาดแผนภาพ 1 ภาพ (บนกระดาษแล้วถ่ายภาพ หรือใช้โปรแกรมวาด) แสดงกล่อง 3 กล่อง: Home (แม่) TaskRow (ลูก) TaskSummary (ลูก) ลูกศรลงเขียนชื่อ props ลูกศรขึ้นเขียนชื่อฟังก์ชันที่ลูกเรียก</p><div class="see"><b>ผลที่ควรเห็น:</b> แผนภาพที่ลูกศรลงมี task, total, done, showId และลูกศรขึ้นมี onToggle, onRemove</div><textarea data-k="n13" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c14"><span class="n">15</span></label><div class="body"><p>ส่งงานขึ้น GitHub: เปิดเทอร์มินัลใหม่ แล้วพิมพ์ทีละบรรทัด</p><pre class="sc" id="sc14">git add .
+git commit -m "3.3 components with props"
+git push</pre><button class="noprint cps" data-t="sc14" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้น Writing objects ... done ที่หน้า GitHub เห็นโฟลเดอร์ src/components</div><textarea data-k="n14" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
+<div class="card"><h2>คำแนะนำ</h2><ul><li>ชื่อไฟล์และชื่อคอมโพเนนต์ต้องขึ้นต้นด้วยตัวพิมพ์ใหญ่ และ import ต้องสะกดตรงกับชื่อไฟล์ทุกตัวอักษร</li><li>ถ้า VS Code ขีดเส้นแดงที่ import ให้ตรวจว่าสร้างไฟล์ในโฟลเดอร์ src/components ถูกที่ และบันทึกไฟล์แล้ว</li><li>ข้อมูลทุกอย่างต้องอยู่ที่หน้าแม่ที่เดียว ลูกห้ามแก้ค่าที่รับมาโดยตรง</li></ul></div>
 <div class="card"><h2>สิ่งที่ต้องส่ง</h2><p>ภาพหน้าจอแอป + ภาพแผนภาพ props/callback + ลิงก์ GitHub (ส่งตามช่องทางที่ครูกำหนด)</p>
 <input type="text" data-k="link" placeholder="ลิงก์ GitHub หรือเว็บที่ deploy" style="margin-bottom:8px"><textarea data-k="summary" rows="3" placeholder="สรุปผล / ปัญหาที่พบ (ถ้ามี)"></textarea></div>
 <div class="card"><h2>เกณฑ์การให้คะแนน</h2><table><tr><td>แยก TaskRow และใช้ props/callback ถูกต้อง ข้อมูลอยู่ที่แม่</td><td>4</td></tr><tr><td>เพิ่ม prop ที่ไม่บังคับและคอมโพเนนต์ TaskSummary ได้</td><td>3</td></tr><tr><td>แผนภาพ props/callback ถูกต้อง</td><td>3</td></tr><tr><td><b>รวม</b></td><td><b>10</b></td></tr></table></div>
@@ -60,4 +207,5 @@ document.getElementById("pr").onclick=function(){print()};
 document.getElementById("cl").onclick=function(){if(confirm("ล้างทุกอย่าง?")){try{localStorage.removeItem(K);localStorage.removeItem("done-"+K)}catch(x){}location.reload()}};
 var cp=document.getElementById("cp");if(cp)cp.onclick=function(){var t=document.getElementById("code").textContent;
 (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){cp.textContent="คัดลอกแล้ว"},function(){var r=document.createRange();r.selectNodeContents(document.getElementById("code"));var s=getSelection();s.removeAllRanges();s.addRange(r);cp.textContent="เลือกข้อความแล้ว กด Ctrl+C"})};
+document.querySelectorAll('.cps').forEach(function(b){b.onclick=function(){var el=document.getElementById(b.dataset.t);(navigator.clipboard?navigator.clipboard.writeText(el.textContent):Promise.reject()).then(function(){b.textContent='คัดลอกแล้ว'},function(){var r=document.createRange();r.selectNodeContents(el);var s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='เลือกข้อความแล้ว กด Ctrl+C'})}});
 </script></body></html>

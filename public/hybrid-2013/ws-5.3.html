@@ -15,6 +15,7 @@ button{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--ac
 pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:auto;font:14px/1.5 Consolas,monospace;max-height:420px;margin:6px 0}code{font-family:Consolas,monospace;background:var(--bd);padding:0 4px;border-radius:4px}
 .nav{display:flex;justify-content:space-between;margin-top:18px}
 .u{font-weight:700;margin:18px 0 4px}.li a{display:block;padding:8px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card);margin:6px 0;text-decoration:none}
+.see{background:rgba(26,127,75,.13);border-left:4px solid #1a7f4b;padding:6px 10px;margin:8px 0;border-radius:6px}.fl{font-size:.85rem;color:var(--mu);margin-top:6px}.cps{margin:0 0 6px;padding:4px 12px;font-size:.9rem}pre.sc{max-height:360px}
 @media print{body{background:#fff;color:#000}.noprint{display:none}.card{break-inside:avoid}}</style></head><body><main>
 <div class="mu"><a href="index.html">สารบัญ</a> · วิชา 31901-2013 การพัฒนาไฮบริดแอปพลิเคชัน · หน่วยที่ 5 ทรัพยากรอุปกรณ์ด้วย Capacitor</div>
 <h1>ใบงานที่ 5.3 ตรวจจับการเขย่าด้วยเซนเซอร์และการสั่น</h1><div class="mu">เวลา 90 นาที · งานเดี่ยว · คะแนนเต็ม 10</div>
@@ -101,4 +102,5 @@ document.getElementById("pr").onclick=function(){print()};
 document.getElementById("cl").onclick=function(){if(confirm("ล้างทุกอย่าง?")){try{localStorage.removeItem(K);localStorage.removeItem("done-"+K)}catch(x){}location.reload()}};
 var cp=document.getElementById("cp");if(cp)cp.onclick=function(){var t=document.getElementById("code").textContent;
 (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){cp.textContent="คัดลอกแล้ว"},function(){var r=document.createRange();r.selectNodeContents(document.getElementById("code"));var s=getSelection();s.removeAllRanges();s.addRange(r);cp.textContent="เลือกข้อความแล้ว กด Ctrl+C"})};
+document.querySelectorAll('.cps').forEach(function(b){b.onclick=function(){var el=document.getElementById(b.dataset.t);(navigator.clipboard?navigator.clipboard.writeText(el.textContent):Promise.reject()).then(function(){b.textContent='คัดลอกแล้ว'},function(){var r=document.createRange();r.selectNodeContents(el);var s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='เลือกข้อความแล้ว กด Ctrl+C'})}});
 </script></body></html>
