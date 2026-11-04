@@ -21,10 +21,111 @@ pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:a
 <h1>ใบงานที่ 4.2 ฟอร์มรับข้อมูลและการตรวจสอบความถูกต้อง</h1><div class="mu">เวลา 120 นาที · งานเดี่ยว · คะแนนเต็ม 10</div>
 <div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
 <div class="card"><h2>จุดประสงค์</h2>สร้างฟอร์มเพิ่มรายการด้วยช่องกรอกของ Ionic ตรวจสอบข้อมูลอย่างน้อย 4 เงื่อนไข และแจ้งผลด้วยข้อความที่เข้าใจได้</div>
-<div class="card"><h2>คำชี้แจง</h2>สร้างหน้าฟอร์มเพิ่มรายการของแอปตนเอง (จาก use case ที่ออกแบบในใบงาน 2.2) ใช้โค้ดตั้งต้นแล้วปรับให้ตรงกับข้อมูลของแอป ตอนนี้ยังไม่ต้องเก็บข้อมูลถาวร (ทำในหน่วยที่ 6)</div>
+<div class="card"><h2>คำชี้แจง</h2>ใบงานนี้ต้องรัน ionic serve ค้างไว้ และเปิดโปรเจกต์ใน VS Code ทุกขั้นที่ "วางโค้ดทั้งไฟล์" ให้คลิกในไฟล์ กด Ctrl+A แล้ว Delete ก่อนวาง ฟอร์มนี้สร้างเป็นหน้าใหม่ แล้วเพิ่มเส้นทาง /add ใน App.tsx เพื่อเปิดดู โดยไม่ทับหน้า Home จากใบงาน 4.1</div>
 
 <div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>ผลงานใบงาน 2.3 (ข้อมูลของแอป) และ 4.1</li><li>ใบความรู้ที่ 4 หัวข้อฟอร์ม</li></ul></div>
-<div class="card"><h2>โค้ดตั้งต้น</h2><div class="mu">คัดลอกไปวางในไฟล์ที่ระบุในโค้ด</div><pre id="code">import { useState } from 'react';
+
+<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>สร้างไฟล์หน้าใหม่ src/pages/AddItem.tsx (คลิกขวาที่โฟลเดอร์ pages เลือก New File) วางโค้ดขั้นที่ 1 นี้ กด Ctrl+S ขั้นนี้มีแค่ช่องชื่อรายการกับปุ่มบันทึก</p><div class="fl">ไฟล์ <code>src/pages/AddItem.tsx</code></div><pre class="sc" id="sc0">import { useState } from 'react';
+import { IonButton, IonContent, IonHeader, IonInput, IonPage, IonTitle, IonToolbar, useIonToast } from '@ionic/react';
+
+const AddItem: React.FC = () =&gt; {
+  const [present] = useIonToast();
+  const [title, setTitle] = useState('');
+
+  function submit() {
+    present({ message: `บันทึก ${title}`, duration: 1500, color: 'success' });
+    setTitle('');
+  }
+
+  return (
+    &lt;IonPage&gt;
+      &lt;IonHeader&gt;
+        &lt;IonToolbar color="primary"&gt;
+          &lt;IonTitle&gt;เพิ่มรายการ&lt;/IonTitle&gt;
+        &lt;/IonToolbar&gt;
+      &lt;/IonHeader&gt;
+      &lt;IonContent className="ion-padding"&gt;
+        &lt;IonInput
+          label="ชื่อรายการ"
+          labelPlacement="floating"
+          fill="outline"
+          value={title}
+          onIonInput={e =&gt; setTitle(String(e.detail.value ?? ''))}
+        /&gt;
+        &lt;IonButton expand="block" onClick={submit}&gt;บันทึก&lt;/IonButton&gt;
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default AddItem;</pre><button class="noprint cps" data-t="sc0" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ยังไม่เห็นผลบนหน้าเว็บ เพราะยังไม่มีเส้นทางไปหน้านี้</div><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>เพิ่มเส้นทาง: เปิดไฟล์ src/App.tsx แก้ 2 จุด จุดแรก ใต้บรรทัด import Home from './pages/Home'; เพิ่ม import AddItem from './pages/AddItem'; จุดที่สอง ใต้บรรทัด &lt;Route path="/home" element={&lt;Home /&gt;} /&gt; เพิ่ม &lt;Route path="/add" element={&lt;AddItem /&gt;} /&gt; แล้วกด Ctrl+S</p><div class="fl">ไฟล์ <code>src/App.tsx</code></div><pre class="sc" id="sc1">import Home from './pages/Home';
+import AddItem from './pages/AddItem';
+
+// ...
+
+&lt;Route path="/home" element={&lt;Home /&gt;} /&gt;
+&lt;Route path="/add" element={&lt;AddItem /&gt;} /&gt;</pre><button class="noprint cps" data-t="sc1" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีข้อความแดงในเทอร์มินัล</div><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>ในเบราว์เซอร์ เปลี่ยนที่อยู่ท้ายเป็น /add (เช่น http://localhost:ตัวเลข/add) แล้วกด Enter</p><div class="see"><b>ผลที่ควรเห็น:</b> เห็นหน้า เพิ่มรายการ มีช่องชื่อรายการและปุ่มบันทึกสีน้ำเงินเต็มความกว้าง</div><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>พิมพ์คำว่า ข้าวมันไก่ ในช่องชื่อรายการ แล้วกดปุ่มบันทึก</p><div class="see"><b>ผลที่ควรเห็น:</b> มีข้อความสีเขียวด้านล่างจอ บันทึก ข้าวมันไก่ แล้วหายไปเองใน 1.5 วินาที และช่องถูกล้างว่าง</div><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>ขั้นที่ 2: ลบทั้งไฟล์ AddItem.tsx แล้ววางโค้ดนี้ ขั้นนี้เพิ่มช่องจำนวนเงินและการตรวจข้อมูล กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/pages/AddItem.tsx</code></div><pre class="sc" id="sc4">import { useState } from 'react';
+import { IonButton, IonContent, IonHeader, IonInput, IonPage, IonTitle, IonToolbar, useIonToast } from '@ionic/react';
+
+const AddItem: React.FC = () =&gt; {
+  const [present] = useIonToast();
+  const [title, setTitle] = useState('');
+  const [amount, setAmount] = useState('');
+  const [touched, setTouched] = useState(false);
+
+  // คำนวณข้อความผิดพลาดจากค่าใน state ตรง ๆ (ข้อความว่าง = ไม่ผิด)
+  const titleError = title.trim() === '' ? 'กรุณากรอกชื่อรายการ' : '';
+  const amountError = Number(amount) &gt; 0 ? '' : 'จำนวนเงินต้องมากกว่า 0';
+
+  function submit() {
+    setTouched(true);
+    if (titleError !== '' || amountError !== '') {
+      present({ message: 'กรอกข้อมูลไม่ครบ', duration: 1500, color: 'danger' });
+      return;
+    }
+    present({ message: `บันทึก ${title} ${amount} บาท`, duration: 1500, color: 'success' });
+    setTitle('');
+    setAmount('');
+    setTouched(false);
+  }
+
+  return (
+    &lt;IonPage&gt;
+      &lt;IonHeader&gt;
+        &lt;IonToolbar color="primary"&gt;
+          &lt;IonTitle&gt;เพิ่มรายการ&lt;/IonTitle&gt;
+        &lt;/IonToolbar&gt;
+      &lt;/IonHeader&gt;
+      &lt;IonContent className="ion-padding"&gt;
+        &lt;IonInput
+          label="ชื่อรายการ"
+          labelPlacement="floating"
+          fill="outline"
+          value={title}
+          onIonInput={e =&gt; setTitle(String(e.detail.value ?? ''))}
+          errorText={titleError}
+          className={touched &amp;&amp; titleError ? 'ion-invalid ion-touched' : ''}
+        /&gt;
+
+        &lt;IonInput
+          label="จำนวนเงิน (บาท)"
+          labelPlacement="floating"
+          fill="outline"
+          type="number"
+          inputmode="decimal"
+          value={amount}
+          onIonInput={e =&gt; setAmount(String(e.detail.value ?? ''))}
+          errorText={amountError}
+          className={touched &amp;&amp; amountError ? 'ion-invalid ion-touched' : ''}
+        /&gt;
+
+        &lt;IonButton expand="block" onClick={submit}&gt;บันทึก&lt;/IonButton&gt;
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default AddItem;</pre><button class="noprint cps" data-t="sc4" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> มีช่อง จำนวนเงิน (บาท) เพิ่มอีกช่อง</div><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>กดปุ่มบันทึกทันที โดยไม่กรอกอะไรเลย</p><div class="see"><b>ผลที่ควรเห็น:</b> ช่องทั้งสองมีกรอบสีแดง มีข้อความสีแดงใต้ช่อง กรุณากรอกชื่อรายการ และ จำนวนเงินต้องมากกว่า 0 และมีข้อความสีแดงด้านล่างจอ กรอกข้อมูลไม่ครบ</div><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>ทดสอบ: กรอกชื่อ ข้าวมันไก่ แต่ใส่จำนวนเงินเป็น 0 แล้วกดบันทึก</p><div class="see"><b>ผลที่ควรเห็น:</b> ช่องชื่อกลับเป็นปกติ ช่องจำนวนเงินยังเป็นสีแดงพร้อมข้อความ จำนวนเงินต้องมากกว่า 0</div><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c7"><span class="n">8</span></label><div class="body"><p>ทดสอบ: ใส่จำนวนเงินเป็น -5 แล้วเป็น abc (ลองพิมพ์ตัวอักษร ช่องรับได้เฉพาะตัวเลข) แล้วเป็น 45</p><div class="see"><b>ผลที่ควรเห็น:</b> ค่า -5 แสดงข้อผิดพลาด ตัวอักษรพิมพ์ไม่เข้า และ 45 กดบันทึกผ่าน ขึ้นข้อความสีเขียว บันทึก ข้าวมันไก่ 45 บาท และช่องว่างทั้งสอง</div><textarea data-k="n7" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c8"><span class="n">9</span></label><div class="body"><p>อ่านโค้ดการตรวจข้อมูล: หา 3 บรรทัด const titleError, const amountError แล้วเขียนในช่องบันทึกว่า ทำไมข้อความผิดพลาดถึงไม่ต้องเก็บใน useState แยก (ใบความรู้ที่ 4 หัวข้อฟอร์ม)</p><div class="see"><b>ผลที่ควรเห็น:</b> ตอบได้ว่าคำนวณจากค่าใน state ได้ตรง ๆ ทุกครั้งที่หน้าวาดใหม่ จึงไม่มีทางไม่ตรงกับข้อมูล</div><textarea data-k="n8" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c9"><span class="n">10</span></label><div class="body"><p>ขั้นที่ 3: ลบทั้งไฟล์แล้ววางโค้ดสมบูรณ์นี้ ขั้นนี้เพิ่มตัวเลือกหมวด ช่องหมายเหตุ สวิตช์ และตรวจหมวด กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/pages/AddItem.tsx</code></div><pre class="sc" id="sc9">import { useState } from 'react';
 import {
   IonButton, IonContent, IonHeader, IonInput, IonItem, IonPage, IonSelect, IonSelectOption,
   IonTextarea, IonTitle, IonToggle, IonToolbar, useIonToast,
@@ -126,9 +227,11 @@ const AddItem: React.FC = () =&gt; {
   );
 };
 
-export default AddItem;</pre><button class="noprint" id="cp">คัดลอกโค้ด</button></div>
-<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>สร้างไฟล์ src/pages/AddItem.tsx จากโค้ดตั้งต้น และชั่วคราวให้ App.tsx แสดงหน้านี้ที่ path /add (เพิ่ม Route) หรือวางแทนหน้า Home เพื่อทดสอบก่อน</p><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>ปรับช่องกรอกให้ตรงกับข้อมูลของแอปตนเอง (ใบงาน 2.3) อย่างน้อย 4 ช่อง ใช้ชนิดช่องให้เหมาะ (ตัวเลข ข้อความ ตัวเลือก สวิตช์)</p><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>เพิ่มเงื่อนไขตรวจสอบอย่างน้อย 4 ข้อ (เช่น ห้ามว่าง ตัวเลขมากกว่า 0 ชื่อยาวไม่เกิน 40 ตัวอักษร ห้ามมีแต่ช่องว่าง) และเขียนข้อความผิดพลาดที่บอกวิธีแก้</p><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>ทดสอบ: กดบันทึกโดยไม่กรอกอะไร กรอกบางช่อง กรอกครบ และกรอกค่าขอบเขต (ค่า 0 ค่าติดลบ ชื่อยาวมาก) ถ่ายภาพหน้าจออย่างน้อย 2 สถานการณ์</p><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>ทำตารางทดสอบ 6 กรณี: ข้อมูลที่กรอก ผลที่คาดหวัง ผลที่ได้ และสถานะผ่านหรือไม่ผ่าน</p><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>ทดสอบการเข้าถึงได้เบื้องต้น: ใช้แป้นพิมพ์กด Tab ไล่ดูทุกช่อง ตรวจว่ามีป้ายชื่อครบ และสีข้อความผิดพลาดอ่านชัดทั้งโหมดสว่างและมืด</p><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
-<div class="card"><h2>คำแนะนำ</h2><ul><li>ข้อความผิดพลาดจะแสดงเมื่อช่องมีคลาส ion-invalid และ ion-touched ซึ่งโค้ดตั้งต้นใส่ให้เมื่อกดบันทึกแล้ว</li><li>ค่าจากช่องกรอกเป็นข้อความเสมอ ต้องแปลงด้วย Number() ก่อนเปรียบเทียบตัวเลข</li><li>ถ้าชื่อ prop หรือเหตุการณ์ใช้ไม่ได้หลังอัปเดตแพ็กเกจ ให้เปิดเอกสารของคอมโพเนนต์นั้นในเว็บ Ionic แล้วเทียบ</li></ul></div>
+export default AddItem;</pre><button class="noprint cps" data-t="sc9" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ฟอร์มมี 5 ส่วน: ชื่อรายการ จำนวนเงิน หมวด (ตัวเลือก) หมายเหตุ และสวิตช์ เกิดซ้ำทุกเดือน</div><textarea data-k="n9" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c10"><span class="n">11</span></label><div class="body"><p>ทดสอบตัวเลือกหมวด: แตะช่อง หมวด</p><div class="see"><b>ผลที่ควรเห็น:</b> มีรายการตัวเลือก อาหาร เดินทาง การเรียน อื่น ๆ ให้เลือก เลือกหนึ่งตัวแล้วชื่อตัวเลือกปรากฏในช่อง</div><textarea data-k="n10" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c11"><span class="n">12</span></label><div class="body"><p>ทดสอบกดบันทึกโดยไม่เลือกหมวด (ชื่อและจำนวนเงินกรอกถูก)</p><div class="see"><b>ผลที่ควรเห็น:</b> มีข้อความสีแดง กรุณาเลือกหมวด ใต้ช่องหมวด และข้อความ กรอกข้อมูลไม่ครบ</div><textarea data-k="n11" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c12"><span class="n">13</span></label><div class="body"><p>เพิ่มเงื่อนไขตรวจข้อมูลข้อที่ 4: ชื่อรายการต้องยาวไม่เกิน 40 ตัวอักษร ที่บรรทัด const titleError ให้เปลี่ยนเป็นโค้ดนี้ (ใช้เงื่อนไขซ้อนกัน)</p><div class="fl">ไฟล์ <code>src/pages/AddItem.tsx</code></div><pre class="sc" id="sc12">const titleError =
+  title.trim() === '' ? 'กรุณากรอกชื่อรายการ' : title.length &gt; 40 ? 'ชื่อรายการต้องไม่เกิน 40 ตัวอักษร' : '';</pre><button class="noprint cps" data-t="sc12" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> พิมพ์ชื่อยาวเกิน 40 ตัวอักษรแล้วกดบันทึก ช่องชื่อขึ้นข้อความ ชื่อรายการต้องไม่เกิน 40 ตัวอักษร</div><textarea data-k="n12" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c13"><span class="n">14</span></label><div class="body"><p>ทดสอบแป้นพิมพ์: คลิกที่ช่องชื่อ แล้วกดปุ่ม Tab ไปเรื่อย ๆ จนผ่านทุกช่องและถึงปุ่มบันทึก กด Enter ที่ปุ่ม</p><div class="see"><b>ผลที่ควรเห็น:</b> โฟกัสเดินไปทีละช่องตามลำดับที่เห็นบนจอ และกด Enter ที่ปุ่มทำงานเหมือนคลิก (ถ้ามีช่องใดข้าม ให้จดไว้)</div><textarea data-k="n13" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c14"><span class="n">15</span></label><div class="body"><p>ทำตารางทดสอบ 6 กรณีในไฟล์ Word: รหัส T01 - T06 / ข้อมูลที่กรอก / ผลที่คาดหวัง / ผลที่ได้จริง / ผ่านหรือไม่ผ่าน ใช้กรณีจากข้อ 7 ถึง 14 ที่ทำไปแล้ว</p><div class="see"><b>ผลที่ควรเห็น:</b> ตารางครบ 6 แถวพร้อมผลจริง</div><textarea data-k="n14" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c15"><span class="n">16</span></label><div class="body"><p>ถ่ายภาพหน้าจออย่างน้อย 2 ภาพ: กรอกผิดแล้วเห็นข้อความแดง และกรอกถูกแล้วเห็นข้อความเขียว</p><div class="see"><b>ผลที่ควรเห็น:</b> ได้ภาพ 2 ภาพ</div><textarea data-k="n15" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c16"><span class="n">17</span></label><div class="body"><p>ส่งงานขึ้น GitHub: พิมพ์ในเทอร์มินัลใหม่ทีละบรรทัด</p><pre class="sc" id="sc16">git add .
+git commit -m "4.2 form with validation"
+git push</pre><button class="noprint cps" data-t="sc16" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้น Writing objects ... done</div><textarea data-k="n16" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
+<div class="card"><h2>คำแนะนำ</h2><ul><li>ข้อความผิดพลาดจะแสดงเมื่อช่องมีคลาส ion-invalid และ ion-touched ซึ่งโค้ดใส่ให้เมื่อกดบันทึกแล้ว</li><li>ค่าจากช่องกรอกเป็นข้อความเสมอ ต้องแปลงด้วย Number() ก่อนเทียบตัวเลข</li><li>ถ้าเปิด /add แล้วหน้าว่าง ตรวจว่าเพิ่ม Route และ import ใน App.tsx ครบทั้งสองจุด</li></ul></div>
 <div class="card"><h2>สิ่งที่ต้องส่ง</h2><p>ลิงก์ GitHub + ภาพหน้าจอ 2 ภาพ + ตารางทดสอบ 6 กรณี (ส่งตามช่องทางที่ครูกำหนด)</p>
 <input type="text" data-k="link" placeholder="ลิงก์ GitHub หรือเว็บที่ deploy" style="margin-bottom:8px"><textarea data-k="summary" rows="3" placeholder="สรุปผล / ปัญหาที่พบ (ถ้ามี)"></textarea></div>
 <div class="card"><h2>เกณฑ์การให้คะแนน</h2><table><tr><td>ฟอร์มมีช่องครบ ใช้ช่องกรอกแบบ controlled และชนิดช่องเหมาะสม</td><td>3</td></tr><tr><td>ตรวจสอบข้อมูลครบอย่างน้อย 4 เงื่อนไข และแจ้งข้อความผิดพลาดที่เข้าใจได้</td><td>4</td></tr><tr><td>ตารางทดสอบ ภาพ และลิงก์ครบถ้วน</td><td>3</td></tr><tr><td><b>รวม</b></td><td><b>10</b></td></tr></table></div>

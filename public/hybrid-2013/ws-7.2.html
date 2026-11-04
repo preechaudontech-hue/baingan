@@ -21,10 +21,11 @@ pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:a
 <h1>ใบงานที่ 7.2 ส่ง แก้ไข และลบข้อมูลผ่าน API</h1><div class="mu">เวลา 120 นาที · งานเดี่ยว · คะแนนเต็ม 10</div>
 <div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
 <div class="card"><h2>จุดประสงค์</h2>เรียก API ด้วยเมธอด POST PATCH และ DELETE พร้อมจัดการผลและข้อผิดพลาด และอัปเดตหน้าจอให้สอดคล้องกับผลที่ได้</div>
-<div class="card"><h2>คำชี้แจง</h2>สร้างหน้าจัดการโพสต์ที่ดึงรายการ เพิ่ม แก้ไข และลบ ผ่าน JSONPlaceholder (API จำลองที่ไม่บันทึกข้อมูลจริง) โดยเติมฟังก์ชันที่เป็น TODO ในไฟล์ posts.ts แล้วเชื่อมกับหน้าจอ</div>
+<div class="card"><h2>คำชี้แจง</h2>ionic serve ต้องรันอยู่ และต้องต่ออินเทอร์เน็ต ทุกขั้นที่ "วางโค้ดทั้งไฟล์" ให้ลบของเดิมก่อนด้วย Ctrl+A แล้ว Delete ใบงานนี้ใช้ JSONPlaceholder (API จำลองที่รับคำขอแต่ไม่บันทึกข้อมูลจริง) เพื่อฝึกส่ง แก้ไข และลบข้อมูล ทำใบงาน 7.1 ให้เสร็จก่อน (ใช้ไฟล์ http.ts ร่วมกัน)</div>
 
 <div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>ผลงานใบงาน 7.1 และ 4.2 - 4.3</li><li>ใบความรู้ที่ 7 หัวข้อ ส่ง แก้ไข และลบข้อมูล</li><li>ไฟล์ src/api/http.ts</li></ul></div>
-<div class="card"><h2>โค้ดตั้งต้น</h2><div class="mu">คัดลอกไปวางในไฟล์ที่ระบุในโค้ด</div><pre id="code">// src/api/posts.ts
+
+<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>ตรวจว่ามีไฟล์ src/api/http.ts จากใบงาน 7.1 แล้ว (ถ้าไม่มี ให้สร้างตามข้อแรกของใบงาน 7.1)</p><div class="see"><b>ผลที่ควรเห็น:</b> เปิดไฟล์ http.ts เห็นฟังก์ชัน getJson และ sendJson</div><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>สร้างไฟล์ src/api/posts.ts วางโค้ดนี้ทั้งไฟล์ กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/api/posts.ts</code></div><pre class="sc" id="sc1">// src/api/posts.ts
 import { getJson, sendJson } from './http';
 
 export interface Post { id: number; userId: number; title: string; body: string }
@@ -44,9 +45,126 @@ export async function updatePost(id: number, changes: Partial&lt;Post&gt;): Prom
 export async function deletePost(id: number): Promise&lt;void&gt; {
   // TODO: ส่ง DELETE ไปที่ `${BASE}/posts/${id}` ด้วย sendJson
   throw new Error('ยังไม่ได้เขียน deletePost ' + id);
-}</pre><button class="noprint" id="cp">คัดลอกโค้ด</button></div>
-<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>สร้างไฟล์ src/api/posts.ts จากโค้ดตั้งต้น แล้วเติมฟังก์ชัน updatePost (PATCH) และ deletePost (DELETE) ตามคอมเมนต์</p><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>สร้างหน้ารายการโพสต์ ใช้ useEffect เรียก listPosts พร้อมยกเลิกคำขอเมื่อออกจากหน้า (AbortController) และมีสถานะกำลังโหลด ผิดพลาด ว่าง</p><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>เพิ่มฟอร์มสร้างโพสต์ (ชื่อเรื่อง เนื้อหา) ที่ตรวจข้อมูลก่อนส่ง ปิดปุ่มขณะรอคำตอบ แล้วเพิ่มโพสต์ที่ได้ไว้บนสุดของรายการ (JSONPlaceholder ตอบ id 101 เสมอ ให้ใช้ id ชั่วคราวฝั่งแอปสำหรับ key ไม่ให้ซ้ำ)</p><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>เพิ่มการแก้ไขชื่อเรื่องด้วย PATCH และอัปเดตรายการในหน้าจอจากคำตอบ</p><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>เพิ่มการลบด้วย DELETE พร้อมกล่องถามยืนยัน (useIonAlert) แล้วลบรายการออกจากหน้าจอเมื่อสำเร็จ</p><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>ทดสอบความผิดพลาด: ปิดอินเทอร์เน็ตแล้วกดสร้างและลบ ดูว่าหน้าจอไม่เปลี่ยนผิดและแจ้งผู้ใช้อย่างเข้าใจ จากนั้นเรียกโพสต์ที่ไม่มีอยู่ (เช่น /posts/9999) ตรวจว่าได้ 404 และแอปแสดงข้อความ ถ่ายภาพ</p><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>เขียนตาราง 3 แถว (สร้าง แก้ไข ลบ): เมธอด URL เนื้อหาที่ส่ง รหัสสถานะที่ได้ (ดูจากแท็บ Network) และข้อความที่ผู้ใช้เห็น</p><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c7"><span class="n">8</span></label><div class="body"><p>รีเฟรชหน้าแล้วดูว่ารายการที่สร้างหายไป อธิบายเหตุผล (อ้างอิงข้อจำกัดของ JSONPlaceholder) และอธิบายว่า API จริงของแอปที่มีฐานข้อมูลจะต่างอย่างไร</p><textarea data-k="n7" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
-<div class="card"><h2>คำแนะนำ</h2><ul><li>ถ้า PATCH หรือ DELETE ถูกบล็อก ให้ตรวจว่าใช้ HTTPS และพิมพ์ URL ถูก</li><li>ปิดปุ่มขณะรอคำตอบเพื่อกันการกดซ้ำ แล้วเปิดปุ่มคืนใน finally</li><li>การแก้ state ของรายการต้องสร้างอาร์เรย์ใหม่ด้วย map หรือ filter</li></ul></div>
+}</pre><button class="noprint cps" data-t="sc1" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีข้อความแดง</div><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>เติมฟังก์ชัน updatePost (PATCH): แทน 2 บรรทัด (คอมเมนต์ TODO และ throw new Error) ในฟังก์ชันนี้ด้วยบรรทัดเดียวนี้</p><div class="fl">ไฟล์ <code>src/api/posts.ts</code></div><pre class="sc" id="sc2">return sendJson&lt;Post&gt;('PATCH', `${BASE}/posts/${id}`, changes);</pre><button class="noprint cps" data-t="sc2" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีข้อความแดง</div><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>เติมฟังก์ชัน deletePost (DELETE): แทน 2 บรรทัดในฟังก์ชันนี้ด้วยบรรทัดนี้</p><div class="fl">ไฟล์ <code>src/api/posts.ts</code></div><pre class="sc" id="sc3">await sendJson&lt;unknown&gt;('DELETE', `${BASE}/posts/${id}`);</pre><button class="noprint cps" data-t="sc3" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีข้อความแดง</div><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>สร้างหน้าจัดการโพสต์ src/pages/Posts.tsx วางโค้ดนี้ทั้งไฟล์ กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/pages/Posts.tsx</code></div><pre class="sc" id="sc4">import { useEffect, useState } from 'react';
+import {
+  IonButton, IonContent, IonHeader, IonInput, IonItem, IonLabel, IonList, IonPage, IonSpinner, IonTitle, IonToolbar,
+  useIonAlert,
+} from '@ionic/react';
+import { createPost, deletePost, listPosts, updatePost, Post } from '../api/posts';
+
+let localId = 1000; // id ชั่วคราวฝั่งแอป เพราะ JSONPlaceholder ตอบ id 101 ซ้ำทุกครั้ง
+
+const Posts: React.FC = () =&gt; {
+  const [presentAlert] = useIonAlert();
+  const [posts, setPosts] = useState&lt;Post[]&gt;([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [title, setTitle] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() =&gt; {
+    const ctrl = new AbortController();
+    listPosts(ctrl.signal)
+      .then(setPosts)
+      .catch(e =&gt; {
+        if (e.name !== 'AbortError') setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
+      })
+      .finally(() =&gt; {
+        if (!ctrl.signal.aborted) setLoading(false);
+      });
+    return () =&gt; ctrl.abort();
+  }, []);
+
+  async function add() {
+    if (title.trim() === '' || busy) return;
+    setBusy(true);
+    try {
+      const created = await createPost(title.trim(), 'เนื้อหาตัวอย่าง');
+      setPosts([{ ...created, id: localId++ }, ...posts]);
+      setTitle('');
+      setError('');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function rename(p: Post) {
+    setBusy(true);
+    try {
+      const updated = await updatePost(p.id, { title: p.title + ' (แก้แล้ว)' });
+      setPosts(posts.map(x =&gt; (x.id === p.id ? { ...x, title: updated.title } : x)));
+      setError('');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function confirmRemove(p: Post) {
+    presentAlert({
+      header: 'ลบโพสต์?',
+      message: p.title,
+      buttons: [
+        'ยกเลิก',
+        {
+          text: 'ลบ',
+          role: 'destructive',
+          handler: async () =&gt; {
+            try {
+              await deletePost(p.id);
+              setPosts(posts.filter(x =&gt; x.id !== p.id));
+            } catch (e) {
+              setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
+            }
+          },
+        },
+      ],
+    });
+  }
+
+  return (
+    &lt;IonPage&gt;
+      &lt;IonHeader&gt;
+        &lt;IonToolbar color="primary"&gt;
+          &lt;IonTitle&gt;โพสต์ ({posts.length})&lt;/IonTitle&gt;
+        &lt;/IonToolbar&gt;
+      &lt;/IonHeader&gt;
+      &lt;IonContent className="ion-padding"&gt;
+        &lt;IonInput
+          label="ชื่อเรื่องใหม่"
+          labelPlacement="floating"
+          fill="outline"
+          value={title}
+          onIonInput={e =&gt; setTitle(String(e.detail.value ?? ''))}
+        /&gt;
+        &lt;IonButton expand="block" onClick={add} disabled={busy || title.trim() === ''}&gt;เพิ่มโพสต์&lt;/IonButton&gt;
+
+        {loading &amp;&amp; &lt;p className="ion-text-center"&gt;&lt;IonSpinner /&gt; กำลังโหลด...&lt;/p&gt;}
+        {error &amp;&amp; &lt;p&gt;{error}&lt;/p&gt;}
+
+        &lt;IonList&gt;
+          {posts.map(p =&gt; (
+            &lt;IonItem key={p.id}&gt;
+              &lt;IonLabel className="ion-text-wrap"&gt;{p.title}&lt;/IonLabel&gt;
+              &lt;IonButton size="small" fill="outline" disabled={busy} onClick={() =&gt; rename(p)}&gt;แก้ชื่อ&lt;/IonButton&gt;
+              &lt;IonButton size="small" color="danger" onClick={() =&gt; confirmRemove(p)}&gt;ลบ&lt;/IonButton&gt;
+            &lt;/IonItem&gt;
+          ))}
+        &lt;/IonList&gt;
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default Posts;</pre><button class="noprint cps" data-t="sc4" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ยังไม่เห็นผลบนหน้าเว็บ</div><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>เพิ่มเส้นทางใน src/App.tsx 2 จุด จุดแรกใต้บรรทัด import Home from './pages/Home'; เพิ่ม import Posts from './pages/Posts'; จุดที่สองใต้บรรทัด &lt;Route path="/home" element={&lt;Home /&gt;} /&gt; เพิ่ม &lt;Route path="/posts" element={&lt;Posts /&gt;} /&gt; แล้วกด Ctrl+S</p><div class="fl">ไฟล์ <code>src/App.tsx</code></div><pre class="sc" id="sc5">import Posts from './pages/Posts';
+
+&lt;Route path="/posts" element={&lt;Posts /&gt;} /&gt;</pre><button class="noprint cps" data-t="sc5" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีข้อความแดงในเทอร์มินัล</div><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>เปิดที่อยู่ /posts ในเบราว์เซอร์</p><div class="see"><b>ผลที่ควรเห็น:</b> แถบหัว โพสต์ (10) ช่อง ชื่อเรื่องใหม่ ปุ่ม เพิ่มโพสต์ (จางกดไม่ได้เพราะช่องว่าง) และรายการโพสต์ 10 รายการ แต่ละรายการมีปุ่ม แก้ชื่อ และ ลบ</div><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c7"><span class="n">8</span></label><div class="body"><p>ทดสอบสร้าง: พิมพ์ ทดสอบโพสต์ใหม่ ในช่อง แล้วกดปุ่ม เพิ่มโพสต์ จากนั้นเปิดแท็บ Network ของ DevTools ดูคำขอ POST</p><div class="see"><b>ผลที่ควรเห็น:</b> โพสต์ใหม่อยู่บนสุดของรายการ หัวข้อเป็น โพสต์ (11) ช่องถูกล้าง และใน Network เห็นคำขอ POST ได้รหัสสถานะ 201 ในคำตอบมี id เป็น 101</div><textarea data-k="n7" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c8"><span class="n">9</span></label><div class="body"><p>สร้างโพสต์ที่สองอีกหนึ่งรายการ แล้วดูคำตอบใน Network ว่า id เป็นอะไร</p><div class="see"><b>ผลที่ควรเห็น:</b> id ในคำตอบเป็น 101 เหมือนเดิม (API จำลองตอบ id เดิมเสมอ) แต่ในรายการทั้งสองโพสต์แสดงได้ปกติ เพราะโค้ดใช้ id ชั่วคราวของแอป (localId) เป็น key</div><textarea data-k="n8" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c9"><span class="n">10</span></label><div class="body"><p>ทดสอบแก้: กดปุ่ม แก้ชื่อ ที่โพสต์ใดโพสต์หนึ่ง ดูคำขอ PATCH ใน Network</p><div class="see"><b>ผลที่ควรเห็น:</b> ชื่อโพสต์นั้นมีคำว่า (แก้แล้ว) ต่อท้าย คำขอเป็น PATCH ได้รหัสสถานะ 200 (หมายเหตุ: โพสต์ที่สร้างเองมี id ชั่วคราวเกิน 1000 จึงอาจได้ 500 จากเซิร์ฟเวอร์จำลอง ให้ทดสอบกับโพสต์ 10 รายการแรกที่มาจาก API)</div><textarea data-k="n9" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c10"><span class="n">11</span></label><div class="body"><p>ทดสอบลบ: กดปุ่ม ลบ ที่โพสต์หนึ่ง</p><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้นกล่อง ลบโพสต์? แสดงชื่อโพสต์ พร้อมปุ่ม ยกเลิก และ ลบ กด ยกเลิก โพสต์ยังอยู่ กด ลบ ในกล่องแล้ว โพสต์หาย และใน Network เห็นคำขอ DELETE รหัสสถานะ 200</div><textarea data-k="n10" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c11"><span class="n">12</span></label><div class="body"><p>รีเฟรชหน้า (F5) แล้วดูรายการ</p><div class="see"><b>ผลที่ควรเห็น:</b> รายการกลับมาเป็นโพสต์ 10 รายการเดิม โพสต์ที่เพิ่ม แก้ และลบหายไปหมด เพราะ JSONPlaceholder ไม่บันทึกข้อมูลจริง เขียนในช่องบันทึกว่า API จริงที่มีฐานข้อมูลจะต่างอย่างไร</div><textarea data-k="n11" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c12"><span class="n">13</span></label><div class="body"><p>ทดสอบความผิดพลาด 1: ที่แท็บ Network ตั้งเป็น Offline แล้วกดปุ่ม เพิ่มโพสต์ (พิมพ์ชื่อไว้ก่อน)</p><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้นข้อความ เชื่อมต่อเครือข่ายไม่ได้ ไม่มีโพสต์เพิ่มในรายการ และปุ่มกลับมากดได้หลังเสร็จ (ปุ่มถูกปิดขณะรอเพื่อกันการกดซ้ำ) จากนั้นตั้งกลับเป็น No throttling</div><textarea data-k="n12" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c13"><span class="n">14</span></label><div class="body"><p>ทดสอบความผิดพลาด 2: ในไฟล์ posts.ts ชั่วคราวเปลี่ยนคำว่า /posts/${id} ในฟังก์ชัน deletePost เป็น /postz/${id} แล้วกดลบโพสต์</p><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้นข้อความ เซิร์ฟเวอร์ตอบกลับผิดพลาด (404) และโพสต์ยังอยู่ในรายการ จากนั้นแก้กลับให้ถูกต้อง</div><textarea data-k="n13" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c14"><span class="n">15</span></label><div class="body"><p>ทำตาราง 3 แถว (สร้าง แก้ไข ลบ) ในไฟล์ Word: เมธอด / URL / เนื้อหาที่ส่ง / รหัสสถานะที่ได้ (ดูจาก Network) / ข้อความที่ผู้ใช้เห็น</p><div class="see"><b>ผลที่ควรเห็น:</b> ตารางครบ 3 แถว (สร้างได้ 201 ส่วนแก้และลบได้ 200)</div><textarea data-k="n14" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c15"><span class="n">16</span></label><div class="body"><p>ถ่ายภาพหน้าจอ (รายการ ฟอร์ม และกรณีออฟไลน์) แล้วส่งงานขึ้น GitHub</p><pre class="sc" id="sc15">git add .
+git commit -m "7.2 post crud with jsonplaceholder"
+git push</pre><button class="noprint cps" data-t="sc15" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้น Writing objects ... done</div><textarea data-k="n15" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
+<div class="card"><h2>คำแนะนำ</h2><ul><li>ถ้า PATCH หรือ DELETE ถูกบล็อก ให้ตรวจว่าใช้ HTTPS และพิมพ์ URL ถูก</li><li>ปิดปุ่มขณะรอคำตอบเพื่อกันการกดซ้ำ แล้วเปิดปุ่มคืนใน finally</li><li>การแก้ state ของรายการต้องสร้างอาเรย์ใหม่ด้วย map หรือ filter</li></ul></div>
 <div class="card"><h2>สิ่งที่ต้องส่ง</h2><p>ลิงก์ GitHub + ภาพหน้าจอ (รายการ ฟอร์มกรอกผิด และกรณีออฟไลน์) + ตาราง 3 แถวพร้อมภาพแท็บ Network + คำอธิบายข้อ 8 (ส่งตามช่องทางที่ครูกำหนด)</p>
 <input type="text" data-k="link" placeholder="ลิงก์ GitHub หรือเว็บที่ deploy" style="margin-bottom:8px"><textarea data-k="summary" rows="3" placeholder="สรุปผล / ปัญหาที่พบ (ถ้ามี)"></textarea></div>
 <div class="card"><h2>เกณฑ์การให้คะแนน</h2><table><tr><td>สร้าง แก้ไข และลบผ่าน API ได้ถูกต้อง อัปเดตหน้าจอสอดคล้องกับผล</td><td>4</td></tr><tr><td>จัดการข้อผิดพลาด การกดซ้ำ และการยืนยันก่อนลบได้</td><td>3</td></tr><tr><td>ตาราง ภาพหลักฐาน และคำอธิบายครบถ้วน</td><td>3</td></tr><tr><td><b>รวม</b></td><td><b>10</b></td></tr></table></div>

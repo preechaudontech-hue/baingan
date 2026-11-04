@@ -21,10 +21,12 @@ pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:a
 <h1>ใบงานที่ 6.2 SQLite: เพิ่ม อ่าน แก้ ลบ ข้อมูล</h1><div class="mu">เวลา 150 นาที · งานเดี่ยว · คะแนนเต็ม 10</div>
 <div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
 <div class="card"><h2>จุดประสงค์</h2>สร้างฐานข้อมูล SQLite ในแอปและทำ CRUD ครบด้วยคำสั่ง SQL ที่ปลอดภัย ข้อมูลคงอยู่หลังรีเฟรช</div>
-<div class="card"><h2>คำชี้แจง</h2>สร้างชั้นเชื่อมฐานข้อมูลจากโค้ดตั้งต้น เติมส่วนที่เป็น TODO แล้วนำไปใช้กับหน้ารายการที่ทำในใบงาน 4.3 เปลี่ยนจากข้อมูลในหน่วยความจำเป็นข้อมูลในฐานข้อมูล</div>
+<div class="card"><h2>คำชี้แจง</h2>ionic serve ต้องรันอยู่ ทุกขั้นที่ "วางโค้ดทั้งไฟล์" ให้ลบของเดิมก่อนด้วย Ctrl+A แล้ว Delete ข้อมูลที่เก็บเป็นของเบราว์เซอร์ที่ใช้ทดสอบ (ผูกกับที่อยู่ localhost:พอร์ต) ใบงานนี้สร้างฐานข้อมูล SQLite ในแอป (ใช้ sql.js) ทำ CRUD และทดสอบผ่านหน้าทดสอบที่ให้มา แล้วนำไปต่อกับหน้ารายการจากใบงาน 4.3</div>
 
 <div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>ผลงานใบงาน 4.3 และ 6.1</li><li>ใบความรู้ที่ 6 หัวข้อ SQL พื้นฐานและ SQLite ในแอปไฮบริด</li></ul></div>
-<div class="card"><h2>โค้ดตั้งต้น</h2><div class="mu">คัดลอกไปวางในไฟล์ที่ระบุในโค้ด</div><pre id="code">import initSqlJs, { Database } from 'sql.js';
+
+<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>เปิดเทอร์มินัลใหม่ แล้วติดตั้งแพ็กเกจ 2 คำสั่ง (ตัวที่สองมีนามสกุลชนิดข้อมูลสำหรับ TypeScript)</p><pre class="sc" id="sc0">npm install sql.js @capacitor/preferences
+npm install -D @types/sql.js</pre><button class="noprint cps" data-t="sc0" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ทั้งสองคำสั่งจบโดยไม่มีข้อความ ERR</div><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>สร้างโฟลเดอร์ src/db แล้วสร้างไฟล์ src/db/database.ts วางโค้ดนี้ทั้งไฟล์ (ตัวแปร STORAGE_KEY เป็นชื่อที่เก็บในเครื่อง เปลี่ยนเป็นชื่อแอปของคุณได้) กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/db/database.ts</code></div><pre class="sc" id="sc1">import initSqlJs, { Database } from 'sql.js';
 import wasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
 import { Preferences } from '@capacitor/preferences';
 
@@ -103,9 +105,101 @@ export interface CategoryTotal { category: string; total: number; count: number 
 export async function totalsByCategory(): Promise&lt;CategoryTotal[]&gt; {
   // TODO: SELECT category, SUM(amount) AS total, COUNT(*) AS count FROM items GROUP BY category ORDER BY total DESC
   return [];
-}</pre><button class="noprint" id="cp">คัดลอกโค้ด</button></div>
-<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>ติดตั้งแพ็กเกจด้วยคำสั่ง npm install sql.js @capacitor/preferences และ npm install -D @types/sql.js แล้วสร้างไฟล์ src/db/database.ts จากโค้ดตั้งต้น (ตัดบรรทัดคอมเมนต์ชื่อไฟล์ออกก็ได้) เปลี่ยนค่า STORAGE_KEY เป็นชื่อของแอปตนเอง</p><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>เติมฟังก์ชัน updateItem และ deleteItem โดยใช้พารามิเตอร์ ? และเรียก persist() ตามแบบของ addItem</p><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>เติมฟังก์ชัน totalsByCategory ด้วยคำสั่ง SELECT ... GROUP BY ตามคอมเมนต์ (ใช้ prepare, step, getAsObject เหมือน listItems)</p><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>แก้หน้ารายการจากใบงาน 4.3 ให้โหลดข้อมูลจากฐานข้อมูลด้วย listItems ใน useEffect มีสถานะกำลังโหลดและข้อผิดพลาด เพิ่ม ลบ และแก้รายการผ่านฟังก์ชันเหล่านี้แล้วโหลดรายการใหม่</p><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>ทดสอบ: เพิ่ม แก้ ลบ แล้วรีเฟรชหน้า ตรวจว่าข้อมูลยังอยู่ ถ่ายภาพก่อนและหลังรีเฟรช ทดสอบกรณีจำนวนเงินเป็น 0 ให้ CHECK ในฐานข้อมูลปฏิเสธ แล้วดูว่าแอปจับข้อผิดพลาดและแจ้งผู้ใช้อย่างไร</p><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>ทดสอบความปลอดภัย: ลองเขียนฟังก์ชันค้นหาแบบต่อสตริง (searchUnsafe) ที่ใช้ title ต่อเข้าในคำสั่ง แล้วค้นด้วยข้อความ ' OR '1'='1 สังเกตผลว่าได้ข้อมูลทุกแถว จากนั้นเขียนแบบใช้พารามิเตอร์ (searchSafe) และทดสอบด้วยข้อความเดียวกัน บันทึกผลทั้งสอง แล้วลบ searchUnsafe ออกจากแอป</p><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>เขียนคำสั่ง SQL 5 ข้อที่เกี่ยวกับข้อมูลของแอปตนเอง (เช่น รายการแพงที่สุด 3 อันดับ ยอดรวมต่อหมวด รายการที่ชื่อมีคำว่า ... ) ทดสอบผ่านฟังก์ชันในแอปหรือใน Console และบันทึกผลที่ได้</p><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
-<div class="card"><h2>คำแนะนำ</h2><ul><li>ถ้า TypeScript ฟ้อง import 'sql.js/dist/sql-wasm.wasm?url' ให้ตรวจว่าโปรเจกต์ใช้ Vite และมีไฟล์ vite-env.d.ts ที่อ้างอิง vite/client</li><li>ทุกฟังก์ชันที่แก้ข้อมูลต้องเรียก persist() ถ้าลืม ข้อมูลจะหายเมื่อรีเฟรช</li><li>ใช้ db.run สำหรับคำสั่งที่ไม่คืนแถว และ prepare, step, getAsObject, free สำหรับ SELECT</li><li>ถ้าข้อมูลที่ทดสอบเสียหาย ล้างได้โดยลบคีย์ของฐานข้อมูลใน Local Storage ผ่านแท็บ Application ของ DevTools</li></ul></div>
+}</pre><button class="noprint cps" data-t="sc1" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีข้อความแดง (ถ้า VS Code ขีดเส้นแดงที่ import 'sql.js/dist/sql-wasm.wasm?url' ให้ตรวจว่าติดตั้งแพ็กเกจครบทั้ง 2 คำสั่ง)</div><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>อ่านโค้ด: หา 3 ฟังก์ชัน getDb, persist, listItems แล้วเขียนในช่องบันทึกว่าแต่ละฟังก์ชันทำอะไร และทำไม addItem ต้องเรียก persist() ต่อท้าย (ใบความรู้ที่ 6 หัวข้อ SQLite)</p><div class="see"><b>ผลที่ควรเห็น:</b> ตอบได้ว่า getDb เปิดฐานข้อมูลและสร้างตารางครั้งเดียว persist เก็บฐานทั้งก้อนลงเครื่อง listItems อ่านแถวทั้งหมด และต้องเรียก persist หลังแก้ข้อมูลไม่เช่นนั้นข้อมูลหายเมื่อรีเฟรช</div><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>เติมฟังก์ชัน updateItem: แทนบรรทัดคอมเมนต์ TODO ในฟังก์ชันนี้ด้วย 3 บรรทัดนี้ (ใช้เครื่องหมาย ? แทนค่า แล้วส่งค่าเป็นอาเรย์)</p><div class="fl">ไฟล์ <code>src/db/database.ts</code></div><pre class="sc" id="sc3">const conn = await getDb();
+conn.run('UPDATE items SET title = ?, category = ?, amount = ? WHERE id = ?', [title, category, amount, id]);
+await persist();</pre><button class="noprint cps" data-t="sc3" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีข้อความแดง</div><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>เติมฟังก์ชัน deleteItem: แทนบรรทัดคอมเมนต์ TODO ในฟังก์ชันนี้ด้วย 3 บรรทัดนี้</p><div class="fl">ไฟล์ <code>src/db/database.ts</code></div><pre class="sc" id="sc4">const conn = await getDb();
+conn.run('DELETE FROM items WHERE id = ?', [id]);
+await persist();</pre><button class="noprint cps" data-t="sc4" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีข้อความแดง</div><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>เติมฟังก์ชันสรุปต่อหมวด: แทนบรรทัดคอมเมนต์ TODO และบรรทัด return []; ในฟังก์ชัน totalsByCategory ด้วยโค้ดนี้</p><div class="fl">ไฟล์ <code>src/db/database.ts</code></div><pre class="sc" id="sc5">const conn = await getDb();
+const stmt = conn.prepare('SELECT category, SUM(amount) AS total, COUNT(*) AS count FROM items GROUP BY category ORDER BY total DESC');
+const rows: CategoryTotal[] = [];
+while (stmt.step()) rows.push(stmt.getAsObject() as unknown as CategoryTotal);
+stmt.free();
+return rows;</pre><button class="noprint cps" data-t="sc5" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีข้อความแดง</div><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>เพิ่มฟังก์ชันค้นหาสองแบบไว้ทดสอบความปลอดภัย วางชุดนี้ไว้ก่อนบรรทัด export interface CategoryTotal ... (แบบแรกต่อสตริง ซึ่งไม่ปลอดภัย และแบบที่สองใช้พารามิเตอร์)</p><div class="fl">ไฟล์ <code>src/db/database.ts</code></div><pre class="sc" id="sc6">// ไม่ปลอดภัย: ต่อข้อความที่ผู้ใช้พิมพ์เข้าไปในคำสั่ง SQL (ใช้ทดลองแล้วลบทิ้ง ห้ามใช้ในแอปจริง)
+export async function searchUnsafe(text: string): Promise&lt;Item[]&gt; {
+  const conn = await getDb();
+  const res = conn.exec("SELECT id, title, category, amount FROM items WHERE title = '" + text + "'");
+  if (res.length === 0) return [];
+  return res[0].values.map(v =&gt; ({ id: Number(v[0]), title: String(v[1]), category: String(v[2]), amount: Number(v[3]) }));
+}
+
+// ปลอดภัย: ใช้เครื่องหมาย ? แล้วส่งค่าแยกเป็นพารามิเตอร์
+export async function searchSafe(text: string): Promise&lt;Item[]&gt; {
+  const conn = await getDb();
+  const stmt = conn.prepare('SELECT id, title, category, amount FROM items WHERE title = ?');
+  stmt.bind([text]);
+  const rows: Item[] = [];
+  while (stmt.step()) rows.push(stmt.getAsObject() as unknown as Item);
+  stmt.free();
+  return rows;
+}</pre><button class="noprint cps" data-t="sc6" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีข้อความแดง</div><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c7"><span class="n">8</span></label><div class="body"><p>สร้างหน้าทดสอบ src/pages/DbTest.tsx วางโค้ดนี้ทั้งไฟล์ (มีปุ่มเพิ่ม แก้ ลบ ค้นหา และสรุปต่อหมวด)</p><div class="fl">ไฟล์ <code>src/pages/DbTest.tsx</code></div><pre class="sc" id="sc7">import { useEffect, useState } from 'react';
+import { IonButton, IonContent, IonHeader, IonInput, IonItem, IonLabel, IonList, IonPage, IonTitle, IonToolbar } from '@ionic/react';
+import {
+  addItem, deleteItem, listItems, searchSafe, searchUnsafe, totalsByCategory, updateItem,
+  CategoryTotal, Item,
+} from '../db/database';
+
+const DbTest: React.FC = () =&gt; {
+  const [items, setItems] = useState&lt;Item[]&gt;([]);
+  const [totals, setTotals] = useState&lt;CategoryTotal[]&gt;([]);
+  const [message, setMessage] = useState('');
+  const [text, setText] = useState('');
+
+  async function reload() {
+    setItems(await listItems());
+    setTotals(await totalsByCategory());
+  }
+
+  useEffect(() =&gt; {
+    reload().catch(() =&gt; setMessage('อ่านฐานข้อมูลไม่สำเร็จ'));
+  }, []);
+
+  async function run(job: () =&gt; Promise&lt;void&gt;) {
+    try {
+      await job();
+      setMessage('');
+      await reload();
+    } catch (e) {
+      setMessage('ผิดพลาด: ' + String(e));
+    }
+  }
+
+  return (
+    &lt;IonPage&gt;
+      &lt;IonHeader&gt;
+        &lt;IonToolbar color="primary"&gt;
+          &lt;IonTitle&gt;ทดสอบฐานข้อมูล ({items.length})&lt;/IonTitle&gt;
+        &lt;/IonToolbar&gt;
+      &lt;/IonHeader&gt;
+      &lt;IonContent className="ion-padding"&gt;
+        &lt;IonButton onClick={() =&gt; run(() =&gt; addItem('ข้าวมันไก่', 'อาหาร', 60))}&gt;เพิ่ม&lt;/IonButton&gt;
+        &lt;IonButton onClick={() =&gt; run(() =&gt; addItem('ผิดกฎ', 'อาหาร', 0))}&gt;เพิ่มจำนวน 0&lt;/IonButton&gt;
+        &lt;IonButton onClick={() =&gt; run(async () =&gt; { if (items[0]) await updateItem(items[0].id, 'แก้แล้ว', 'เดินทาง', 99); })}&gt;แก้รายการแรก&lt;/IonButton&gt;
+        &lt;IonButton color="danger" onClick={() =&gt; run(async () =&gt; { if (items[0]) await deleteItem(items[0].id); })}&gt;ลบรายการแรก&lt;/IonButton&gt;
+
+        &lt;IonInput label="ค้นหาชื่อ" labelPlacement="floating" fill="outline" value={text} onIonInput={e =&gt; setText(String(e.detail.value ?? ''))} /&gt;
+        &lt;IonButton onClick={async () =&gt; setMessage('ไม่ปลอดภัย: ' + (await searchUnsafe(text)).length + ' แถว')}&gt;ค้นแบบต่อสตริง&lt;/IonButton&gt;
+        &lt;IonButton onClick={async () =&gt; setMessage('ปลอดภัย: ' + (await searchSafe(text)).length + ' แถว')}&gt;ค้นแบบพารามิเตอร์&lt;/IonButton&gt;
+
+        {message &amp;&amp; &lt;p&gt;{message}&lt;/p&gt;}
+        &lt;IonList&gt;
+          {items.map(i =&gt; (
+            &lt;IonItem key={i.id}&gt;
+              &lt;IonLabel&gt;{i.id}: {i.title} / {i.category} / {i.amount}&lt;/IonLabel&gt;
+            &lt;/IonItem&gt;
+          ))}
+        &lt;/IonList&gt;
+        &lt;p&gt;สรุปต่อหมวด: {totals.map(t =&gt; `${t.category} ${t.total} (${t.count})`).join(', ')}&lt;/p&gt;
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default DbTest;</pre><button class="noprint cps" data-t="sc7" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ยังไม่เห็นผลบนหน้าเว็บ</div><textarea data-k="n7" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c8"><span class="n">9</span></label><div class="body"><p>เพิ่มเส้นทางใน src/App.tsx 2 จุด จุดแรกใต้บรรทัด import Home from './pages/Home'; เพิ่ม import DbTest from './pages/DbTest'; จุดที่สองใต้บรรทัด &lt;Route path="/home" element={&lt;Home /&gt;} /&gt; เพิ่ม &lt;Route path="/dbtest" element={&lt;DbTest /&gt;} /&gt; แล้วกด Ctrl+S</p><div class="fl">ไฟล์ <code>src/App.tsx</code></div><pre class="sc" id="sc8">import DbTest from './pages/DbTest';
+
+&lt;Route path="/dbtest" element={&lt;DbTest /&gt;} /&gt;</pre><button class="noprint cps" data-t="sc8" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีข้อความแดงในเทอร์มินัล</div><textarea data-k="n8" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c9"><span class="n">10</span></label><div class="body"><p>เปิด /dbtest ในเบราว์เซอร์ รอประมาณ 1 - 2 วินาที</p><div class="see"><b>ผลที่ควรเห็น:</b> แถบหัว ทดสอบฐานข้อมูล (0) ปุ่ม 4 ปุ่มแถวบน ช่อง ค้นหาชื่อ ปุ่มค้นหา 2 ปุ่ม และข้อความ สรุปต่อหมวด: (ว่าง) เพราะยังไม่มีข้อมูล</div><textarea data-k="n9" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c10"><span class="n">11</span></label><div class="body"><p>กดปุ่ม เพิ่ม สองครั้ง</p><div class="see"><b>ผลที่ควรเห็น:</b> หัวข้อเป็น ทดสอบฐานข้อมูล (2) มีรายการ 2: ข้าวมันไก่ / อาหาร / 60 และ 1: ... และข้อความสรุปต่อหมวด: อาหาร 120 (2)</div><textarea data-k="n10" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c11"><span class="n">12</span></label><div class="body"><p>กดปุ่ม แก้รายการแรก</p><div class="see"><b>ผลที่ควรเห็น:</b> รายการแรก (id 2) เปลี่ยนเป็น 2: แก้แล้ว / เดินทาง / 99 และสรุปต่อหมวดมี 2 หมวด: เดินทาง 99 (1), อาหาร 60 (1)</div><textarea data-k="n11" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c12"><span class="n">13</span></label><div class="body"><p>กดปุ่ม ลบรายการแรก</p><div class="see"><b>ผลที่ควรเห็น:</b> รายการที่ id 2 หายไป เหลือ 1 รายการ</div><textarea data-k="n12" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c13"><span class="n">14</span></label><div class="body"><p>ทดสอบเงื่อนไข CHECK ของฐานข้อมูล: กดปุ่ม เพิ่มจำนวน 0</p><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้นข้อความ ผิดพลาด: Error: CHECK constraint failed: amount &gt; 0 และรายการไม่เพิ่ม (ฐานข้อมูลปฏิเสธข้อมูลที่ผิดกฎ) จดข้อความไว้ในช่องบันทึก</div><textarea data-k="n13" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c14"><span class="n">15</span></label><div class="body"><p>ทดสอบการคงอยู่: กด F5 รีเฟรชหน้า รอ 1 - 2 วินาที ถ่ายภาพก่อนและหลังรีเฟรช</p><div class="see"><b>ผลที่ควรเห็น:</b> ข้อมูลยังอยู่ครบเหมือนก่อนรีเฟรช (เพราะ persist() บันทึกลง Preferences)</div><textarea data-k="n14" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c15"><span class="n">16</span></label><div class="body"><p>ทดสอบ SQL injection ข้อ 1: เพิ่มรายการชื่อ ข้าวมันไก่ ไว้อย่างน้อย 2 รายการ แล้วพิมพ์ ' OR '1'='1 (เริ่มต้นด้วยเครื่องหมายคำพูดเดี่ยว ไม่มีช่องว่างพิเศษ) ในช่อง ค้นหาชื่อ แล้วกดปุ่ม ค้นแบบต่อสตริง</p><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้นข้อความ ไม่ปลอดภัย: N แถว โดย N เท่ากับจำนวนรายการทั้งหมด (ทั้งที่ไม่มีรายการชื่อแบบนั้น แปลว่าข้อความที่พิมพ์ไปเปลี่ยนความหมายของคำสั่ง SQL)</div><textarea data-k="n15" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c16"><span class="n">17</span></label><div class="body"><p>ทดสอบข้อ 2: ข้อความเดิมในช่อง แต่กดปุ่ม ค้นแบบพารามิเตอร์</p><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้นข้อความ ปลอดภัย: 0 แถว (ข้อความถูกมองเป็นชื่อที่ต้องการค้น ไม่ใช่ส่วนของคำสั่ง) ถ่ายภาพผลทั้งสองข้อ</div><textarea data-k="n16" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c17"><span class="n">18</span></label><div class="body"><p>ทดสอบการค้นปกติ: พิมพ์ ข้าวมันไก่ แล้วกดปุ่มแบบพารามิเตอร์</p><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้น ปลอดภัย: จำนวนแถวที่ชื่อ ข้าวมันไก่ ตรงตัว</div><textarea data-k="n17" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c18"><span class="n">19</span></label><div class="body"><p>ลบฟังก์ชัน searchUnsafe ออกจากไฟล์ database.ts และปุ่ม ค้นแบบต่อสตริง ออกจาก DbTest.tsx (ฟังก์ชันนี้ใช้ทดลองเท่านั้น) แล้วบันทึกว่าแก้ไขแล้ว</p><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีข้อความแดง และหน้าทดสอบเหลือปุ่มค้นแบบพารามิเตอร์ปุ่มเดียว</div><textarea data-k="n18" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c19"><span class="n">20</span></label><div class="body"><p>เขียนคำสั่ง SQL 5 ข้อสำหรับข้อมูลของแอปคุณ (ตัวอย่าง: รายการแพงที่สุด 3 อันดับ ORDER BY amount DESC LIMIT 3 / ยอดรวมต่อหมวด / รายการที่ชื่อมีคำว่า ... ด้วย LIKE) เพิ่มเป็นฟังก์ชันใน database.ts อย่างน้อย 2 ข้อ ทดสอบผ่านหน้า DbTest แล้วบันทึกผลที่ได้ทุกข้อลงในไฟล์ Word</p><div class="see"><b>ผลที่ควรเห็น:</b> ได้คำสั่ง SQL 5 ข้อพร้อมผลลัพธ์ที่เห็นจริง</div><textarea data-k="n19" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c20"><span class="n">21</span></label><div class="body"><p>ต่อกับหน้ารายการจากใบงาน 4.3: ที่ ItemList.tsx เปลี่ยนจากข้อมูลในอาเรย์เป็นอ่านจากฐานข้อมูลด้วย useEffect (เรียก listItems ตามแบบแผน กำลังโหลด/ผิดพลาด/ว่าง ในใบความรู้ที่ 3 และ 6) และให้ปัดลบเรียก deleteItem แล้วโหลดรายการใหม่</p><div class="see"><b>ผลที่ควรเห็น:</b> รายการในหน้า /list มาจากฐานข้อมูล ลบแล้วรีเฟรชหน้ารายการที่ลบไม่กลับมา</div><textarea data-k="n20" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c21"><span class="n">22</span></label><div class="body"><p>ส่งงานขึ้น GitHub พร้อมภาพหน้าจอ (ก่อนและหลังรีเฟรช กรณี CHECK ปฏิเสธ และผลทดสอบ injection ทั้งสองแบบ)</p><pre class="sc" id="sc21">git add .
+git commit -m "6.2 sqlite crud"
+git push</pre><button class="noprint cps" data-t="sc21" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้น Writing objects ... done</div><textarea data-k="n21" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
+<div class="card"><h2>คำแนะนำ</h2><ul><li>ทุกฟังก์ชันที่แก้ข้อมูลต้องเรียก persist() ถ้าลืม ข้อมูลจะหายเมื่อรีเฟรช</li><li>ใช้ conn.run สำหรับคำสั่งที่ไม่คืนแถว และ prepare, step, getAsObject, free สำหรับ SELECT</li><li>ถ้าข้อมูลทดสอบเสียหาย ล้างได้โดยลบคีย์ CapacitorStorage.myapp-db (หรือชื่อที่คุณตั้ง) ใน Local Storage ผ่านแท็บ Application ของ DevTools</li></ul></div>
 <div class="card"><h2>สิ่งที่ต้องส่ง</h2><p>ลิงก์ GitHub + ภาพหน้าจอ (ก่อนและหลังรีเฟรช และกรณี CHECK ปฏิเสธ) + ผลทดสอบ SQL injection ทั้งสองแบบ + คำสั่ง SQL 5 ข้อพร้อมผล (ส่งตามช่องทางที่ครูกำหนด)</p>
 <input type="text" data-k="link" placeholder="ลิงก์ GitHub หรือเว็บที่ deploy" style="margin-bottom:8px"><textarea data-k="summary" rows="3" placeholder="สรุปผล / ปัญหาที่พบ (ถ้ามี)"></textarea></div>
 <div class="card"><h2>เกณฑ์การให้คะแนน</h2><table><tr><td>ทำ CRUD ครบถ้วนด้วยพารามิเตอร์ และข้อมูลคงอยู่หลังรีเฟรช</td><td>4</td></tr><tr><td>จัดการสถานะกำลังโหลด ข้อผิดพลาด และ CHECK ได้ถูกต้อง</td><td>3</td></tr><tr><td>ทดสอบความปลอดภัย คำสั่ง SQL และหลักฐานครบถ้วน</td><td>3</td></tr><tr><td><b>รวม</b></td><td><b>10</b></td></tr></table></div>

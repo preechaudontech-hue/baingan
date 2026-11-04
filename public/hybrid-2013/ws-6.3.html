@@ -21,10 +21,11 @@ pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:a
 <h1>ใบงานที่ 6.3 ออกแบบตารางจากแผนภาพคลาสและเชื่อมกับแอปของฉัน</h1><div class="mu">เวลา 150 นาที · งานเดี่ยว · คะแนนเต็ม 10</div>
 <div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
 <div class="card"><h2>จุดประสงค์</h2>ออกแบบตารางจากแผนภาพคลาสของแอปตนเอง (อย่างน้อย 2 ตารางที่มีคีย์นอก) จัดการเวอร์ชันโครงสร้าง และเชื่อมกับหน้าจอให้ข้อมูลคงอยู่ถาวร</div>
-<div class="card"><h2>คำชี้แจง</h2>นำแผนภาพคลาสจากใบงาน 2.3 มาออกแบบตารางของแอปตนเอง เขียนโครงสร้างและ migration ตามโค้ดตั้งต้น แล้วเชื่อมกับหน้าจอที่สร้างไว้ในหน่วยที่ 4 ให้อ่านและเขียนข้อมูลจริง</div>
+<div class="card"><h2>คำชี้แจง</h2>ionic serve ต้องรันอยู่ ทุกขั้นที่ "วางโค้ดทั้งไฟล์" ให้ลบของเดิมก่อนด้วย Ctrl+A แล้ว Delete ข้อมูลที่เก็บเป็นของเบราว์เซอร์ที่ใช้ทดสอบ (ผูกกับที่อยู่ localhost:พอร์ต) ใบงานนี้ออกแบบตาราง 2 ตารางที่มีคีย์นอก ด้วยไฟล์โครงสร้างแยก (schema.ts) พร้อมเลขเวอร์ชัน แล้วทดสอบข้อกำหนดของฐานข้อมูล ใช้ไฟล์ใหม่ชื่อ store.ts เพื่อไม่ทับงานใบงาน 6.2</div>
 
 <div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>ผลงานใบงาน 2.3 (แผนภาพคลาส) 4.4 และ 6.2</li><li>ใบความรู้ที่ 6 หัวข้อออกแบบตารางและเวอร์ชันโครงสร้าง</li></ul></div>
-<div class="card"><h2>โค้ดตั้งต้น</h2><div class="mu">คัดลอกไปวางในไฟล์ที่ระบุในโค้ด</div><pre id="code">// src/db/schema.ts
+
+<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>ทำตารางแปลงคลาสเป็นตารางในไฟล์ Word จากแผนภาพคลาสของแอปคุณ (ใบงาน 2.3) คอลัมน์: คลาส / แอตทริบิวต์ / ชื่อคอลัมน์ / ชนิดข้อมูล / คีย์หลัก คีย์นอก / เงื่อนไข (NOT NULL UNIQUE CHECK) อย่างน้อย 2 ตาราง (ตัวอย่างในโค้ดคือ categories กับ items)</p><div class="see"><b>ผลที่ควรเห็น:</b> ตารางที่มีอย่างน้อย 2 ตารางและระบุคีย์นอก 1 ความสัมพันธ์</div><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>สร้างไฟล์ src/db/schema.ts วางโค้ดนี้ทั้งไฟล์ กด Ctrl+S (เนื้อหาคือโครงสร้างตาราง categories และ items พร้อมเลขเวอร์ชัน 1)</p><div class="fl">ไฟล์ <code>src/db/schema.ts</code></div><pre class="sc" id="sc1">// src/db/schema.ts
 import type { Database } from 'sql.js';
 
 // TODO: เปลี่ยนตารางให้ตรงกับแผนภาพคลาสของแอปตนเอง (อย่างน้อย 2 ตาราง มีคีย์นอก 1 ความสัมพันธ์)
@@ -60,9 +61,175 @@ export function migrate(db: Database): void {
     db.exec(MIGRATIONS[current]);
     db.run(`PRAGMA user_version = ${current}`);
   }
-}</pre><button class="noprint" id="cp">คัดลอกโค้ด</button></div>
-<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>ดูแผนภาพคลาสของแอปตนเอง (ใบงาน 2.3) แล้วเขียนตารางแปลงคลาสเป็นตาราง: คลาส แอตทริบิวต์ ชื่อคอลัมน์ ชนิดข้อมูล คีย์หลัก คีย์นอก และเงื่อนไข (NOT NULL, UNIQUE, CHECK) อย่างน้อย 2 ตาราง</p><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>สร้างไฟล์ src/db/schema.ts จากโค้ดตั้งต้น แก้ MIGRATIONS ข้อ 1 ให้ตรงกับการออกแบบของตนเอง และเรียก migrate(db) ใน getDb() ของใบงาน 6.2 หลังเปิดฐานข้อมูล (แทนคำสั่ง CREATE TABLE เดิม) จำไว้ว่าต้องเปลี่ยน STORAGE_KEY หรือลบข้อมูลเดิมก่อนเพราะฐานเดิมมีโครงสร้างต่างกัน</p><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>เขียนฟังก์ชันในชั้น repository ให้ครบสำหรับหน้าจอของแอป (อย่างน้อย 5 ฟังก์ชัน) รวมอย่างน้อย 1 ฟังก์ชันที่ใช้ JOIN ดึงข้อมูลสองตารางมาแสดงรวมกัน (เช่น ชื่อหมวดกับรายการ)</p><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>เชื่อมหน้าจอที่ทำในหน่วยที่ 4 (รายการ ฟอร์มเพิ่ม และหน้ารายละเอียด) เข้ากับฟังก์ชันเหล่านี้ ให้เพิ่ม แก้ ลบ และดูรายละเอียดข้อมูลจริงได้ทั้งแอป</p><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>ทดสอบข้อกำหนดของฐานข้อมูล 4 กรณี และบันทึกข้อความผิดพลาดที่ได้: คีย์นอกผิด ลบหมวดที่ยังมีรายการอ้างอิง ค่าซ้ำในคอลัมน์ UNIQUE และค่าที่ไม่ผ่าน CHECK แล้วแสดงข้อความที่ผู้ใช้เข้าใจแทนข้อความดิบจากฐานข้อมูล</p><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>ฝึก migration: เพิ่มเวอร์ชัน 2 ที่เพิ่มคอลัมน์ใหม่ 1 คอลัมน์ (เช่น note) แล้วเปลี่ยน LATEST_VERSION เป็น 2 ตรวจว่าข้อมูลที่บันทึกไว้ในเวอร์ชัน 1 ยังอยู่และคอลัมน์ใหม่ใช้ได้ (ทดสอบโดยสร้างข้อมูลก่อนแก้โค้ด)</p><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>ทดสอบทั้งแอป: เพิ่มข้อมูล ปิดแท็บแล้วเปิดใหม่ ข้อมูลต้องอยู่ ถ่ายภาพหน้าจอทุกหน้าและเขียนสิ่งที่ยังไม่สมบูรณ์พร้อมแผนแก้ไข</p><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
-<div class="card"><h2>คำแนะนำ</h2><ul><li>คีย์นอกจะบังคับได้ต่อเมื่อสั่ง PRAGMA foreign_keys = ON ซึ่งโค้ดตั้งต้นทำไว้ใน migrate แล้ว</li><li>การเพิ่มคอลัมน์ด้วย ALTER TABLE ... ADD COLUMN ที่เป็น NOT NULL ต้องกำหนดค่า DEFAULT ด้วย</li><li>อย่าแก้คำสั่งของเวอร์ชันที่ใช้แล้ว ให้เพิ่มเวอร์ชันใหม่เสมอ</li><li>ผลการสรุปด้วย JOIN และ GROUP BY ควรคำนวณด้วย SQL ไม่ใช่ดึงทุกแถวมาคำนวณใน JavaScript</li></ul></div>
+}</pre><button class="noprint cps" data-t="sc1" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ยังไม่เห็นผลบนหน้าเว็บ ไม่มีข้อความแดง</div><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>อ่านโค้ด schema.ts: หาบรรทัด db.run('PRAGMA foreign_keys = ON'); และ while (current &lt; LATEST_VERSION) แล้วเขียนในช่องบันทึกว่าแต่ละส่วนทำอะไร (ใบความรู้ที่ 6 หัวข้อออกแบบตาราง และเวอร์ชัน)</p><div class="see"><b>ผลที่ควรเห็น:</b> ตอบได้ว่าบรรทัดแรกเปิดการบังคับคีย์นอก (SQLite ปิดไว้โดยปริยาย) และลูปรันคำสั่งของเวอร์ชันที่ยังไม่เคยรันตามลำดับ แล้วบันทึกเลขเวอร์ชัน</div><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>สร้างไฟล์ src/db/store.ts วางโค้ดนี้ทั้งไฟล์ (ชั้นเชื่อมฐานข้อมูลใหม่ที่เรียก migrate และมีฟังก์ชันที่ใช้ JOIN)</p><div class="fl">ไฟล์ <code>src/db/store.ts</code></div><pre class="sc" id="sc3">import initSqlJs, { Database } from 'sql.js';
+import wasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
+import { Preferences } from '@capacitor/preferences';
+import { migrate } from './schema';
+
+const STORAGE_KEY = 'myapp-db-v2';
+let db: Database | null = null;
+
+export interface Category { id: number; name: string }
+export interface ItemRow { id: number; title: string; amount: number; category: string }
+
+function toBase64(bytes: Uint8Array): string {
+  let s = '';
+  for (let i = 0; i &lt; bytes.length; i += 0x8000) {
+    s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(s);
+}
+
+function fromBase64(text: string): Uint8Array {
+  const s = atob(text);
+  const bytes = new Uint8Array(s.length);
+  for (let i = 0; i &lt; s.length; i++) bytes[i] = s.charCodeAt(i);
+  return bytes;
+}
+
+export async function getDb(): Promise&lt;Database&gt; {
+  if (db) return db;
+  const SQL = await initSqlJs({ locateFile: () =&gt; wasmUrl });
+  const saved = await Preferences.get({ key: STORAGE_KEY });
+  db = saved.value ? new SQL.Database(fromBase64(saved.value)) : new SQL.Database();
+  migrate(db); // สร้างหรืออัปเดตโครงสร้างตามเวอร์ชัน
+  return db;
+}
+
+async function persist(): Promise&lt;void&gt; {
+  const conn = await getDb();
+  await Preferences.set({ key: STORAGE_KEY, value: toBase64(conn.export()) });
+}
+
+export async function listCategories(): Promise&lt;Category[]&gt; {
+  const conn = await getDb();
+  const stmt = conn.prepare('SELECT id, name FROM categories ORDER BY id');
+  const rows: Category[] = [];
+  while (stmt.step()) rows.push(stmt.getAsObject() as unknown as Category);
+  stmt.free();
+  return rows;
+}
+
+// JOIN สองตาราง: ดึงชื่อหมวดมาแสดงกับรายการ
+export async function listItemsWithCategory(): Promise&lt;ItemRow[]&gt; {
+  const conn = await getDb();
+  const stmt = conn.prepare(
+    'SELECT i.id, i.title, i.amount, c.name AS category FROM items i JOIN categories c ON c.id = i.category_id ORDER BY i.id DESC',
+  );
+  const rows: ItemRow[] = [];
+  while (stmt.step()) rows.push(stmt.getAsObject() as unknown as ItemRow);
+  stmt.free();
+  return rows;
+}
+
+export async function addItem(title: string, amount: number, categoryId: number): Promise&lt;void&gt; {
+  const conn = await getDb();
+  conn.run('INSERT INTO items (title, amount, category_id) VALUES (?, ?, ?)', [title, amount, categoryId]);
+  await persist();
+}
+
+export async function addCategory(name: string): Promise&lt;void&gt; {
+  const conn = await getDb();
+  conn.run('INSERT INTO categories (name) VALUES (?)', [name]);
+  await persist();
+}
+
+export async function deleteCategory(id: number): Promise&lt;void&gt; {
+  const conn = await getDb();
+  conn.run('DELETE FROM categories WHERE id = ?', [id]);
+  await persist();
+}
+
+// ใช้ตรวจว่า migration ทำงาน: รายชื่อคอลัมน์ของตาราง items และเลขเวอร์ชัน
+export async function tableColumns(): Promise&lt;string[]&gt; {
+  const conn = await getDb();
+  const res = conn.exec('PRAGMA table_info(items)');
+  return res.length === 0 ? [] : res[0].values.map(v =&gt; String(v[1]));
+}
+
+export async function schemaVersion(): Promise&lt;number&gt; {
+  const conn = await getDb();
+  const res = conn.exec('PRAGMA user_version');
+  return Number(res[0]?.values[0][0] ?? 0);
+}</pre><button class="noprint cps" data-t="sc3" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีข้อความแดง</div><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>สร้างหน้าทดสอบ src/pages/DbTest2.tsx วางโค้ดนี้ทั้งไฟล์</p><div class="fl">ไฟล์ <code>src/pages/DbTest2.tsx</code></div><pre class="sc" id="sc4">import { useEffect, useState } from 'react';
+import { IonButton, IonContent, IonHeader, IonItem, IonLabel, IonList, IonPage, IonTitle, IonToolbar } from '@ionic/react';
+import {
+  addCategory, addItem, deleteCategory, listCategories, listItemsWithCategory, schemaVersion, tableColumns,
+  Category, ItemRow,
+} from '../db/store';
+
+// แปลงข้อความผิดพลาดดิบของฐานข้อมูลเป็นข้อความที่ผู้ใช้เข้าใจ
+function friendly(e: unknown): string {
+  const text = String(e);
+  if (text.includes('FOREIGN KEY')) return 'หมวดไม่ถูกต้อง หรือยังมีรายการที่ใช้หมวดนี้อยู่';
+  if (text.includes('UNIQUE')) return 'มีชื่อนี้อยู่แล้ว';
+  if (text.includes('CHECK')) return 'จำนวนเงินต้องมากกว่า 0';
+  return 'เกิดข้อผิดพลาด: ' + text;
+}
+
+const DbTest2: React.FC = () =&gt; {
+  const [items, setItems] = useState&lt;ItemRow[]&gt;([]);
+  const [categories, setCategories] = useState&lt;Category[]&gt;([]);
+  const [columns, setColumns] = useState&lt;string[]&gt;([]);
+  const [version, setVersion] = useState(0);
+  const [message, setMessage] = useState('');
+
+  async function reload() {
+    setItems(await listItemsWithCategory());
+    setCategories(await listCategories());
+    setColumns(await tableColumns());
+    setVersion(await schemaVersion());
+  }
+
+  useEffect(() =&gt; {
+    reload().catch(e =&gt; setMessage(friendly(e)));
+  }, []);
+
+  async function run(job: () =&gt; Promise&lt;void&gt;) {
+    try {
+      await job();
+      setMessage('');
+      await reload();
+    } catch (e) {
+      setMessage(friendly(e));
+    }
+  }
+
+  return (
+    &lt;IonPage&gt;
+      &lt;IonHeader&gt;
+        &lt;IonToolbar color="primary"&gt;
+          &lt;IonTitle&gt;ทดสอบตาราง ({items.length})&lt;/IonTitle&gt;
+        &lt;/IonToolbar&gt;
+      &lt;/IonHeader&gt;
+      &lt;IonContent className="ion-padding"&gt;
+        &lt;IonButton onClick={() =&gt; run(() =&gt; addItem('ข้าวมันไก่', 60, categories[0]?.id ?? 1))}&gt;เพิ่มรายการ&lt;/IonButton&gt;
+        &lt;IonButton onClick={() =&gt; run(() =&gt; addItem('หมวดผิด', 60, 99))}&gt;เพิ่มหมวดผิด&lt;/IonButton&gt;
+        &lt;IonButton onClick={() =&gt; run(() =&gt; addItem('ผิดกฎ', 0, categories[0]?.id ?? 1))}&gt;เพิ่มจำนวน 0&lt;/IonButton&gt;
+        &lt;IonButton onClick={() =&gt; run(() =&gt; addCategory('อาหาร'))}&gt;เพิ่มหมวดซ้ำ&lt;/IonButton&gt;
+        &lt;IonButton color="danger" onClick={() =&gt; run(() =&gt; deleteCategory(categories[0]?.id ?? 1))}&gt;ลบหมวดแรก&lt;/IonButton&gt;
+
+        {message &amp;&amp; &lt;p&gt;{message}&lt;/p&gt;}
+        &lt;p&gt;เวอร์ชันโครงสร้าง: {version} · คอลัมน์ items: {columns.join(', ')}&lt;/p&gt;
+        &lt;p&gt;หมวด: {categories.map(c =&gt; c.name).join(', ')}&lt;/p&gt;
+        &lt;IonList&gt;
+          {items.map(i =&gt; (
+            &lt;IonItem key={i.id}&gt;
+              &lt;IonLabel&gt;{i.id}: {i.title} / {i.category} / {i.amount}&lt;/IonLabel&gt;
+            &lt;/IonItem&gt;
+          ))}
+        &lt;/IonList&gt;
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default DbTest2;</pre><button class="noprint cps" data-t="sc4" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ยังไม่เห็นผลบนหน้าเว็บ</div><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>เพิ่มเส้นทางใน src/App.tsx 2 จุด จุดแรกใต้บรรทัด import Home from './pages/Home'; เพิ่ม import DbTest2 from './pages/DbTest2'; จุดที่สองใต้บรรทัด &lt;Route path="/home" element={&lt;Home /&gt;} /&gt; เพิ่ม &lt;Route path="/dbtest2" element={&lt;DbTest2 /&gt;} /&gt; แล้วกด Ctrl+S</p><div class="fl">ไฟล์ <code>src/App.tsx</code></div><pre class="sc" id="sc5">import DbTest2 from './pages/DbTest2';
+
+&lt;Route path="/dbtest2" element={&lt;DbTest2 /&gt;} /&gt;</pre><button class="noprint cps" data-t="sc5" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีข้อความแดงในเทอร์มินัล</div><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>เปิด /dbtest2 รอ 1 - 2 วินาที</p><div class="see"><b>ผลที่ควรเห็น:</b> แถบหัว ทดสอบตาราง (0) ข้อความ เวอร์ชันโครงสร้าง: 1 · คอลัมน์ items: id, title, amount, category_id, created_at และ หมวด: อาหาร, เดินทาง, การเรียน</div><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c7"><span class="n">8</span></label><div class="body"><p>กดปุ่ม เพิ่มรายการ สองครั้ง</p><div class="see"><b>ผลที่ควรเห็น:</b> รายการ ข้าวมันไก่ / อาหาร / 60 สองรายการ แสดงชื่อหมวดมาจากตาราง categories (นี่คือ JOIN) หัวข้อเป็น ทดสอบตาราง (2)</div><textarea data-k="n7" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c8"><span class="n">9</span></label><div class="body"><p>ทดสอบข้อกำหนดข้อ 1 (คีย์นอก): กดปุ่ม เพิ่มหมวดผิด (ใช้เลขหมวด 99 ที่ไม่มีอยู่)</p><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้นข้อความ หมวดไม่ถูกต้อง หรือยังมีรายการที่ใช้หมวดนี้อยู่ และไม่มีรายการเพิ่ม</div><textarea data-k="n8" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c9"><span class="n">10</span></label><div class="body"><p>ข้อกำหนดข้อ 2 (CHECK): กดปุ่ม เพิ่มจำนวน 0</p><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้นข้อความ จำนวนเงินต้องมากกว่า 0</div><textarea data-k="n9" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c10"><span class="n">11</span></label><div class="body"><p>ข้อกำหนดข้อ 3 (UNIQUE): กดปุ่ม เพิ่มหมวดซ้ำ (หมวด อาหาร มีอยู่แล้ว)</p><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้นข้อความ มีชื่อนี้อยู่แล้ว</div><textarea data-k="n10" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c11"><span class="n">12</span></label><div class="body"><p>ข้อกำหนดข้อ 4 (ON DELETE RESTRICT): กดปุ่ม ลบหมวดแรก (หมวด อาหาร ที่ยังมีรายการใช้อยู่)</p><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้นข้อความ หมวดไม่ถูกต้อง หรือยังมีรายการที่ใช้หมวดนี้อยู่ และหมวด อาหาร ยังอยู่</div><textarea data-k="n11" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c12"><span class="n">13</span></label><div class="body"><p>จดข้อความทั้ง 4 ข้อ พร้อมข้อความดิบของฐานข้อมูลที่ฟังก์ชัน friendly แปลงให้ (ดูจากโค้ดฟังก์ชัน friendly ใน DbTest2.tsx ว่าตรวจคำว่าอะไร) ในช่องบันทึก</p><div class="see"><b>ผลที่ควรเห็น:</b> ได้ตารางผลทดสอบ 4 ข้อ: กรณี / ข้อความดิบที่ตรวจ (FOREIGN KEY, CHECK, UNIQUE) / ข้อความที่ผู้ใช้เห็น</div><textarea data-k="n12" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c13"><span class="n">14</span></label><div class="body"><p>ทดสอบการคงอยู่: กด F5 รอ 1 - 2 วินาที</p><div class="see"><b>ผลที่ควรเห็น:</b> รายการ 2 รายการยังอยู่ และเวอร์ชันโครงสร้างยังเป็น 1</div><textarea data-k="n13" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c14"><span class="n">15</span></label><div class="body"><p>ฝึก migration ข้อ 1: ใส่เวอร์ชัน 2 ในไฟล์ schema.ts แทนบรรทัดคอมเมนต์ TODO ท้าย MIGRATIONS (เพิ่มคอลัมน์ note)</p><div class="fl">ไฟล์ <code>src/db/schema.ts</code></div><pre class="sc" id="sc14">2: `ALTER TABLE items ADD COLUMN note TEXT`,</pre><button class="noprint cps" data-t="sc14" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ยังไม่มีผลจนกว่าจะเปลี่ยนเลขเวอร์ชันล่าสุด</div><textarea data-k="n14" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c15"><span class="n">16</span></label><div class="body"><p>ข้อ 2: เปลี่ยนเลขเวอร์ชันล่าสุดเป็น 2 กด Ctrl+S แล้ว F5 ที่หน้า /dbtest2</p><div class="fl">ไฟล์ <code>src/db/schema.ts</code></div><pre class="sc" id="sc15">const LATEST_VERSION = 2;</pre><button class="noprint cps" data-t="sc15" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> เวอร์ชันโครงสร้างเป็น 2 คอลัมน์ items มี note เพิ่มท้ายสุด และรายการ 2 รายการที่บันทึกไว้ตอนเวอร์ชัน 1 ยังอยู่ครบ (migration ไม่ทำให้ข้อมูลหาย)</div><textarea data-k="n15" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c16"><span class="n">17</span></label><div class="body"><p>อธิบายในช่องบันทึก: ทำไมเราไม่แก้คำสั่งของเวอร์ชัน 1 แต่เพิ่มเวอร์ชัน 2 และ ALTER TABLE ... ADD COLUMN ที่เป็น NOT NULL ต้องทำอย่างไร</p><div class="see"><b>ผลที่ควรเห็น:</b> ตอบได้ว่าผู้ใช้เดิมรันเวอร์ชัน 1 ไปแล้วจะไม่รันซ้ำ และคอลัมน์ NOT NULL ต้องมีค่า DEFAULT</div><textarea data-k="n16" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c17"><span class="n">18</span></label><div class="body"><p>ต่อกับแอปของคุณ: นำโครงสร้างตารางของแอปคุณ (จากข้อ 1) ใส่ใน MIGRATIONS ข้อ 1 ของ schema.ts สร้างฟังก์ชันใน store.ts อย่างน้อย 5 ฟังก์ชันสำหรับหน้าจอของแอป (มี JOIN อย่างน้อย 1 ฟังก์ชัน) แล้วเชื่อมหน้ารายการ ฟอร์มเพิ่ม และหน้ารายละเอียดจากหน่วยที่ 4 กับฟังก์ชันเหล่านี้ (เปลี่ยน STORAGE_KEY หรือลบข้อมูลเก่าใน Local Storage ก่อน เพราะโครงสร้างต่างจากเดิม)</p><div class="see"><b>ผลที่ควรเห็น:</b> เพิ่ม แก้ ลบ และดูรายละเอียดข้อมูลจริงได้ทั้งแอป และข้อมูลยังอยู่หลังรีเฟรช</div><textarea data-k="n17" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c18"><span class="n">19</span></label><div class="body"><p>ถ่ายภาพหน้าจอทุกหน้าของแอป เขียนสิ่งที่ยังไม่สมบูรณ์พร้อมแผนแก้ไข แล้วส่งงานขึ้น GitHub</p><pre class="sc" id="sc18">git add .
+git commit -m "6.3 schema and migration"
+git push</pre><button class="noprint cps" data-t="sc18" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ได้ภาพครบและขึ้น Writing objects ... done</div><textarea data-k="n18" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
+<div class="card"><h2>คำแนะนำ</h2><ul><li>คีย์นอกจะบังคับได้ต่อเมื่อสั่ง PRAGMA foreign_keys = ON ซึ่งโค้ดตั้งต้นทำไว้ในฟังก์ชัน migrate แล้ว</li><li>ALTER TABLE ... ADD COLUMN ที่เป็น NOT NULL ต้องกำหนดค่า DEFAULT ด้วย มิฉะนั้นฐานข้อมูลจะปฏิเสธ</li><li>ผลสรุปด้วย JOIN และ GROUP BY ควรคำนวณด้วย SQL ไม่ใช่ดึงทุกแถวมาคำนวณใน JavaScript</li></ul></div>
 <div class="card"><h2>สิ่งที่ต้องส่ง</h2><p>ตารางแปลงคลาสเป็นตาราง + ไฟล์ schema.ts + ลิงก์ GitHub + ภาพหน้าจอทุกหน้าของแอป + ผลทดสอบข้อกำหนด 4 กรณีและ migration + สิ่งที่ยังไม่สมบูรณ์และแผนแก้ไข (ส่งตามช่องทางที่ครูกำหนด)</p>
 <input type="text" data-k="link" placeholder="ลิงก์ GitHub หรือเว็บที่ deploy" style="margin-bottom:8px"><textarea data-k="summary" rows="3" placeholder="สรุปผล / ปัญหาที่พบ (ถ้ามี)"></textarea></div>
 <div class="card"><h2>เกณฑ์การให้คะแนน</h2><table><tr><td>ออกแบบตารางจากแผนภาพคลาสถูกต้อง มีคีย์หลัก คีย์นอก และเงื่อนไขครบ</td><td>4</td></tr><tr><td>เชื่อมหน้าจอกับฐานข้อมูลได้ ข้อมูลคงอยู่ และใช้ JOIN ได้</td><td>4</td></tr><tr><td>ทดสอบข้อกำหนด ทำ migration และหลักฐานครบถ้วน</td><td>2</td></tr><tr><td><b>รวม</b></td><td><b>10</b></td></tr></table></div>

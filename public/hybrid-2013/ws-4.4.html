@@ -21,11 +21,53 @@ pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:a
 <h1>ใบงานที่ 4.4 สร้างแอปหลายหน้าจอด้วย Router และ Tabs</h1><div class="mu">เวลา 150 นาที · งานเดี่ยว · คะแนนเต็ม 10</div>
 <div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
 <div class="card"><h2>จุดประสงค์</h2>สร้างแอปหลายหน้าจอตามแผนผังการเปลี่ยนหน้าที่ออกแบบไว้ ส่งข้อมูลระหว่างหน้าด้วยพารามิเตอร์ใน path และใช้ Tabs เมื่อเหมาะสม</div>
-<div class="card"><h2>คำชี้แจง</h2>นำหน้าจอที่ทำไว้ในใบงาน 4.1 - 4.3 มารวมเป็นแอปเดียวตามแผนผังการเปลี่ยนหน้า (screen map) จากใบงาน 2.4 โดยให้ข้อมูลรายการอยู่ที่ไฟล์กลาง และมีหน้ารายละเอียดที่เปิดจากรายการ</div>
+<div class="card"><h2>คำชี้แจง</h2>ใบงานนี้ต้องรัน ionic serve ค้างไว้ และเปิดโปรเจกต์ใน VS Code ทุกขั้นที่ "วางโค้ดทั้งไฟล์" ให้คลิกในไฟล์ กด Ctrl+A แล้ว Delete ก่อนวาง ใบงานนี้รวมหน้าต่าง ๆ เป็นแอปเดียว มี 3 แท็บ (หน้าหลัก รายการ สรุป) และหน้ารายละเอียด ทำใบงาน 4.1 และ 4.3 ให้เสร็จก่อน</div>
 
 <div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>ผลงานใบงาน 2.4 (screen map) และ 4.1 - 4.3</li><li>ใบความรู้ที่ 4 หัวข้อ Router และ Tabs</li></ul></div>
-<div class="card"><h2>โค้ดตั้งต้น</h2><div class="mu">คัดลอกไปวางในไฟล์ที่ระบุในโค้ด</div><pre id="code">// src/pages/ItemDetail.tsx
-import { IonBackButton, IonButtons, IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
+
+<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>เตรียมความพร้อม: ionic serve รันอยู่ ไฟล์ Home.tsx เป็นหน้าหลักจากใบงาน 4.1 และมีไฟล์ ItemList.tsx จากใบงาน 4.3 ให้ลบเส้นทางทดสอบ /add ออกจาก App.tsx ได้ถ้ามี</p><div class="see"><b>ผลที่ควรเห็น:</b> เปิด /home เห็นหน้าหลักของใบงาน 4.1 เปิด /list เห็นรายการจากใบงาน 4.3</div><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>สร้างไฟล์ข้อมูลกลาง src/data/items.ts (สร้างโฟลเดอร์ data ใน src ก่อน) วางโค้ดนี้ (เปลี่ยนเป็นข้อมูลตัวอย่างของแอปคุณได้ แต่ต้องมีอย่างน้อย 4 รายการ)</p><div class="fl">ไฟล์ <code>src/data/items.ts</code></div><pre class="sc" id="sc1">export interface Item {
+  id: number;
+  title: string;
+  category: string;
+  amount: number;
+}
+
+export const ITEMS: Item[] = [
+  { id: 1, title: 'ข้าวกลางวัน', category: 'อาหาร', amount: 60 },
+  { id: 2, title: 'ค่ารถ', category: 'เดินทาง', amount: 40 },
+  { id: 3, title: 'ซื้อสมุด', category: 'การเรียน', amount: 85 },
+  { id: 4, title: 'ชานมไข่มุก', category: 'อาหาร', amount: 55 },
+];</pre><button class="noprint cps" data-t="sc1" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ยังไม่มีผลบนหน้าเว็บ (ไฟล์ข้อมูลเฉย ๆ)</div><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>แทนที่ไฟล์ ItemList.tsx ด้วยโค้ดนี้ ซึ่งอ่านข้อมูลจากไฟล์กลาง และให้แต่ละแถวเป็นลิงก์ไปหน้ารายละเอียด (routerLink) กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/pages/ItemList.tsx</code></div><pre class="sc" id="sc2">import { IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonNote, IonPage, IonTitle, IonToolbar } from '@ionic/react';
+import { chevronForward } from 'ionicons/icons';
+import { ITEMS } from '../data/items';
+
+const ItemList: React.FC = () =&gt; {
+  return (
+    &lt;IonPage&gt;
+      &lt;IonHeader&gt;
+        &lt;IonToolbar color="primary"&gt;
+          &lt;IonTitle&gt;รายการ&lt;/IonTitle&gt;
+        &lt;/IonToolbar&gt;
+      &lt;/IonHeader&gt;
+      &lt;IonContent&gt;
+        &lt;IonList&gt;
+          {ITEMS.map(i =&gt; (
+            &lt;IonItem key={i.id} routerLink={`/item/${i.id}`} detail&gt;
+              &lt;IonLabel&gt;
+                &lt;h2&gt;{i.title}&lt;/h2&gt;
+                &lt;p&gt;{i.category}&lt;/p&gt;
+              &lt;/IonLabel&gt;
+              &lt;IonNote slot="end"&gt;{i.amount} บาท&lt;/IonNote&gt;
+              &lt;IonIcon icon={chevronForward} slot="end" /&gt;
+            &lt;/IonItem&gt;
+          ))}
+        &lt;/IonList&gt;
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default ItemList;</pre><button class="noprint cps" data-t="sc2" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> หน้า /list แต่ละแถวมีลูกศร &gt; ท้ายแถว (ยังกดไปหน้าใหม่ไม่ได้ เพราะยังไม่มีเส้นทาง)</div><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>สร้างหน้ารายละเอียด: ไฟล์ src/pages/ItemDetail.tsx วางโค้ดนี้ กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/pages/ItemDetail.tsx</code></div><pre class="sc" id="sc3">import { IonBackButton, IonButtons, IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
 import { useParams } from 'react-router-dom';
 import { ITEMS } from '../data/items';
 
@@ -38,7 +80,7 @@ const ItemDetail: React.FC = () =&gt; {
       &lt;IonHeader&gt;
         &lt;IonToolbar color="primary"&gt;
           &lt;IonButtons slot="start"&gt;
-            &lt;IonBackButton defaultHref="/home" text="กลับ" /&gt;
+            &lt;IonBackButton defaultHref="/list" text="กลับ" /&gt;
           &lt;/IonButtons&gt;
           &lt;IonTitle&gt;รายละเอียด&lt;/IonTitle&gt;
         &lt;/IonToolbar&gt;
@@ -49,7 +91,6 @@ const ItemDetail: React.FC = () =&gt; {
             &lt;h2&gt;{item.title}&lt;/h2&gt;
             &lt;p&gt;หมวด: {item.category}&lt;/p&gt;
             &lt;p&gt;จำนวนเงิน: {item.amount} บาท&lt;/p&gt;
-            {/* TODO: แสดงข้อมูลอื่นของแอปตนเอง */}
           &lt;/&gt;
         ) : (
           &lt;p&gt;ไม่พบรายการ&lt;/p&gt;
@@ -59,9 +100,154 @@ const ItemDetail: React.FC = () =&gt; {
   );
 };
 
-export default ItemDetail;</pre><button class="noprint" id="cp">คัดลอกโค้ด</button></div>
-<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>สร้างไฟล์ src/data/items.ts เก็บ interface Item และอาร์เรย์ ITEMS (ข้อมูลตัวอย่างของแอปตนเอง อย่างน้อย 4 รายการ) แล้วสร้างไฟล์ src/pages/ItemDetail.tsx จากโค้ดตั้งต้น</p><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>ใน App.tsx เพิ่ม Route สำหรับหน้ารายละเอียดที่ path /item/:id และ import ItemDetail</p><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>ในหน้ารายการ ทำให้แต่ละแถวเปิดหน้ารายละเอียดได้ด้วย routerLink={<code>/item/${i.id}</code>} แล้วทดสอบกดเข้าและกดปุ่มกลับ</p><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>สร้างหน้าที่สองตามแผนผังของตนเอง (เช่น หน้าสรุป หรือหน้าตั้งค่า) และเพิ่มแถบแท็บด้านล่างด้วย IonTabs ตามตัวอย่างในใบความรู้ ให้มีอย่างน้อย 2 แท็บ</p><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>ตรวจว่าหน้าฟอร์มจากใบงาน 4.2 เข้าถึงได้ตามแผนผัง (เช่น ปุ่ม + เปิด /add) และกลับมาหน้ารายการได้ ปรับให้ชื่อ path ตรงกับแผนผัง</p><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>ให้ทุกหน้าใช้ธีมสีเดียวกัน (ไม่มีสีที่เขียนติดในหน้าใดหน้าหนึ่ง) และทดสอบทั้งโหมดสว่างและมืด</p><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>ทำตารางทดสอบ use case: เลือก use case จากใบงาน 2.2 อย่างน้อย 4 ข้อ แล้วทดสอบทีละขั้นว่าทำได้จริงหรือไม่ ผ่าน/ไม่ผ่าน และสิ่งที่พบ</p><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c7"><span class="n">8</span></label><div class="body"><p>ถ่ายภาพหน้าจอทุกหน้า และเขียนสิ่งที่ยังไม่เหมือนแบบร่างพร้อมแผนแก้ไข</p><textarea data-k="n7" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
-<div class="card"><h2>คำแนะนำ</h2><ul><li>ถ้ากดแถวแล้วหน้าไม่เปลี่ยน ตรวจว่า path ใน routerLink ตรงกับ Route และเปิด Console ดูข้อความผิดพลาด</li><li>ถ้าเปิดหน้ารายละเอียดโดยตรงแล้วขึ้น "ไม่พบรายการ" ให้ตรวจว่า id ใน URL ตรงกับ id ในข้อมูล และมีการแปลงด้วย Number()</li><li>แท็บและหน้ารายละเอียดต้องอยู่ใน IonRouterOutlet ตัวเดียวกันที่ครอบด้วย IonTabs เพื่อให้แถบแท็บอยู่ตลอด</li></ul></div>
+export default ItemDetail;</pre><button class="noprint cps" data-t="sc3" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ยังไม่มีผลบนหน้าเว็บ</div><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>สร้างหน้าสรุป: ไฟล์ src/pages/Summary.tsx วางโค้ดนี้ กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/pages/Summary.tsx</code></div><pre class="sc" id="sc4">import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
+import { ITEMS } from '../data/items';
+
+const Summary: React.FC = () =&gt; {
+  const total = ITEMS.reduce((sum, i) =&gt; sum + i.amount, 0);
+  return (
+    &lt;IonPage&gt;
+      &lt;IonHeader&gt;
+        &lt;IonToolbar color="primary"&gt;
+          &lt;IonTitle&gt;สรุป&lt;/IonTitle&gt;
+        &lt;/IonToolbar&gt;
+      &lt;/IonHeader&gt;
+      &lt;IonContent className="ion-padding"&gt;
+        &lt;h2&gt;ยอดรวม {total} บาท&lt;/h2&gt;
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default Summary;</pre><button class="noprint cps" data-t="sc4" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ยังไม่มีผลบนหน้าเว็บ</div><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>เพิ่มเส้นทางหน้ารายละเอียด: ลบทั้งไฟล์ src/App.tsx แล้ววางโค้ดนี้ (เพิ่ม import 2 บรรทัด และ Route ของ /list กับ /item/:id)</p><div class="fl">ไฟล์ <code>src/App.tsx</code></div><pre class="sc" id="sc5">import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
+import { IonReactRouter } from '@ionic/react-router';
+import { Navigate, Route } from 'react-router-dom';
+
+import Home from './pages/Home';
+import ItemDetail from './pages/ItemDetail';
+import ItemList from './pages/ItemList';
+
+/* Core CSS required for Ionic components to work properly */
+import '@ionic/react/css/core.css';
+
+/* Basic CSS for apps built with Ionic */
+import '@ionic/react/css/normalize.css';
+import '@ionic/react/css/structure.css';
+import '@ionic/react/css/typography.css';
+
+/* Optional CSS utils that can be commented out */
+import '@ionic/react/css/padding.css';
+import '@ionic/react/css/float-elements.css';
+import '@ionic/react/css/text-alignment.css';
+import '@ionic/react/css/text-transformation.css';
+import '@ionic/react/css/flex-utils.css';
+import '@ionic/react/css/display.css';
+
+/**
+ * Ionic Dark Mode
+ * -----------------------------------------------------
+ * For more info, please see:
+ * https://ionicframework.com/docs/theming/dark-mode
+ */
+
+/* import '@ionic/react/css/palettes/dark.always.css'; */
+/* import '@ionic/react/css/palettes/dark.class.css'; */
+import '@ionic/react/css/palettes/dark.system.css';
+
+/* Theme variables */
+import './theme/variables.css';
+
+setupIonicReact();
+
+const App: React.FC = () =&gt; (
+  &lt;IonApp&gt;
+    &lt;IonReactRouter&gt;
+      &lt;IonRouterOutlet&gt;
+        &lt;Route path="/home" element={&lt;Home /&gt;} /&gt;
+        &lt;Route path="/list" element={&lt;ItemList /&gt;} /&gt;
+        &lt;Route path="/item/:id" element={&lt;ItemDetail /&gt;} /&gt;
+        &lt;Route path="/" element={&lt;Navigate to="/home" replace /&gt;} /&gt;
+      &lt;/IonRouterOutlet&gt;
+    &lt;/IonReactRouter&gt;
+  &lt;/IonApp&gt;
+);
+
+export default App;</pre><button class="noprint cps" data-t="sc5" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีข้อความแดงในเทอร์มินัล</div><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>ทดสอบ: เปิด /list ในเบราว์เซอร์ แล้วคลิกแถว ค่ารถ</p><div class="see"><b>ผลที่ควรเห็น:</b> ไปหน้า รายละเอียด ที่อยู่เป็น /item/2 เห็น ค่ารถ หมวด เดินทาง จำนวนเงิน 40 บาท</div><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c7"><span class="n">8</span></label><div class="body"><p>กดปุ่มกลับที่มุมซ้ายบนของหน้ารายละเอียด</p><div class="see"><b>ผลที่ควรเห็น:</b> กลับมาหน้ารายการ /list</div><textarea data-k="n7" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c8"><span class="n">9</span></label><div class="body"><p>ทดสอบกรณีผิดปกติ: พิมพ์ที่อยู่ /item/99 ตรงในเบราว์เซอร์</p><div class="see"><b>ผลที่ควรเห็น:</b> หน้ารายละเอียดขึ้นข้อความ ไม่พบรายการ (แทนที่จะพัง)</div><textarea data-k="n8" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c9"><span class="n">10</span></label><div class="body"><p>อ่านโค้ด ItemDetail: หา const { id } = useParams&lt;{ id: string }&gt;(); แล้วเขียนในช่องบันทึกว่า id มาจากไหน ทำไมต้องใช้ Number(id) ตอนค้นหา</p><div class="see"><b>ผลที่ควรเห็น:</b> ตอบได้ว่า id มาจากส่วน :id ของที่อยู่ในเส้นทาง และเป็นข้อความเสมอ จึงต้องแปลงเป็นตัวเลขก่อนเทียบ</div><textarea data-k="n9" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c10"><span class="n">11</span></label><div class="body"><p>ใส่แท็บด้านล่าง: ลบทั้งไฟล์ src/App.tsx แล้ววางโค้ดนี้ ซึ่งมีแท็บ 3 อัน</p><div class="fl">ไฟล์ <code>src/App.tsx</code></div><pre class="sc" id="sc10">import { IonApp, IonIcon, IonLabel, IonRouterOutlet, IonTabBar, IonTabButton, IonTabs, setupIonicReact } from '@ionic/react';
+import { home, list, pieChart } from 'ionicons/icons';
+import { IonReactRouter } from '@ionic/react-router';
+import { Navigate, Route } from 'react-router-dom';
+
+import Home from './pages/Home';
+import ItemDetail from './pages/ItemDetail';
+import ItemList from './pages/ItemList';
+import Summary from './pages/Summary';
+
+/* Core CSS required for Ionic components to work properly */
+import '@ionic/react/css/core.css';
+
+/* Basic CSS for apps built with Ionic */
+import '@ionic/react/css/normalize.css';
+import '@ionic/react/css/structure.css';
+import '@ionic/react/css/typography.css';
+
+/* Optional CSS utils that can be commented out */
+import '@ionic/react/css/padding.css';
+import '@ionic/react/css/float-elements.css';
+import '@ionic/react/css/text-alignment.css';
+import '@ionic/react/css/text-transformation.css';
+import '@ionic/react/css/flex-utils.css';
+import '@ionic/react/css/display.css';
+
+/**
+ * Ionic Dark Mode
+ * -----------------------------------------------------
+ * For more info, please see:
+ * https://ionicframework.com/docs/theming/dark-mode
+ */
+
+/* import '@ionic/react/css/palettes/dark.always.css'; */
+/* import '@ionic/react/css/palettes/dark.class.css'; */
+import '@ionic/react/css/palettes/dark.system.css';
+
+/* Theme variables */
+import './theme/variables.css';
+
+setupIonicReact();
+
+const App: React.FC = () =&gt; (
+  &lt;IonApp&gt;
+    &lt;IonReactRouter&gt;
+      &lt;IonTabs&gt;
+        &lt;IonRouterOutlet&gt;
+          &lt;Route path="/home" element={&lt;Home /&gt;} /&gt;
+          &lt;Route path="/list" element={&lt;ItemList /&gt;} /&gt;
+          &lt;Route path="/summary" element={&lt;Summary /&gt;} /&gt;
+          &lt;Route path="/item/:id" element={&lt;ItemDetail /&gt;} /&gt;
+          &lt;Route path="/" element={&lt;Navigate to="/home" replace /&gt;} /&gt;
+        &lt;/IonRouterOutlet&gt;
+        &lt;IonTabBar slot="bottom"&gt;
+          &lt;IonTabButton tab="home" href="/home"&gt;
+            &lt;IonIcon icon={home} /&gt;
+            &lt;IonLabel&gt;หน้าหลัก&lt;/IonLabel&gt;
+          &lt;/IonTabButton&gt;
+          &lt;IonTabButton tab="list" href="/list"&gt;
+            &lt;IonIcon icon={list} /&gt;
+            &lt;IonLabel&gt;รายการ&lt;/IonLabel&gt;
+          &lt;/IonTabButton&gt;
+          &lt;IonTabButton tab="summary" href="/summary"&gt;
+            &lt;IonIcon icon={pieChart} /&gt;
+            &lt;IonLabel&gt;สรุป&lt;/IonLabel&gt;
+          &lt;/IonTabButton&gt;
+        &lt;/IonTabBar&gt;
+      &lt;/IonTabs&gt;
+    &lt;/IonReactRouter&gt;
+  &lt;/IonApp&gt;
+);
+
+export default App;</pre><button class="noprint cps" data-t="sc10" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> แถบแท็บด้านล่างมี 3 ปุ่ม หน้าหลัก รายการ สรุป แท็บที่เปิดอยู่เป็นสีเด่น</div><textarea data-k="n10" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c11"><span class="n">12</span></label><div class="body"><p>ทดสอบแท็บ: แตะแท็บ รายการ แตะแท็บ สรุป แล้วแตะ หน้าหลัก</p><div class="see"><b>ผลที่ควรเห็น:</b> ที่อยู่เปลี่ยนเป็น /list /summary /home ตามลำดับ หน้า สรุป แสดง ยอดรวม 240 บาท</div><textarea data-k="n11" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c12"><span class="n">13</span></label><div class="body"><p>ทดสอบแท็บร่วมกับหน้ารายละเอียด: ที่แท็บ รายการ คลิกแถวหนึ่งแล้วกดปุ่มกลับ</p><div class="see"><b>ผลที่ควรเห็น:</b> เปิดรายละเอียดแล้วกลับมาที่ /list ได้ และแถบแท็บยังอยู่ตลอด</div><textarea data-k="n12" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c13"><span class="n">14</span></label><div class="body"><p>เชื่อมปุ่ม + บนหน้าหลักไปหน้าเพิ่มรายการ (ถ้าทำใบงาน 4.2 แล้ว): ใน App.tsx เพิ่ม import AddItem และ &lt;Route path="/add" element={&lt;AddItem /&gt;} /&gt; ต่อจาก Route อื่น และใน Home.tsx เปลี่ยน &lt;IonFabButton&gt; เป็น &lt;IonFabButton routerLink="/add"&gt; แล้วทดสอบ</p><div class="see"><b>ผลที่ควรเห็น:</b> กดปุ่ม + ที่หน้าหลักแล้วไปหน้าฟอร์ม เพิ่มรายการ และกดปุ่มกลับของเบราว์เซอร์ได้</div><textarea data-k="n13" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c14"><span class="n">15</span></label><div class="body"><p>ทำให้ทุกหน้าใช้ธีมเดียวกัน: ค้นหาในโค้ดทุกไฟล์ว่ามีสีที่เขียนตรง ๆ เช่น '#' หรือ 'red' หรือไม่ ถ้ามี ให้เปลี่ยนเป็น color="primary" หรือตัวแปรสี Ionic แล้วทดสอบโหมดมืดอีกครั้ง (วิธีเดียวกับใบงาน 4.1)</p><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีสีที่เขียนตรงในโค้ดหน้า หรือจดไว้ว่ามีที่ไหนที่ยังไม่ได้แก้ และทุกหน้าอ่านออกในโหมดมืด</div><textarea data-k="n14" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c15"><span class="n">16</span></label><div class="body"><p>ทำตารางทดสอบ use case: เลือก use case จากใบงาน 2.2 อย่างน้อย 4 ข้อ ทำตารางคอลัมน์ ใช้งานอะไร / ขั้นตอนที่ทำ / ผลที่คาดหวัง / ผลจริง / ผ่านหรือไม่ผ่าน แล้วทดสอบทีละข้อบนแอปจริง</p><div class="see"><b>ผลที่ควรเห็น:</b> ตารางครบ 4 ข้อพร้อมผลจริง</div><textarea data-k="n15" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c16"><span class="n">17</span></label><div class="body"><p>ถ่ายภาพหน้าจอทุกหน้าของแอป (หน้าหลัก รายการ รายละเอียด สรุป และฟอร์มถ้ามี) และเขียนสิ่งที่ยังไม่เหมือน wireframe พร้อมแผนแก้ไขอย่างน้อย 2 ข้อ</p><div class="see"><b>ผลที่ควรเห็น:</b> ได้ภาพทุกหน้าและแผนแก้ไข</div><textarea data-k="n16" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c17"><span class="n">18</span></label><div class="body"><p>ส่งงานขึ้น GitHub: เทอร์มินัลใหม่ พิมพ์ทีละบรรทัด</p><pre class="sc" id="sc17">git add .
+git commit -m "4.4 multi-page app with tabs"
+git push</pre><button class="noprint cps" data-t="sc17" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้น Writing objects ... done</div><textarea data-k="n17" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
+<div class="card"><h2>คำแนะนำ</h2><ul><li>ถ้ากดแถวแล้วหน้าไม่เปลี่ยน ตรวจว่า path ใน routerLink ตรงกับ Route และดู Console</li><li>ถ้าเปิดหน้ารายละเอียดแล้วขึ้น ไม่พบรายการ ตรวจว่า id ใน URL ตรงกับ id ในข้อมูล และมีการแปลงด้วย Number()</li><li>แท็บและหน้ารายละเอียดต้องอยู่ใน IonRouterOutlet ตัวเดียวกันที่ครอบด้วย IonTabs เพื่อให้แถบแท็บอยู่ตลอด</li></ul></div>
 <div class="card"><h2>สิ่งที่ต้องส่ง</h2><p>ลิงก์ GitHub + ภาพหน้าจอของทุกหน้า + ตารางทดสอบ use case + สิ่งที่ยังไม่เหมือนแบบร่างและแผนแก้ไข (ส่งตามช่องทางที่ครูกำหนด)</p>
 <input type="text" data-k="link" placeholder="ลิงก์ GitHub หรือเว็บที่ deploy" style="margin-bottom:8px"><textarea data-k="summary" rows="3" placeholder="สรุปผล / ปัญหาที่พบ (ถ้ามี)"></textarea></div>
 <div class="card"><h2>เกณฑ์การให้คะแนน</h2><table><tr><td>หน้าจอครบตามแบบร่างและเปลี่ยนหน้าได้ตามแผนผัง</td><td>4</td></tr><tr><td>แยกไฟล์ ข้อมูลอยู่ที่กลาง และใช้ธีมร่วมกันได้ถูกต้อง</td><td>3</td></tr><tr><td>ตารางทดสอบ use case ภาพ ลิงก์ และแผนแก้ไขครบ</td><td>3</td></tr><tr><td><b>รวม</b></td><td><b>10</b></td></tr></table></div>

@@ -21,10 +21,101 @@ pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:a
 <h1>ใบงานที่ 4.3 แสดงรายการ ค้นหา และลบรายการ</h1><div class="mu">เวลา 120 นาที · งานเดี่ยว · คะแนนเต็ม 10</div>
 <div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
 <div class="card"><h2>จุดประสงค์</h2>แสดงรายการข้อมูลด้วย IonList พร้อมช่องค้นหา การลบรายการ และสถานะรายการว่าง โดยไม่แก้ state ตรง ๆ</div>
-<div class="card"><h2>คำชี้แจง</h2>สร้างหน้ารายการของแอปตนเองจากโค้ดตั้งต้น แล้วปรับข้อมูลและคอมโพเนนต์ให้ตรงกับแบบร่าง ตอนนี้ข้อมูลอยู่ในหน่วยความจำของหน้าและหายเมื่อรีเฟรช (เก็บถาวรในหน่วยที่ 6)</div>
+<div class="card"><h2>คำชี้แจง</h2>ใบงานนี้ต้องรัน ionic serve ค้างไว้ และเปิดโปรเจกต์ใน VS Code ทุกขั้นที่ "วางโค้ดทั้งไฟล์" ให้คลิกในไฟล์ กด Ctrl+A แล้ว Delete ก่อนวาง ใบงานนี้สร้างหน้ารายการเป็นไฟล์ใหม่ชื่อ ItemList.tsx ทีละขั้น (รายการ ค้นหา ลบ) แล้วเปิดดูที่เส้นทาง /list</div>
 
 <div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>ผลงานใบงาน 4.1 และ 4.2</li><li>ใบความรู้ที่ 3 หัวข้อ useState และใบความรู้ที่ 4 หัวข้อรายการ</li></ul></div>
-<div class="card"><h2>โค้ดตั้งต้น</h2><div class="mu">คัดลอกไปวางในไฟล์ที่ระบุในโค้ด</div><pre id="code">import { useState } from 'react';
+
+<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>สร้างไฟล์ src/pages/ItemList.tsx วางโค้ดขั้นที่ 1 นี้ กด Ctrl+S ขั้นนี้แสดงรายการอย่างเดียว</p><div class="fl">ไฟล์ <code>src/pages/ItemList.tsx</code></div><pre class="sc" id="sc0">import { IonContent, IonHeader, IonItem, IonLabel, IonList, IonNote, IonPage, IonTitle, IonToolbar } from '@ionic/react';
+
+interface Item { id: number; title: string; category: string; amount: number }
+
+const ITEMS: Item[] = [
+  { id: 1, title: 'ข้าวกลางวัน', category: 'อาหาร', amount: 60 },
+  { id: 2, title: 'ค่ารถ', category: 'เดินทาง', amount: 40 },
+  { id: 3, title: 'ซื้อสมุด', category: 'การเรียน', amount: 85 },
+  { id: 4, title: 'ชานมไข่มุก', category: 'อาหาร', amount: 55 },
+];
+
+const ItemList: React.FC = () =&gt; {
+  return (
+    &lt;IonPage&gt;
+      &lt;IonHeader&gt;
+        &lt;IonToolbar color="primary"&gt;
+          &lt;IonTitle&gt;รายการ&lt;/IonTitle&gt;
+        &lt;/IonToolbar&gt;
+      &lt;/IonHeader&gt;
+      &lt;IonContent&gt;
+        &lt;IonList&gt;
+          {ITEMS.map(i =&gt; (
+            &lt;IonItem key={i.id}&gt;
+              &lt;IonLabel&gt;
+                &lt;h2&gt;{i.title}&lt;/h2&gt;
+                &lt;p&gt;{i.category}&lt;/p&gt;
+              &lt;/IonLabel&gt;
+              &lt;IonNote slot="end"&gt;{i.amount} บาท&lt;/IonNote&gt;
+            &lt;/IonItem&gt;
+          ))}
+        &lt;/IonList&gt;
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default ItemList;</pre><button class="noprint cps" data-t="sc0" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ยังไม่เห็นผลบนหน้าเว็บ เพราะยังไม่มีเส้นทาง</div><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>เพิ่มเส้นทางใน src/App.tsx แบบเดียวกับใบงาน 4.2 คือ import ItemList from './pages/ItemList'; และ &lt;Route path="/list" element={&lt;ItemList /&gt;} /&gt; ใต้ Route ของ /home แล้ว Ctrl+S</p><div class="fl">ไฟล์ <code>src/App.tsx</code></div><pre class="sc" id="sc1">import ItemList from './pages/ItemList';
+
+&lt;Route path="/list" element={&lt;ItemList /&gt;} /&gt;</pre><button class="noprint cps" data-t="sc1" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีข้อความแดง</div><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>เปิด /list ในเบราว์เซอร์ (เปลี่ยนท้ายที่อยู่เป็น /list)</p><div class="see"><b>ผลที่ควรเห็น:</b> แถบหัว รายการ และแถวรายการ 4 แถว แต่ละแถวมีชื่อ (ตัวใหญ่) หมวด (ตัวเล็ก) และราคาชิดขวา</div><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>ขั้นที่ 2: ลบทั้งไฟล์ ItemList.tsx แล้ววางโค้ดนี้ ขั้นนี้เพิ่มช่องค้นหา</p><div class="fl">ไฟล์ <code>src/pages/ItemList.tsx</code></div><pre class="sc" id="sc3">import { useState } from 'react';
+import { IonContent, IonHeader, IonItem, IonLabel, IonList, IonNote, IonPage, IonSearchbar, IonTitle, IonToolbar } from '@ionic/react';
+
+interface Item { id: number; title: string; category: string; amount: number }
+
+const ITEMS: Item[] = [
+  { id: 1, title: 'ข้าวกลางวัน', category: 'อาหาร', amount: 60 },
+  { id: 2, title: 'ค่ารถ', category: 'เดินทาง', amount: 40 },
+  { id: 3, title: 'ซื้อสมุด', category: 'การเรียน', amount: 85 },
+  { id: 4, title: 'ชานมไข่มุก', category: 'อาหาร', amount: 55 },
+];
+
+const ItemList: React.FC = () =&gt; {
+  const [query, setQuery] = useState('');
+
+  const visible = ITEMS.filter(i =&gt; i.title.includes(query) || i.category.includes(query));
+
+  return (
+    &lt;IonPage&gt;
+      &lt;IonHeader&gt;
+        &lt;IonToolbar color="primary"&gt;
+          &lt;IonTitle&gt;รายการ ({visible.length})&lt;/IonTitle&gt;
+        &lt;/IonToolbar&gt;
+        &lt;IonToolbar&gt;
+          &lt;IonSearchbar
+            value={query}
+            placeholder="ค้นหาชื่อหรือหมวด"
+            onIonInput={e =&gt; setQuery(String(e.detail.value ?? ''))}
+          /&gt;
+        &lt;/IonToolbar&gt;
+      &lt;/IonHeader&gt;
+      &lt;IonContent&gt;
+        {visible.length === 0 ? (
+          &lt;p className="ion-padding ion-text-center"&gt;ไม่พบรายการ&lt;/p&gt;
+        ) : (
+          &lt;IonList&gt;
+            {visible.map(i =&gt; (
+              &lt;IonItem key={i.id}&gt;
+                &lt;IonLabel&gt;
+                  &lt;h2&gt;{i.title}&lt;/h2&gt;
+                  &lt;p&gt;{i.category}&lt;/p&gt;
+                &lt;/IonLabel&gt;
+                &lt;IonNote slot="end"&gt;{i.amount} บาท&lt;/IonNote&gt;
+              &lt;/IonItem&gt;
+            ))}
+          &lt;/IonList&gt;
+        )}
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default ItemList;</pre><button class="noprint cps" data-t="sc3" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ใต้แถบหัวมีช่องค้นหาสีเทา และหัวข้อเป็น รายการ (4)</div><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>พิมพ์คำว่า อาหาร ในช่องค้นหา</p><div class="see"><b>ผลที่ควรเห็น:</b> เหลือ 2 แถว (ข้าวกลางวัน ชานมไข่มุก) และหัวข้อเป็น รายการ (2)</div><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>พิมพ์ข้อความที่ไม่มีในรายการ เช่น zzz</p><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีแถวเลย และขึ้นข้อความ ไม่พบรายการ กึ่งกลางหน้า</div><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>ลบข้อความในช่องค้นหา (กด x ในช่อง)</p><div class="see"><b>ผลที่ควรเห็น:</b> รายการกลับมาครบ 4 แถว</div><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c7"><span class="n">8</span></label><div class="body"><p>อ่านโค้ดการค้นหา: หาบรรทัด const visible = ITEMS.filter(...) แล้วเขียนในช่องบันทึกว่า ทำไมไม่เก็บ visible เป็น state (ใบความรู้ที่ 4 หัวข้อรายการ)</p><div class="see"><b>ผลที่ควรเห็น:</b> ตอบได้ว่า visible คำนวณจาก ITEMS กับ query ได้เสมอ ไม่ต้องเก็บซ้ำ ไม่เช่นนั้นลืมอัปเดตได้</div><textarea data-k="n7" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c8"><span class="n">9</span></label><div class="body"><p>ขั้นที่ 3: ลบทั้งไฟล์แล้ววางโค้ดสมบูรณ์นี้ ขั้นนี้ข้อมูลเปลี่ยนเป็น state และเพิ่มการลบด้วยการปัดแถว</p><div class="fl">ไฟล์ <code>src/pages/ItemList.tsx</code></div><pre class="sc" id="sc8">import { useState } from 'react';
 import {
   IonContent, IonHeader, IonItem, IonItemOption, IonItemOptions, IonItemSliding, IonLabel, IonList,
   IonNote, IonPage, IonSearchbar, IonTitle, IonToolbar,
@@ -89,9 +180,28 @@ const ItemList: React.FC = () =&gt; {
   );
 };
 
-export default ItemList;</pre><button class="noprint" id="cp">คัดลอกโค้ด</button></div>
-<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>วางโค้ดตั้งต้นในไฟล์หน้าใหม่ (เช่น src/pages/ItemList.tsx) และทดสอบการค้นหาและการลบ (ใช้เมาส์ลากรายการไปทางซ้ายเพื่อให้ปุ่มลบปรากฏ)</p><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>ปรับข้อมูลและแถวรายการให้ตรงกับแอปของตนเองตามแบบร่าง (ข้อมูลอย่างน้อย 5 รายการ)</p><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>เพิ่มส่วนสรุปด้านบนหรือล่างของรายการ เช่น ผลรวมหรือจำนวนรายการ โดยคำนวณจากข้อมูลโดยตรง ไม่เก็บเป็น state แยก</p><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>เพิ่มการเพิ่มรายการ: ปุ่มลอย (IonFab) ที่เพิ่มรายการใหม่ในรายการด้วย setItems([...items, รายการใหม่]) ใช้ id ที่ไม่ซ้ำ (เช่น Date.now())</p><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>เพิ่มการยืนยันก่อนลบ ด้วย useIonAlert (แสดงกล่องถามยืนยัน ปุ่ม ยกเลิก และ ลบ) ศึกษาวิธีใช้จากเอกสาร Ionic</p><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>ปรับข้อความสถานะว่างให้บอกผู้ใช้ว่าทำอะไรต่อได้ (เช่น "ยังไม่มีรายการ กดปุ่ม + เพื่อเพิ่ม") และทดสอบทั้งสถานะว่างจากการค้นหาและจากการลบจนหมด</p><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>ถ่ายภาพหน้าจอ 3 ภาพ (มีรายการ ผลการค้นหา สถานะว่าง) และเขียนอธิบายสั้น ๆ ว่าเหตุใดต้องมี key และเหตุใดผลรวมไม่ควรเก็บเป็น state แยก</p><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
-<div class="card"><h2>คำแนะนำ</h2><ul><li>ห้ามใช้ items.push(...) หรือแก้ค่าในอาร์เรย์ตรง ๆ ให้สร้างอาร์เรย์ใหม่ด้วย spread หรือ filter</li><li>ถ้าลบแล้วรายการสลับตำแหน่งแปลก ๆ ให้ตรวจว่า key เป็น id ไม่ใช่ลำดับ (index)</li><li>IonItemSliding ใช้ได้ดีบนมือถือ บนคอมพิวเตอร์ให้ใช้เมาส์ลาก</li></ul></div>
+export default ItemList;</pre><button class="noprint cps" data-t="sc8" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> หน้าตาเหมือนขั้นที่ 2</div><textarea data-k="n8" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c9"><span class="n">10</span></label><div class="body"><p>ทดสอบการลบ: ใช้เมาส์คลิกค้างที่แถว ซื้อสมุด แล้วลากไปทางซ้าย (บนมือถือใช้นิ้วปัด)</p><div class="see"><b>ผลที่ควรเห็น:</b> แถวเลื่อนออก เผยปุ่มสีแดงเขียนว่า ลบ ด้านขวา</div><textarea data-k="n9" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c10"><span class="n">11</span></label><div class="body"><p>กดปุ่ม ลบ</p><div class="see"><b>ผลที่ควรเห็น:</b> แถว ซื้อสมุด หายไป และหัวข้อเปลี่ยนเป็น รายการ (3)</div><textarea data-k="n10" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c11"><span class="n">12</span></label><div class="body"><p>ขยายด้วยการแก้ทีละจุด 1: แสดงยอดรวมในหัวข้อ ที่หน้า ItemList.tsx ให้เพิ่มบรรทัดนี้ ใต้บรรทัด const visible = ...</p><div class="fl">ไฟล์ <code>src/pages/ItemList.tsx</code></div><pre class="sc" id="sc11">const visible = items.filter(i =&gt; i.title.includes(query) || i.category.includes(query));
+
+const total = visible.reduce((sum, i) =&gt; sum + i.amount, 0);</pre><button class="noprint cps" data-t="sc11" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ยังไม่เห็นผล (ยังไม่ได้แสดง total)</div><textarea data-k="n11" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c12"><span class="n">13</span></label><div class="body"><p>แล้วแก้ IonTitle เป็นบรรทัดนี้</p><div class="fl">ไฟล์ <code>src/pages/ItemList.tsx</code></div><pre class="sc" id="sc12">&lt;IonTitle&gt;รายการ ({visible.length}) รวม {total} บาท&lt;/IonTitle&gt;</pre><button class="noprint cps" data-t="sc12" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> หัวข้อเป็น รายการ (4) รวม 240 บาท และเมื่อค้นหา อาหาร เป็น รายการ (2) รวม 115 บาท</div><textarea data-k="n12" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c13"><span class="n">14</span></label><div class="body"><p>ขยาย 2: เพิ่มปุ่มลอยเพิ่มรายการ ขั้นแรก แก้บรรทัด import ด้านบนสุดให้เพิ่ม IonFab, IonFabButton, IonIcon และเพิ่มบรรทัด import ไอคอน (ทำ 2 จุดในเนื้อหาเดียวกัน)</p><div class="fl">ไฟล์ <code>src/pages/ItemList.tsx</code></div><pre class="sc" id="sc13">  IonFab, IonFabButton, IonIcon, IonNote, IonPage, IonSearchbar, IonTitle, IonToolbar,
+} from '@ionic/react';
+import { add } from 'ionicons/icons';</pre><button class="noprint cps" data-t="sc13" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ยังเหมือนเดิม</div><textarea data-k="n13" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c14"><span class="n">15</span></label><div class="body"><p>ขั้นสอง: เพิ่มฟังก์ชันเพิ่มรายการใต้ฟังก์ชัน remove</p><div class="fl">ไฟล์ <code>src/pages/ItemList.tsx</code></div><pre class="sc" id="sc14">function addSample() {
+  setItems([{ id: Date.now(), title: 'รายการใหม่', category: 'อื่น ๆ', amount: 10 }, ...items]);
+}</pre><button class="noprint cps" data-t="sc14" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ยังเหมือนเดิม</div><textarea data-k="n14" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c15"><span class="n">16</span></label><div class="body"><p>ขั้นสาม: วางปุ่มลอยไว้ก่อนบรรทัด &lt;/IonContent&gt;</p><div class="fl">ไฟล์ <code>src/pages/ItemList.tsx</code></div><pre class="sc" id="sc15">&lt;IonFab slot="fixed" vertical="bottom" horizontal="end"&gt;
+  &lt;IonFabButton onClick={addSample}&gt;
+    &lt;IonIcon icon={add} /&gt;
+  &lt;/IonFabButton&gt;
+&lt;/IonFab&gt;</pre><button class="noprint cps" data-t="sc15" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> มีปุ่มกลมเครื่องหมาย + มุมขวาล่าง กดแล้วมีรายการ รายการใหม่ 10 บาท อยู่บนสุดของรายการ และยอดรวมเพิ่มขึ้น 10 บาท</div><textarea data-k="n15" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c16"><span class="n">17</span></label><div class="body"><p>ขยาย 3: ถามยืนยันก่อนลบ แก้ import เพิ่ม useIonAlert ท้ายรายการ</p><div class="fl">ไฟล์ <code>src/pages/ItemList.tsx</code></div><pre class="sc" id="sc16">IonSearchbar, IonTitle, IonToolbar, useIonAlert,</pre><button class="noprint cps" data-t="sc16" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ยังเหมือนเดิม</div><textarea data-k="n16" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c17"><span class="n">18</span></label><div class="body"><p>เพิ่มตัวแปรและฟังก์ชันถามยืนยัน ต่อจากบรรทัด const [query, setQuery] = useState('');</p><div class="fl">ไฟล์ <code>src/pages/ItemList.tsx</code></div><pre class="sc" id="sc17">const [presentAlert] = useIonAlert();
+
+function confirmRemove(item: Item) {
+  presentAlert({
+    header: 'ลบรายการ?',
+    message: `ต้องการลบ ${item.title} ใช่ไหม`,
+    buttons: ['ยกเลิก', { text: 'ลบ', role: 'destructive', handler: () =&gt; remove(item.id) }],
+  });
+}</pre><button class="noprint cps" data-t="sc17" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ยังเหมือนเดิม</div><textarea data-k="n17" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c18"><span class="n">19</span></label><div class="body"><p>ให้ปุ่มลบเรียกฟังก์ชันใหม่ แก้บรรทัด IonItemOption</p><div class="fl">ไฟล์ <code>src/pages/ItemList.tsx</code></div><pre class="sc" id="sc18">&lt;IonItemOption color="danger" onClick={() =&gt; confirmRemove(i)}&gt;ลบ&lt;/IonItemOption&gt;</pre><button class="noprint cps" data-t="sc18" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ปัดแถวแล้วกด ลบ จะมีกล่องถาม ลบรายการ? พร้อมปุ่ม ยกเลิก และ ลบ กด ยกเลิก รายการอยู่ กด ลบ รายการหาย</div><textarea data-k="n18" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c19"><span class="n">20</span></label><div class="body"><p>ปรับข้อความรายการว่างให้บอกว่าทำอะไรต่อ แก้บรรทัด &lt;p className="ion-padding ion-text-center"&gt;ไม่พบรายการ&lt;/p&gt;</p><div class="fl">ไฟล์ <code>src/pages/ItemList.tsx</code></div><pre class="sc" id="sc19">&lt;p className="ion-padding ion-text-center"&gt;{query ? 'ไม่พบรายการที่ตรงกับคำค้น' : 'ยังไม่มีรายการ กดปุ่ม + เพื่อเพิ่ม'}&lt;/p&gt;</pre><button class="noprint cps" data-t="sc19" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ค้นหา zzz ขึ้น ไม่พบรายการที่ตรงกับคำค้น ลบทุกรายการแล้วขึ้น ยังไม่มีรายการ กดปุ่ม + เพื่อเพิ่ม</div><textarea data-k="n19" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c20"><span class="n">21</span></label><div class="body"><p>ปรับข้อมูลและแถวให้ตรงกับแอปของตนเอง: แก้ INITIAL ให้มีข้อมูลของแอปคุณอย่างน้อย 5 รายการ และปรับฟิลด์ที่แสดงตาม wireframe</p><div class="see"><b>ผลที่ควรเห็น:</b> รายการแสดงข้อมูลของแอปคุณ อย่างน้อย 5 แถว</div><textarea data-k="n20" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c21"><span class="n">22</span></label><div class="body"><p>ถ่ายภาพหน้าจอ 3 ภาพ: มีรายการ ผลการค้นหา และสถานะว่าง (ลบจนหมด)</p><div class="see"><b>ผลที่ควรเห็น:</b> ได้ภาพครบ 3 ภาพ</div><textarea data-k="n21" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c22"><span class="n">23</span></label><div class="body"><p>เขียนในช่องบันทึก 2 ข้อ: (1) ทำไมแต่ละแถวต้องมี key และทำไมใช้ id ดีกว่าลำดับ (2) ทำไมยอดรวมไม่ควรเก็บเป็น state แยก</p><div class="see"><b>ผลที่ควรเห็น:</b> ตอบได้ทั้งสองข้อด้วยคำพูดของตนเอง</div><textarea data-k="n22" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c23"><span class="n">24</span></label><div class="body"><p>ส่งงานขึ้น GitHub: เทอร์มินัลใหม่ พิมพ์ทีละบรรทัด</p><pre class="sc" id="sc23">git add .
+git commit -m "4.3 item list search delete"
+git push</pre><button class="noprint cps" data-t="sc23" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้น Writing objects ... done</div><textarea data-k="n23" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
+<div class="card"><h2>คำแนะนำ</h2><ul><li>ห้ามใช้ items.push(...) หรือแก้อาเรย์ตรง ๆ ให้สร้างอาเรย์ใหม่ด้วย filter หรือ spread</li><li>ถ้าปัดแถวไม่ออกบนคอมพิวเตอร์ ให้ใช้เมาส์คลิกค้างแล้วลาก ไม่ใช่คลิกเฉย ๆ</li><li>ถ้าหน้าขาวหลังแก้ ให้กด Ctrl+Z ทีละขั้นกลับไปจนหน้ากลับมา แล้วอ่านข้อความแดงในเทอร์มินัลบอกบรรทัดที่ผิด</li></ul></div>
 <div class="card"><h2>สิ่งที่ต้องส่ง</h2><p>ลิงก์ GitHub + ภาพหน้าจอ 3 ภาพ + คำอธิบายสั้น ๆ ตามข้อ 7 (ส่งตามช่องทางที่ครูกำหนด)</p>
 <input type="text" data-k="link" placeholder="ลิงก์ GitHub หรือเว็บที่ deploy" style="margin-bottom:8px"><textarea data-k="summary" rows="3" placeholder="สรุปผล / ปัญหาที่พบ (ถ้ามี)"></textarea></div>
 <div class="card"><h2>เกณฑ์การให้คะแนน</h2><table><tr><td>เพิ่มและลบรายการด้วย spread/filter ถูกต้อง ไม่แก้ state ตรง ๆ</td><td>4</td></tr><tr><td>ค้นหา ใช้ key สถานะรายการว่าง และส่วนสรุปถูกต้อง</td><td>3</td></tr><tr><td>ภาพ ลิงก์ และคำอธิบายครบถ้วน</td><td>3</td></tr><tr><td><b>รวม</b></td><td><b>10</b></td></tr></table></div>

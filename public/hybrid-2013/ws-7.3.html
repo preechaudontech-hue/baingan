@@ -21,10 +21,11 @@ pre{background:var(--cb);color:#e2e8f0;padding:12px;border-radius:8px;overflow:a
 <h1>ใบงานที่ 7.3 เชื่อมแอปของฉันกับ API และเก็บสำเนาในเครื่อง</h1><div class="mu">เวลา 180 นาที · งานเดี่ยว · คะแนนเต็ม 10</div>
 <div class="card"><div class="id"><input type="text" data-k="name" placeholder="ชื่อ-สกุล"><input type="text" data-k="code" placeholder="รหัสนักเรียน"><input type="text" data-k="room" placeholder="ห้อง"></div></div>
 <div class="card"><h2>จุดประสงค์</h2>เชื่อมแอปของตนเองกับ API ภายนอกอย่างน้อย 1 รายการ และเก็บสำเนาข้อมูลในเครื่องเพื่อใช้ตอนออฟไลน์ พร้อมแสดงเวลาที่อัปเดตล่าสุด</div>
-<div class="card"><h2>คำชี้แจง</h2>เลือก API ที่เกี่ยวข้องกับแอปของตนเอง แล้วเชื่อมเข้ากับแอป โดยใช้ฟังก์ชัน fetchWithCache ที่ให้มาเพื่อเก็บสำเนา ถ้าครูจัด API ของวิชาไว้ ให้ใช้ API นั้นแทน</div>
+<div class="card"><h2>คำชี้แจง</h2>ionic serve ต้องรันอยู่ และต้องต่ออินเทอร์เน็ต ทุกขั้นที่ "วางโค้ดทั้งไฟล์" ให้ลบของเดิมก่อนด้วย Ctrl+A แล้ว Delete ใบงานนี้ตัวอย่างใช้ PokeAPI (รายชื่อโปเกมอน) เพื่อฝึกเก็บสำเนาข้อมูลไว้แสดงตอนออฟไลน์ แล้วนำวิธีเดียวกันไปใช้กับ API ที่เกี่ยวข้องกับแอปของคุณ ทำใบงาน 6.1 และ 7.1 ให้เสร็จก่อน</div>
 
 <div class="card"><h2>สิ่งที่ต้องเตรียม</h2><ul><li>ผลงานใบงาน 6.3 และ 7.1 - 7.2</li><li>ใบความรู้ที่ 7 หัวข้อเครือข่ายที่ไม่แน่นอน และการอ่านเอกสาร API</li></ul></div>
-<div class="card"><h2>โค้ดตั้งต้น</h2><div class="mu">คัดลอกไปวางในไฟล์ที่ระบุในโค้ด</div><pre id="code">// src/api/cache.ts
+
+<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>ตรวจว่ามีไฟล์ src/api/http.ts จากใบงาน 7.1 และติดตั้งปลั๊กอิน Preferences แล้ว (ใบงาน 6.1) ถ้ายังไม่ได้ ให้ทำตามใบงานเหล่านั้นก่อน</p><div class="see"><b>ผลที่ควรเห็น:</b> มีไฟล์ http.ts และคำสั่ง npm install @capacitor/preferences จบโดยไม่มี ERR</div><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>สร้างไฟล์ src/api/cache.ts วางโค้ดนี้ทั้งไฟล์ กด Ctrl+S (ฟังก์ชัน fetchWithCache โหลดจากเครือข่าย ถ้าล้มเหลวใช้สำเนาที่เก็บไว้)</p><div class="fl">ไฟล์ <code>src/api/cache.ts</code></div><pre class="sc" id="sc1">// src/api/cache.ts
 import { Preferences } from '@capacitor/preferences';
 
 interface Cached&lt;T&gt; { savedAt: number; data: T }
@@ -55,8 +56,75 @@ export async function fetchWithCache&lt;T&gt;(key: string, load: () =&gt; Promis
 // TODO: เขียนฟังก์ชันแปลงเวลา savedAt เป็นข้อความ เช่น "อัปเดตเมื่อ 5 นาทีที่แล้ว" หรือ "อัปเดตเมื่อ 14:30"
 export function timeAgo(savedAt: number): string {
   return String(savedAt);
-}</pre><button class="noprint" id="cp">คัดลอกโค้ด</button></div>
-<div class="card"><h2>ขั้นตอนการปฏิบัติ</h2><div class="bar"><i id="bar"></i></div><div class="mu" id="pct" style="margin-bottom:6px"></div><ol class="s"><li class="step"><label class="chk"><input type="checkbox" data-k="c0"><span class="n">1</span></label><div class="body"><p>เลือก API ที่เกี่ยวข้องกับแอปของตนเอง 1 รายการ ตัวเลือกที่ใช้ได้โดยไม่ต้องสมัคร: Open-Meteo (สภาพอากาศ) PokeAPI (pokeapi.co/api/v2/pokemon ข้อมูลโปเกมอน) หรือ Open Library (openlibrary.org/search.json หนังสือ) หรือ API ที่ครูกำหนด แล้วเขียนสรุปเอกสาร API ตามตารางในใบความรู้ (Base URL, endpoint ที่ใช้, พารามิเตอร์, ตัวอย่างคำตอบ, การยืนยันตัวตน, ขีดจำกัด, เงื่อนไขการใช้งาน)</p><textarea data-k="n0" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c1"><span class="n">2</span></label><div class="body"><p>ทดสอบเรียก API ด้วยเบราว์เซอร์หรือ DevTools ก่อนเขียนโค้ด แล้วกำหนด interface ของคำตอบ โดยระบุฟิลด์ที่อาจไม่มีเป็น optional</p><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>สร้างไฟล์ src/api/cache.ts จากโค้ดตั้งต้น เขียนฟังก์ชัน timeAgo ให้แสดงเวลาที่อัปเดตล่าสุดเป็นภาษาไทย</p><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>สร้างฟังก์ชันเรียก API ของแอปตนเองด้วย getJson และห่อด้วย fetchWithCache ใช้ในหน้าจอ แสดงสถานะ กำลังโหลด ผิดพลาด ว่าง และข้อความ "กำลังแสดงข้อมูลเก่า อัปเดตเมื่อ ..." เมื่อ fromCache เป็น true</p><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>เพิ่มปุ่มโหลดใหม่ และป้องกันการกดซ้ำขณะโหลด ยกเลิกคำขอเมื่อออกจากหน้า</p><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>ทดสอบ 3 สถานการณ์: ออนไลน์ครั้งแรก, ออนไลน์ครั้งที่สอง, และออฟไลน์ (ใช้ Offline ใน DevTools) แล้วรีเฟรชต้องยังเห็นข้อมูลเดิมพร้อมข้อความ ถ่ายภาพทุกสถานการณ์ และทดสอบกรณีออฟไลน์ตั้งแต่ยังไม่เคยโหลด (ต้องแจ้งข้อผิดพลาดที่เข้าใจได้)</p><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>ตรวจความปลอดภัยของแอป: ตรวจว่าไม่มีกุญแจลับในโค้ด ใช้ HTTPS ทุกที่ และเขียนรายการข้อมูลที่แอปส่งออกไปยัง API (เช่น พิกัด ชื่อเมือง) พร้อมเหตุผลที่จำเป็น</p><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c7"><span class="n">8</span></label><div class="body"><p>เขียนสรุปสิ่งที่ยังไม่สมบูรณ์ และแผนแก้ไข 3 ข้อ</p><textarea data-k="n7" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
+}</pre><button class="noprint cps" data-t="sc1" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีข้อความแดง</div><textarea data-k="n1" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c2"><span class="n">3</span></label><div class="body"><p>อ่านโค้ด fetchWithCache: หา 2 ส่วน try ... catch แล้วเขียนในช่องบันทึกว่าลำดับการทำงานเป็นอย่างไรเมื่อ (ก) โหลดสำเร็จ (ข) โหลดล้มเหลวแต่มีสำเนา (ค) โหลดล้มเหลวและไม่มีสำเนา</p><div class="see"><b>ผลที่ควรเห็น:</b> ตอบได้ว่า (ก) เก็บสำเนาแล้วคืนข้อมูลใหม่ (ข) คืนข้อมูลสำเนาพร้อม fromCache เป็น true (ค) โยนข้อผิดพลาดเดิม</div><textarea data-k="n2" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c3"><span class="n">4</span></label><div class="body"><p>เขียนฟังก์ชัน timeAgo ที่ยังเป็นโค้ดชั่วคราว (คืนตัวเลขดิบ) แทนบรรทัด return String(savedAt); ด้วยโค้ดนี้</p><div class="fl">ไฟล์ <code>src/api/cache.ts</code></div><pre class="sc" id="sc3">const minutes = Math.floor((Date.now() - savedAt) / 60000);
+if (minutes &lt; 1) return 'อัปเดตเมื่อสักครู่';
+if (minutes &lt; 60) return `อัปเดตเมื่อ ${minutes} นาทีที่แล้ว`;
+const hours = Math.floor(minutes / 60);
+if (hours &lt; 24) return `อัปเดตเมื่อ ${hours} ชั่วโมงที่แล้ว`;
+return `อัปเดตเมื่อ ${new Date(savedAt).toLocaleDateString('th-TH')}`;</pre><button class="noprint cps" data-t="sc3" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีข้อความแดง</div><textarea data-k="n3" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c4"><span class="n">5</span></label><div class="body"><p>สร้างหน้าตัวอย่าง src/pages/Pokedex.tsx วางโค้ดนี้ทั้งไฟล์ (เรียก PokeAPI ผ่าน fetchWithCache) กด Ctrl+S</p><div class="fl">ไฟล์ <code>src/pages/Pokedex.tsx</code></div><pre class="sc" id="sc4">import { useEffect, useState } from 'react';
+import { IonButton, IonContent, IonHeader, IonItem, IonLabel, IonList, IonPage, IonTitle, IonToolbar } from '@ionic/react';
+import { getJson } from '../api/http';
+import { fetchWithCache, timeAgo } from '../api/cache';
+
+interface PokemonList { results: { name: string; url: string }[] }
+
+const Pokedex: React.FC = () =&gt; {
+  const [names, setNames] = useState&lt;string[]&gt;([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [oldInfo, setOldInfo] = useState('');
+
+  async function load() {
+    setLoading(true);
+    setError('');
+    setOldInfo('');
+    try {
+      const r = await fetchWithCache('pokemon-list', () =&gt; getJson&lt;PokemonList&gt;('https://pokeapi.co/api/v2/pokemon?limit=10'));
+      setNames(r.data.results.map(p =&gt; p.name));
+      if (r.fromCache) setOldInfo(`กำลังแสดงข้อมูลเก่า ${timeAgo(r.savedAt)}`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() =&gt; {
+    load();
+  }, []);
+
+  return (
+    &lt;IonPage&gt;
+      &lt;IonHeader&gt;
+        &lt;IonToolbar color="primary"&gt;
+          &lt;IonTitle&gt;โปเกมอน ({names.length})&lt;/IonTitle&gt;
+        &lt;/IonToolbar&gt;
+      &lt;/IonHeader&gt;
+      &lt;IonContent className="ion-padding"&gt;
+        &lt;IonButton expand="block" onClick={load} disabled={loading}&gt;โหลดใหม่&lt;/IonButton&gt;
+
+        {loading &amp;&amp; &lt;p&gt;กำลังโหลด...&lt;/p&gt;}
+        {oldInfo &amp;&amp; &lt;p&gt;{oldInfo}&lt;/p&gt;}
+        {error &amp;&amp; &lt;p&gt;{error}&lt;/p&gt;}
+
+        &lt;IonList&gt;
+          {names.map(n =&gt; (
+            &lt;IonItem key={n}&gt;
+              &lt;IonLabel&gt;{n}&lt;/IonLabel&gt;
+            &lt;/IonItem&gt;
+          ))}
+        &lt;/IonList&gt;
+        &lt;p&gt;ข้อมูลจาก PokeAPI (pokeapi.co)&lt;/p&gt;
+      &lt;/IonContent&gt;
+    &lt;/IonPage&gt;
+  );
+};
+
+export default Pokedex;</pre><button class="noprint cps" data-t="sc4" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ยังไม่เห็นผลบนหน้าเว็บ</div><textarea data-k="n4" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c5"><span class="n">6</span></label><div class="body"><p>เพิ่มเส้นทางใน src/App.tsx 2 จุด จุดแรกใต้บรรทัด import Home from './pages/Home'; เพิ่ม import Pokedex from './pages/Pokedex'; จุดที่สองใต้บรรทัด &lt;Route path="/home" element={&lt;Home /&gt;} /&gt; เพิ่ม &lt;Route path="/pokedex" element={&lt;Pokedex /&gt;} /&gt; แล้วกด Ctrl+S</p><div class="fl">ไฟล์ <code>src/App.tsx</code></div><pre class="sc" id="sc5">import Pokedex from './pages/Pokedex';
+
+&lt;Route path="/pokedex" element={&lt;Pokedex /&gt;} /&gt;</pre><button class="noprint cps" data-t="sc5" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ไม่มีข้อความแดงในเทอร์มินัล</div><textarea data-k="n5" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c6"><span class="n">7</span></label><div class="body"><p>เปิดที่อยู่ /pokedex ในเบราว์เซอร์</p><div class="see"><b>ผลที่ควรเห็น:</b> แถบหัว โปเกมอน (10) รายการชื่อ 10 ชื่อ (bulbasaur, ivysaur, venusaur ...) และข้อความ ข้อมูลจาก PokeAPI (pokeapi.co) ปุ่ม โหลดใหม่</div><textarea data-k="n6" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c7"><span class="n">8</span></label><div class="body"><p>ดูสำเนาที่เก็บไว้: กด F12 แท็บ Application เปิด Local Storage หาคีย์ CapacitorStorage.pokemon-list</p><div class="see"><b>ผลที่ควรเห็น:</b> เห็นค่าเป็น JSON มีฟิลด์ savedAt (ตัวเลขเวลา) และ data ที่มีรายชื่อโปเกมอน ถ่ายภาพ</div><textarea data-k="n7" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c8"><span class="n">9</span></label><div class="body"><p>ทดสอบออฟไลน์ ขั้นที่ 1: ที่แท็บ Network ตั้งเป็น Offline</p><div class="see"><b>ผลที่ควรเห็น:</b> ยังไม่มีอะไรเปลี่ยนบนหน้า</div><textarea data-k="n8" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c9"><span class="n">10</span></label><div class="body"><p>ขั้นที่ 2: กดปุ่ม โหลดใหม่</p><div class="see"><b>ผลที่ควรเห็น:</b> ข้อมูลยังแสดงครบ 10 ชื่อ และมีข้อความ กำลังแสดงข้อมูลเก่า อัปเดตเมื่อ ... (เช่น สักครู่ หรือ กี่นาทีที่แล้ว) แทนที่จะขึ้นข้อผิดพลาด</div><textarea data-k="n9" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c10"><span class="n">11</span></label><div class="body"><p>ขั้นที่ 3: กด F5 รีเฟรชหน้าทั้งที่ยัง Offline</p><div class="see"><b>ผลที่ควรเห็น:</b> ข้อมูลยังแสดงจากสำเนาพร้อมข้อความข้อมูลเก่า (สำเนาอยู่รอดหลังรีเฟรช) ถ่ายภาพ</div><textarea data-k="n10" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c11"><span class="n">12</span></label><div class="body"><p>ทดสอบออฟไลน์ครั้งแรกที่ไม่มีสำเนา: ตั้งยัง Offline แล้วลบคีย์ CapacitorStorage.pokemon-list ใน Local Storage (คลิกขวาที่รายการ เลือก Delete) แล้วกด F5</p><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้นข้อความ เชื่อมต่อเครือข่ายไม่ได้ และไม่มีรายชื่อ (ไม่มีสำเนาให้ใช้) จากนั้นตั้ง Network กลับเป็น No throttling แล้วกด โหลดใหม่ ข้อมูลกลับมา</div><textarea data-k="n11" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c12"><span class="n">13</span></label><div class="body"><p>เลือก API สำหรับแอปของคุณ 1 รายการที่เกี่ยวข้องกับเรื่องของแอป ตัวเลือกที่ใช้ได้โดยไม่ต้องสมัคร: Open-Meteo, PokeAPI หรือ Open Library (openlibrary.org/search.json) หรือ API ที่ครูกำหนด แล้วเขียนสรุปเอกสาร API ในไฟล์ Word ตามตารางในใบความรู้ (Base URL, endpoint ที่ใช้, พารามิเตอร์, ตัวอย่างคำตอบ, การยืนยันตัวตน, ขีดจำกัด, เงื่อนไขการใช้งาน)</p><div class="see"><b>ผลที่ควรเห็น:</b> ได้สรุปเอกสาร API ที่ตอบครบทั้ง 7 หัวข้อ</div><textarea data-k="n12" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c13"><span class="n">14</span></label><div class="body"><p>ทดลองเรียก API ที่เลือกก่อนเขียนโค้ด: เปิดที่อยู่ของ endpoint ในแท็บใหม่ของเบราว์เซอร์ ดู JSON ที่ได้ แล้วกำหนด interface ของคำตอบ โดยฟิลด์ที่อาจไม่มีให้เป็น optional (มี ? )</p><div class="see"><b>ผลที่ควรเห็น:</b> ได้ interface ที่ตรงกับ JSON ที่เห็นจริง</div><textarea data-k="n13" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c14"><span class="n">15</span></label><div class="body"><p>สร้างหน้าของแอปคุณตามแบบ Pokedex.tsx: เรียก API ของคุณด้วย getJson ห่อด้วย fetchWithCache ใช้คีย์สำเนาที่แยกตามพารามิเตอร์ (เช่น weather-อุดรธานี) แสดงสถานะ กำลังโหลด ผิดพลาด และข้อมูลเก่า พร้อมปุ่มโหลดใหม่</p><div class="see"><b>ผลที่ควรเห็น:</b> หน้าของแอปคุณแสดงข้อมูลจาก API และทำงานตอนออฟไลน์ด้วยสำเนา</div><textarea data-k="n14" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c15"><span class="n">16</span></label><div class="body"><p>ทดสอบ 3 สถานการณ์กับหน้าของคุณ: ออนไลน์ครั้งแรก ออนไลน์ครั้งที่สอง และออฟไลน์ (แล้วรีเฟรช) ถ่ายภาพทุกสถานการณ์ และทดสอบออฟไลน์ตั้งแต่ยังไม่เคยโหลดด้วย</p><div class="see"><b>ผลที่ควรเห็น:</b> ได้ภาพ 4 ภาพ (3 สถานการณ์ + ออฟไลน์ครั้งแรก)</div><textarea data-k="n15" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c16"><span class="n">17</span></label><div class="body"><p>ตรวจความปลอดภัย: ค้นหาในโค้ดทั้งโปรเจกต์ว่ามีรหัสผ่านหรือกุญแจลับหรือไม่ ตรวจว่าทุก URL ของ API ใช้ https:// แล้วเขียนรายการข้อมูลที่แอปส่งออกไปยัง API (เช่น ชื่อเมือง พิกัด) พร้อมเหตุผลที่จำเป็น</p><div class="see"><b>ผลที่ควรเห็น:</b> ได้รายการข้อมูลที่ส่งออกและเหตุผล และไม่พบกุญแจลับในโค้ด</div><textarea data-k="n16" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li><li class="step"><label class="chk"><input type="checkbox" data-k="c17"><span class="n">18</span></label><div class="body"><p>เขียนสิ่งที่ยังไม่สมบูรณ์ของแอปและแผนแก้ไข 3 ข้อ แล้วส่งงานขึ้น GitHub</p><pre class="sc" id="sc17">git add .
+git commit -m "7.3 api with offline cache"
+git push</pre><button class="noprint cps" data-t="sc17" type="button">คัดลอกโค้ด</button><div class="see"><b>ผลที่ควรเห็น:</b> ขึ้น Writing objects ... done</div><textarea data-k="n17" rows="2" placeholder="บันทึกผล / ข้อความที่พบ (ถ้ามี)"></textarea></div></li></ol></div>
 <div class="card"><h2>คำแนะนำ</h2><ul><li>ใช้ key สำหรับเก็บสำเนาที่แยกตามพารามิเตอร์ของคำขอ เช่น weather-อุดรธานี ไม่เช่นนั้นข้อมูลของเมืองหนึ่งจะไปทับของอีกเมือง</li><li>ถ้า API ที่เลือกไม่อนุญาต CORS ให้เปลี่ยนไปเลือก API อื่น หรือปรึกษาครู</li><li>แสดงข้อมูลจากสำเนาด้วยความระมัดระวัง ต้องบอกผู้ใช้ชัดเจนว่าเป็นข้อมูลเก่า</li></ul></div>
 <div class="card"><h2>สิ่งที่ต้องส่ง</h2><p>ลิงก์ GitHub + สรุปเอกสาร API + ภาพหน้าจอ 3 สถานการณ์ (ออนไลน์ ข้อมูลเก่าตอนออฟไลน์ และออฟไลน์ครั้งแรก) + รายการข้อมูลที่ส่งออกและเหตุผล + สิ่งที่ยังไม่สมบูรณ์และแผนแก้ไข (ส่งตามช่องทางที่ครูกำหนด)</p>
 <input type="text" data-k="link" placeholder="ลิงก์ GitHub หรือเว็บที่ deploy" style="margin-bottom:8px"><textarea data-k="summary" rows="3" placeholder="สรุปผล / ปัญหาที่พบ (ถ้ามี)"></textarea></div>
